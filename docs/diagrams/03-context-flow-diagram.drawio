@@ -1,0 +1,67 @@
+<mxfile host="app.diagrams.net" type="device">
+  <diagram name="Fig 03 - Context Flow Diagram" id="ctx-dfd0">
+    <mxGraphModel dx="1100" dy="760" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="850" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Title -->
+        <mxCell id="title" value="&lt;b&gt;Figure 03 — Context Flow Diagram (DFD Level 0)&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#55697A&quot;&gt;BoardEase — CCE106/L&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;fontSize=14;fontColor=#0D1B26;" vertex="1" parent="1">
+          <mxGeometry x="60" y="600" width="420" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Central process -->
+        <mxCell id="sys" value="&lt;font color=&quot;#0369A1&quot;&gt;0&lt;/font&gt;&lt;br&gt;&lt;b&gt;BoardEase&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#55697A&quot; style=&quot;font-size:11px&quot;&gt;System&lt;/font&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#EEF4F7;strokeColor=#0369A1;strokeWidth=2;fontSize=14;fontColor=#0D1B26;" vertex="1" parent="1">
+          <mxGeometry x="450" y="280" width="180" height="180" as="geometry" />
+        </mxCell>
+
+        <!-- External entities -->
+        <mxCell id="tenant" value="&lt;b&gt;Tenant-Seeker&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#55697A&quot; style=&quot;font-size:11px&quot;&gt;student / young professional&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#55697A;fontSize=13;fontColor=#0D1B26;" vertex="1" parent="1">
+          <mxGeometry x="80" y="90" width="200" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="admin" value="&lt;b&gt;Administrator&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#55697A&quot; style=&quot;font-size:11px&quot;&gt;listing curator&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#55697A;fontSize=13;fontColor=#0D1B26;" vertex="1" parent="1">
+          <mxGeometry x="800" y="90" width="200" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="gps" value="&lt;b&gt;GPS / Location Service&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#55697A&quot; style=&quot;font-size:11px&quot;&gt;device satellite fix&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#55697A;fontSize=13;fontColor=#0D1B26;" vertex="1" parent="1">
+          <mxGeometry x="80" y="500" width="200" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="osm" value="&lt;b&gt;Map &amp;amp; Routing Service&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#55697A&quot; style=&quot;font-size:11px&quot;&gt;OpenStreetMap · OSRM&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#55697A;fontSize=13;fontColor=#0D1B26;" vertex="1" parent="1">
+          <mxGeometry x="800" y="500" width="200" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Flows -->
+        <mxCell id="f1" value="search criteria, filters, ratings, favorites" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#55697A;fontSize=11;fontColor=#55697A;exitX=1;exitY=0.5;entryX=0;entryY=0.25;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="tenant" target="sys">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="f2" value="ranked results, directions" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#55697A;fontSize=11;fontColor=#55697A;exitX=0;exitY=0.75;entryX=0.5;entryY=1;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="sys" target="tenant">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="f3" value="new listing, approve / reject" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#55697A;fontSize=11;fontColor=#55697A;exitX=0;exitY=0.5;entryX=1;entryY=0.25;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="admin" target="sys">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="f4" value="pending listings" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#55697A;fontSize=11;fontColor=#55697A;exitX=1;exitY=0.75;entryX=0.5;entryY=1;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="sys" target="admin">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="f5" value="current coordinates" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#55697A;fontSize=11;fontColor=#55697A;exitX=1;exitY=0.5;entryX=0;entryY=0.75;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="gps" target="sys">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="f6" value="route request" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#55697A;fontSize=11;fontColor=#55697A;exitX=1;exitY=0.75;entryX=0;entryY=0.5;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="sys" target="osm">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="f7" value="map tiles, road path" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#55697A;fontSize=11;fontColor=#55697A;exitX=0.25;exitY=0;entryX=0.5;entryY=1;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="osm" target="sys">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

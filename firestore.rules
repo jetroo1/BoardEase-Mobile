@@ -1,0 +1,89 @@
+// BoardEase — Firestore security rules
+//
+// These replace the temporary "test mode" rules that let anyone read and
+// write everything and expire after 30 days.
+//
+// HOW TO APPLY (there is no CLI needed):
+//   Firebase console -> Build -> Firestore Database -> Rules tab
+//   -> paste this whole file over what is there -> Publish
+//
+// The idea in one line: everyone signed in can browse listings and reviews,
+// people can only touch their own data, and only admins can change listings.
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Looks up the signed-in user's role from their users/{uid} document.
+    // We call this instead of trusting anything sent from the phone, because
+    // the app itself could be modified -- rules are the real gate.
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function userRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && userRole() == 'admin';
+    }
+
+    // ── users ────────────────────────────────────────────────────────────
+    // Each person can read and edit only their own profile document
+    // (this is also where savedFilters and role live). Admins may read any
+    // profile so the admin panel can show who submitted what.
+    match /users/{userId} {
+      allow read: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+
+      // A new account may create its own document, but may NOT hand itself
+      // the admin role -- that has to be set from the Firebase console.
+      allow create: if isSignedIn()
+                    && request.auth.uid == userId
+                    && request.resource.data.role == 'tenant';
+
+      // A user can update their own document but can never change their role.
+      allow update: if isSignedIn()
+                    && request.auth.uid == userId
+                    && request.resource.data.role == resource.data.role;
+
+      allow delete: if false;
+    }
+
+    // ── properties (boarding house listings) ─────────────────────────────
+    // Anyone signed in can browse listings. Only admins may add, edit,
+    // approve, or delete them -- this app has no owner self-publishing.
+    match /properties/{propertyId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isAdmin();
+    }
+
+    // ── reviews ──────────────────────────────────────────────────────────
+    // Anyone signed in can read reviews. A person may only post a review
+    // under their own user id, and the rating must be a sensible 1-5.
+    // People can delete their own review; admins can delete any (moderation).
+    match /reviews/{reviewId} {
+      allow read: if isSignedIn();
+
+      allow create: if isSignedIn()
+                    && request.resource.data.userId == request.auth.uid
+                    && request.resource.data.rating is int
+                    && request.resource.data.rating >= 1
+                    && request.resource.data.rating <= 5;
+
+      allow update: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow delete: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+    }
+
+    // ── favorites ────────────────────────────────────────────────────────
+    // Completely private: you can only see and change your own saved list.
+    match /favorites/{favoriteId} {
+      allow read, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update: if false;
+    }
+
+    // Anything not listed above is denied by default.
+  }
+}

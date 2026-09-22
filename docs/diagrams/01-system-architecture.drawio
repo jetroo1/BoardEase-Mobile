@@ -1,0 +1,124 @@
+<mxfile host="app.diagrams.net" type="device">
+  <diagram name="Fig 01 - System Architecture" id="sys-arch0">
+    <mxGraphModel dx="1100" dy="760" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="850" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Layer containers (declared first so the component boxes sit on top) -->
+        <mxCell id="layer-presentation" value="PRESENTATION &#8212; React Native (Expo), TypeScript" style="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#D5E3EA;dashed=1;dashPattern=5 4;verticalAlign=top;align=left;spacingLeft=14;spacingTop=4;fontSize=11;fontColor=#55697A;fontFamily=Courier New;" vertex="1" parent="1">
+          <mxGeometry x="40" y="40" width="1020" height="160" as="geometry" />
+        </mxCell>
+
+        <mxCell id="layer-device" value="DEVICE CAPABILITIES" style="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#D5E3EA;dashed=1;dashPattern=5 4;verticalAlign=top;align=left;spacingLeft=14;spacingTop=4;fontSize=11;fontColor=#55697A;fontFamily=Courier New;" vertex="1" parent="1">
+          <mxGeometry x="40" y="250" width="490" height="140" as="geometry" />
+        </mxCell>
+
+        <mxCell id="layer-web" value="EMBEDDED WEB LAYER" style="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#D5E3EA;dashed=1;dashPattern=5 4;verticalAlign=top;align=left;spacingLeft=14;spacingTop=4;fontSize=11;fontColor=#55697A;fontFamily=Courier New;" vertex="1" parent="1">
+          <mxGeometry x="570" y="250" width="490" height="140" as="geometry" />
+        </mxCell>
+
+        <mxCell id="layer-backend" value="BACKEND &#8212; Firebase (no custom server)" style="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#D5E3EA;dashed=1;dashPattern=5 4;verticalAlign=top;align=left;spacingLeft=14;spacingTop=4;fontSize=11;fontColor=#55697A;fontFamily=Courier New;" vertex="1" parent="1">
+          <mxGeometry x="40" y="440" width="600" height="160" as="geometry" />
+        </mxCell>
+
+        <mxCell id="layer-external" value="EXTERNAL SERVICES &#8212; free, no API key" style="rounded=1;arcSize=4;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#D5E3EA;dashed=1;dashPattern=5 4;verticalAlign=top;align=left;spacingLeft=14;spacingTop=4;fontSize=11;fontColor=#55697A;fontFamily=Courier New;" vertex="1" parent="1">
+          <mxGeometry x="680" y="440" width="380" height="160" as="geometry" />
+        </mxCell>
+
+        <!-- Presentation layer components -->
+        <mxCell id="ui-landing" value="Landing / Auth" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#EEF4F7;strokeColor=#D5E3EA;fontSize=13;fontColor=#0D1B26;" vertex="1" parent="1">
+          <mxGeometry x="60" y="80" width="180" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="ui-search" value="Search &amp;amp; Filter" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#EEF4F7;strokeColor=#D5E3EA;fontSize=13;fontColor=#0D1B26;" vertex="1" parent="1">
+          <mxGeometry x="260" y="80" width="180" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="ui-map" value="Map &amp;amp; Route" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#EEF4F7;strokeColor=#D5E3EA;fontSize=13;fontColor=#0D1B26;" vertex="1" parent="1">
+          <mxGeometry x="460" y="80" width="180" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="ui-compare" value="Compare" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#EEF4F7;strokeColor=#D5E3EA;fontSize=13;fontColor=#0D1B26;" vertex="1" parent="1">
+          <mxGeometry x="660" y="80" width="180" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="ui-admin" value="Admin" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#EEF4F7;strokeColor=#D5E3EA;fontSize=13;fontColor=#0D1B26;" vertex="1" parent="1">
+          <mxGeometry x="860" y="80" width="180" height="40" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ctx-auth" value="&lt;font color=&quot;#55697A&quot;&gt;AuthContext &#8212; who is logged in&lt;/font&gt;" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#EEF4F7;strokeColor=#D5E3EA;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="60" y="140" width="300" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="ctx-compare" value="&lt;font color=&quot;#55697A&quot;&gt;CompareContext &#8212; selected listings&lt;/font&gt;" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#EEF4F7;strokeColor=#D5E3EA;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="380" y="140" width="300" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="ctx-helpers" value="&lt;font color=&quot;#55697A&quot;&gt;Helpers &#8212; distance (Haversine) &#183; match scoring&lt;/font&gt;" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#EEF4F7;strokeColor=#D5E3EA;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="700" y="140" width="340" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- Device capabilities -->
+        <mxCell id="dev-gps" value="&lt;b&gt;GPS&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#55697A&quot; style=&quot;font-size:11px&quot;&gt;expo-location&lt;/font&gt;" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#EEF4F7;strokeColor=#D5E3EA;fontSize=13;fontColor=#0D1B26;" vertex="1" parent="1">
+          <mxGeometry x="60" y="290" width="140" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="dev-camera" value="&lt;b&gt;Camera&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#55697A&quot; style=&quot;font-size:11px&quot;&gt;expo-image-picker&lt;/font&gt;" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#EEF4F7;strokeColor=#D5E3EA;fontSize=13;fontColor=#0D1B26;" vertex="1" parent="1">
+          <mxGeometry x="215" y="290" width="140" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="dev-store" value="&lt;b&gt;Local store&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#55697A&quot; style=&quot;font-size:11px&quot;&gt;AsyncStorage&lt;/font&gt;" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#EEF4F7;strokeColor=#D5E3EA;fontSize=13;fontColor=#0D1B26;" vertex="1" parent="1">
+          <mxGeometry x="370" y="290" width="140" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- Embedded web layer -->
+        <mxCell id="web-webview" value="&lt;b&gt;WebView&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#55697A&quot; style=&quot;font-size:11px&quot;&gt;react-native-webview&lt;/font&gt;" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#EEF4F7;strokeColor=#D5E3EA;fontSize=13;fontColor=#0D1B26;" vertex="1" parent="1">
+          <mxGeometry x="590" y="290" width="215" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="web-leaflet" value="&lt;b&gt;Leaflet.js&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#55697A&quot; style=&quot;font-size:11px&quot;&gt;draws the map + pins&lt;/font&gt;" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#EEF4F7;strokeColor=#D5E3EA;fontSize=13;fontColor=#0D1B26;" vertex="1" parent="1">
+          <mxGeometry x="825" y="290" width="215" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- Firebase backend -->
+        <mxCell id="fb-auth" value="&lt;b&gt;Authentication&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#55697A&quot; style=&quot;font-size:11px&quot;&gt;email + password&lt;/font&gt;" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#EEF4F7;strokeColor=#0369A1;fontSize=13;fontColor=#0D1B26;" vertex="1" parent="1">
+          <mxGeometry x="60" y="480" width="170" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="fb-firestore" value="&lt;b&gt;Cloud Firestore&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#55697A&quot; style=&quot;font-size:11px&quot;&gt;4 collections&lt;/font&gt;" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#EEF4F7;strokeColor=#0369A1;fontSize=13;fontColor=#0D1B26;" vertex="1" parent="1">
+          <mxGeometry x="255" y="480" width="170" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="fb-storage" value="&lt;b&gt;Cloud Storage&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#55697A&quot; style=&quot;font-size:11px&quot;&gt;listing photos&lt;/font&gt;" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#EEF4F7;strokeColor=#0369A1;fontSize=13;fontColor=#0D1B26;" vertex="1" parent="1">
+          <mxGeometry x="450" y="480" width="170" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- External services -->
+        <mxCell id="ext-osm" value="&lt;b&gt;OpenStreetMap&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#55697A&quot; style=&quot;font-size:11px&quot;&gt;map tiles&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#55697A;fontSize=13;fontColor=#0D1B26;" vertex="1" parent="1">
+          <mxGeometry x="700" y="480" width="160" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="ext-osrm" value="&lt;b&gt;OSRM&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#55697A&quot; style=&quot;font-size:11px&quot;&gt;walking routes&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#55697A;fontSize=13;fontColor=#0D1B26;" vertex="1" parent="1">
+          <mxGeometry x="880" y="480" width="160" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Connectors between the layers -->
+        <mxCell id="conn-pres-device" value="GPS fix, photo" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#55697A;fontSize=11;fontColor=#55697A;exitX=0.2;exitY=1;entryX=0.5;entryY=0;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="layer-presentation" target="layer-device">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="conn-pres-web" value="markers in, taps out" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#55697A;fontSize=11;fontColor=#55697A;exitX=0.8;exitY=1;entryX=0.5;entryY=0;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="layer-presentation" target="layer-web">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="conn-device-backend" value="read / write data" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#55697A;fontSize=11;fontColor=#55697A;exitX=0.35;exitY=1;entryX=0.5;entryY=0;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="layer-device" target="layer-backend">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="conn-web-external" value="tiles, route requests" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#55697A;fontSize=11;fontColor=#55697A;exitX=0.65;exitY=1;entryX=0.5;entryY=0;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="layer-web" target="layer-external">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Explanatory note -->
+        <mxCell id="note-webview" value="&lt;b&gt;Why a WebView for the map?&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#55697A&quot; style=&quot;font-size:11px&quot;&gt;Leaflet is a library written for web browsers. React Native has no browser, so the app embeds a tiny one,&lt;br&gt;loads Leaflet inside it, and passes markers in and marker taps back out as small messages.&lt;/font&gt;" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#EEF4F7;strokeColor=#D5E3EA;align=left;verticalAlign=middle;spacingLeft=16;fontSize=14;fontColor=#0D1B26;" vertex="1" parent="1">
+          <mxGeometry x="40" y="630" width="1020" height="90" as="geometry" />
+        </mxCell>
+
+        <!-- Title -->
+        <mxCell id="title" value="&lt;b&gt;Figure 01 &#8212; System Architecture&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#55697A&quot;&gt;BoardEase &#8212; CCE106/L&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;fontSize=14;fontColor=#0D1B26;" vertex="1" parent="1">
+          <mxGeometry x="40" y="760" width="460" height="50" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
