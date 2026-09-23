@@ -8,19 +8,15 @@
 // Only an admin should reach this screen (the button that opens it lives on
 // the Admin screen), but we double-check the role here as well, exactly like
 // AdminScreen does.
+//
+// Validation is inline, next to each field. It used to fire an Alert on the
+// first problem, which meant fixing four mistakes took four save attempts and
+// four dialogs -- and the dialog covered the field it was complaining about.
+//
+// The header comes from RootNavigator (detailHeader('Add listing')).
 
 import React, { useState } from 'react';
-import {
-  ActivityIndicator,
-  Alert,
-  Image,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { Alert, Image, ScrollView, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
 import * as ImagePicker from 'expo-image-picker';
@@ -31,9 +27,18 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { db, storage } from '../firebaseConfig';
 import { useAuth } from '../context/AuthContext';
 import { RootStackParamList } from '../navigation/types';
-import { radius, spacing } from '../theme';
-import { Theme, useTheme, useThemedStyles } from '../context/ThemeContext';
-import { Screen, ScreenHeader } from '../components/ui';
+import { GUTTER } from '../theme';
+import { useTheme } from '../context/ThemeContext';
+import {
+  Button,
+  Card,
+  EmptyState,
+  IconButton,
+  Input,
+  Pressable,
+  Screen,
+  Text,
+} from '../components/ui';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -42,9 +47,15 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 const ROOM_TYPE_OPTIONS = ['Single', 'Shared', 'Studio'];
 const AMENITY_OPTIONS = ['WiFi', 'CR', 'Parking', 'Aircon', 'Kitchen', 'Laundry'];
 
+interface FieldErrors {
+  title?: string;
+  address?: string;
+  price?: string;
+  coordinates?: string;
+}
+
 export default function AddListingScreen() {
   const t = useTheme();
-  const styles = useThemedStyles(createStyles);
   const navigation = useNavigation<NavigationProp>();
   const { user, role } = useAuth();
 
@@ -61,6 +72,7 @@ export default function AddListingScreen() {
   const [longitudeText, setLongitudeText] = useState('');
   const [photoUri, setPhotoUri] = useState(''); // the photo on THIS phone, not uploaded yet
 
+  const [errors, setErrors] = useState<FieldErrors>({});
   const [isLocating, setIsLocating] = useState(false); // true while the GPS is working
   const [isSaving, setIsSaving] = useState(false); // true while uploading / saving
 
@@ -89,8 +101,9 @@ export default function AddListingScreen() {
       const position = await Location.getCurrentPositionAsync({});
       setLatitudeText(String(position.coords.latitude));
       setLongitudeText(String(position.coords.longitude));
-    } catch (error: any) {
-      Alert.alert('Could not get location', error.message || 'Please type the coordinates instead.');
+      setErrors((current) => ({ ...current, coordinates: undefined }));
+    } catch {
+      Alert.alert('Could not get location', 'Please type the coordinates instead.');
     } finally {
       setIsLocating(false);
     }
@@ -140,50 +153,38 @@ export default function AddListingScreen() {
     }
   }
 
-  // Checks every rule before we are allowed to save. Returns true when the
-  // form is good, or shows an Alert and returns false on the first problem.
-  function validateForm(): boolean {
+  // Collects EVERY problem at once rather than stopping at the first, so the
+  // admin can fix them all in one pass.
+  function validateForm(): FieldErrors {
+    const next: FieldErrors = {};
+
     if (title.trim() === '') {
-      Alert.alert('Title required', 'Please enter a name for this boarding house.');
-      return false;
+      next.title = 'Give this boarding house a name.';
     }
     if (address.trim() === '') {
-      Alert.alert('Address required', 'Please enter the address of this boarding house.');
-      return false;
-    }
-    if (priceText.trim() === '') {
-      Alert.alert('Price required', 'Please enter the monthly price.');
-      return false;
+      next.address = 'Enter the address.';
     }
 
     // Number('abc') gives NaN ("not a number"), so this catches typos as well
     // as zero and negative prices.
     const price = Number(priceText);
-    if (Number.isNaN(price) || price <= 0) {
-      Alert.alert('Invalid price', 'Price must be a number greater than 0.');
-      return false;
-    }
-
-    if (latitudeText.trim() === '' || longitudeText.trim() === '') {
-      Alert.alert(
-        'Location required',
-        'Tap "Use my current location", or type the latitude and longitude yourself.'
-      );
-      return false;
+    if (priceText.trim() === '') {
+      next.price = 'Enter the monthly rent.';
+    } else if (!Number.isFinite(price) || price <= 0) {
+      next.price = 'Enter a number greater than zero, like 2500.';
     }
 
     const latitude = Number(latitudeText);
     const longitude = Number(longitudeText);
-    if (Number.isNaN(latitude) || latitude < -90 || latitude > 90) {
-      Alert.alert('Invalid latitude', 'Latitude must be a number between -90 and 90.');
-      return false;
-    }
-    if (Number.isNaN(longitude) || longitude < -180 || longitude > 180) {
-      Alert.alert('Invalid longitude', 'Longitude must be a number between -180 and 180.');
-      return false;
+    if (latitudeText.trim() === '' || longitudeText.trim() === '') {
+      next.coordinates = 'Tap "Use my current location", or type both numbers.';
+    } else if (!Number.isFinite(latitude) || latitude < -90 || latitude > 90) {
+      next.coordinates = 'Latitude must be a number between -90 and 90.';
+    } else if (!Number.isFinite(longitude) || longitude < -180 || longitude > 180) {
+      next.coordinates = 'Longitude must be a number between -180 and 180.';
     }
 
-    return true;
+    return next;
   }
 
   // Sends the picked photo to Firebase Storage and returns the public URL we
@@ -231,16 +232,21 @@ export default function AddListingScreen() {
       Alert.alert('Listing added', 'The new boarding house is now live in the app.', [
         { text: 'OK', onPress: () => navigation.goBack() },
       ]);
-    } catch (error: any) {
-      Alert.alert('Could not save listing', error.message || 'Something went wrong.');
+    } catch {
+      Alert.alert('Could not save listing', 'Check your connection and try again.');
     } finally {
       setIsSaving(false);
     }
   }
 
   async function handleSave() {
-    if (!user) return;
-    if (!validateForm()) return;
+    if (!user || isSaving) return;
+
+    const found = validateForm();
+    setErrors(found);
+    if (Object.keys(found).length > 0) {
+      return;
+    }
 
     // No photo picked? Then there is nothing to upload -- save right away
     // with an empty imageUrl.
@@ -253,7 +259,7 @@ export default function AddListingScreen() {
     let imageUrl = '';
     try {
       imageUrl = await uploadPhotoToStorage(photoUri);
-    } catch (error) {
+    } catch {
       // The upload failed. We deliberately do NOT clear the form here, so the
       // admin keeps everything they typed and can either fix Storage and try
       // again, or save the listing without a photo for now.
@@ -262,8 +268,8 @@ export default function AddListingScreen() {
         'Photo upload failed',
         'The photo could not be uploaded. Firebase Storage may not be enabled for this project yet -- in the Firebase console go to Build > Storage > Get started, then try again.\n\nYou can also save this listing now without a photo.',
         [
-          { text: 'Back to Form', style: 'cancel' },
-          { text: 'Save Without Photo', onPress: () => saveListing('') },
+          { text: 'Back to form', style: 'cancel' },
+          { text: 'Save without photo', onPress: () => saveListing('') },
         ]
       );
       return;
@@ -274,262 +280,276 @@ export default function AddListingScreen() {
 
   if (role !== 'admin') {
     return (
-      <View style={styles.centered}>
-        <Text>You do not have access to this screen.</Text>
-      </View>
+      <Screen edges={false}>
+        <EmptyState
+          icon="lock-closed-outline"
+          tone="danger"
+          title="Administrators only"
+          message="This account does not have permission to add listings."
+          actionLabel="Go back"
+          onAction={() => navigation.goBack()}
+        />
+      </Screen>
     );
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <View style={styles.headerRow}>
-        <Ionicons name="add-circle" size={20} color={t.colors.brandDeep} />
-        <Text style={styles.headerTitle}>New Boarding House</Text>
-      </View>
-
-      <Text style={styles.sectionTitle}>Title</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="e.g. Sunrise Boarding House"
-        value={title}
-        onChangeText={setTitle}
-      />
-
-      <Text style={styles.sectionTitle}>Description</Text>
-      <TextInput
-        style={[styles.input, styles.textArea]}
-        placeholder="Tell tenants what makes this place good..."
-        value={description}
-        onChangeText={setDescription}
-        multiline
-      />
-
-      <Text style={styles.sectionTitle}>Address</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="e.g. Visayan Village, Tagum City"
-        value={address}
-        onChangeText={setAddress}
-      />
-
-      <Text style={styles.sectionTitle}>Monthly Price (₱)</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="e.g. 3500"
-        keyboardType="numeric"
-        value={priceText}
-        onChangeText={setPriceText}
-      />
-
-      <Text style={styles.sectionTitle}>Room Type</Text>
-      <View style={styles.chipRow}>
-        {ROOM_TYPE_OPTIONS.map((option) => {
-          const isSelected = roomType === option;
-          return (
-            <Pressable
-              key={option}
-              style={[styles.chip, isSelected && styles.chipSelected]}
-              onPress={() => setRoomType(option)}
-            >
-              <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>{option}</Text>
-            </Pressable>
-          );
-        })}
-      </View>
-
-      <Text style={styles.sectionTitle}>Amenities</Text>
-      <View style={styles.chipRow}>
-        {AMENITY_OPTIONS.map((option) => {
-          const isSelected = amenities.includes(option);
-          return (
-            <Pressable
-              key={option}
-              style={[styles.chip, isSelected && styles.chipSelected]}
-              onPress={() => toggleAmenity(option)}
-            >
-              <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>{option}</Text>
-            </Pressable>
-          );
-        })}
-      </View>
-
-      <Text style={styles.sectionTitle}>Location</Text>
-      <Pressable
-        style={styles.secondaryButton}
-        onPress={handleUseCurrentLocation}
-        disabled={isLocating}
+    <Screen edges={false}>
+      <ScrollView
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{
+          paddingHorizontal: GUTTER,
+          paddingBottom: t.spacing.xl,
+          gap: t.spacing.lg,
+        }}
       >
-        {isLocating ? (
-          <ActivityIndicator color={t.colors.brandDeep} />
-        ) : (
-          <>
-            <Ionicons name="locate" size={18} color={t.colors.brandDeep} />
-            <Text style={styles.secondaryButtonText}>Use my current location</Text>
-          </>
-        )}
-      </Pressable>
+        {/* --- Identity ---------------------------------------------------- */}
+        <View style={{ gap: t.spacing.sm }}>
+          <Text variant="heading">The basics</Text>
 
-      <Text style={styles.helperText}>
-        {latitudeText !== '' && longitudeText !== ''
-          ? `Pinned at: ${latitudeText}, ${longitudeText}`
-          : 'No coordinates set yet.'}
-      </Text>
+          <Input
+            label="Name"
+            icon="home-outline"
+            placeholder="e.g. Sunrise Boarding House"
+            value={title}
+            onChangeText={setTitle}
+            onBlur={() =>
+              setErrors((c) => ({
+                ...c,
+                title: title.trim() === '' ? 'Give this boarding house a name.' : undefined,
+              }))
+            }
+            error={errors.title}
+          />
 
-      <View style={styles.coordinateRow}>
-        <View style={styles.coordinateColumn}>
-          <Text style={styles.smallLabel}>Latitude</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="e.g. 7.4478"
-            keyboardType="numeric"
-            value={latitudeText}
-            onChangeText={setLatitudeText}
+          <Input
+            label="Address"
+            icon="location-outline"
+            placeholder="e.g. Visayan Village, Tagum City"
+            value={address}
+            onChangeText={setAddress}
+            onBlur={() =>
+              setErrors((c) => ({
+                ...c,
+                address: address.trim() === '' ? 'Enter the address.' : undefined,
+              }))
+            }
+            error={errors.address}
+          />
+
+          <Input
+            label="Monthly rent"
+            icon="cash-outline"
+            placeholder="2500"
+            keyboardType="number-pad"
+            value={priceText}
+            onChangeText={setPriceText}
+            error={errors.price}
+            hint="In pesos, numbers only."
+          />
+
+          <Input
+            label="Description"
+            placeholder="What is this place like to live in?"
+            value={description}
+            onChangeText={setDescription}
+            multiline
+            optional
           />
         </View>
-        <View style={styles.coordinateColumn}>
-          <Text style={styles.smallLabel}>Longitude</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="e.g. 125.8078"
-            keyboardType="numeric"
-            value={longitudeText}
-            onChangeText={setLongitudeText}
+
+        {/* --- Room type --------------------------------------------------- */}
+        <View style={{ gap: t.spacing.sm }}>
+          <Text variant="heading">Room type</Text>
+          <View style={{ flexDirection: 'row', gap: t.spacing.xs }}>
+            {ROOM_TYPE_OPTIONS.map((option) => (
+              <Choice
+                key={option}
+                label={option}
+                selected={roomType === option}
+                onPress={() => setRoomType(option)}
+              />
+            ))}
+          </View>
+        </View>
+
+        {/* --- Amenities --------------------------------------------------- */}
+        <View style={{ gap: t.spacing.sm }}>
+          <Text variant="heading">Amenities</Text>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: t.spacing.xs }}>
+            {AMENITY_OPTIONS.map((option) => (
+              <Choice
+                key={option}
+                label={option}
+                selected={amenities.includes(option)}
+                onPress={() => toggleAmenity(option)}
+              />
+            ))}
+          </View>
+        </View>
+
+        {/* --- Location ---------------------------------------------------- */}
+        <View style={{ gap: t.spacing.sm }}>
+          <Text variant="heading">Location on the map</Text>
+          <Text variant="caption" tone="faint">
+            These coordinates are what the distance sorting and the route guide
+            use, so they matter more than the written address.
+          </Text>
+
+          <Button
+            label={isLocating ? 'Reading GPS…' : 'Use my current location'}
+            icon="locate-outline"
+            variant="secondary"
+            fullWidth
+            loading={isLocating}
+            onPress={handleUseCurrentLocation}
+          />
+
+          <View style={{ flexDirection: 'row', gap: t.spacing.sm }}>
+            <Input
+              label="Latitude"
+              placeholder="7.4478"
+              keyboardType="numbers-and-punctuation"
+              value={latitudeText}
+              onChangeText={setLatitudeText}
+              containerStyle={{ flex: 1 }}
+            />
+            <Input
+              label="Longitude"
+              placeholder="125.8078"
+              keyboardType="numbers-and-punctuation"
+              value={longitudeText}
+              onChangeText={setLongitudeText}
+              containerStyle={{ flex: 1 }}
+            />
+          </View>
+
+          {errors.coordinates ? (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: t.spacing.xxs }}>
+              <Ionicons name="alert-circle" size={13} color={t.colors.danger} />
+              <Text variant="caption" tone="danger" style={{ flex: 1 }}>
+                {errors.coordinates}
+              </Text>
+            </View>
+          ) : null}
+        </View>
+
+        {/* --- Photo ------------------------------------------------------- */}
+        <View style={{ gap: t.spacing.sm }}>
+          <Text variant="heading">Photo</Text>
+
+          {photoUri ? (
+            <View>
+              <Image
+                source={{ uri: photoUri }}
+                accessibilityLabel="Selected listing photo"
+                style={{
+                  width: '100%',
+                  height: 180,
+                  borderRadius: t.radius.md,
+                  backgroundColor: t.colors.canvasAlt,
+                }}
+              />
+              <IconButton
+                icon="close"
+                label="Remove photo"
+                tone="onPhoto"
+                onPress={() => setPhotoUri('')}
+                style={{ position: 'absolute', top: t.spacing.xs, right: t.spacing.xs }}
+              />
+            </View>
+          ) : (
+            <Card
+              level="flat"
+              outlined
+              style={{
+                borderRadius: t.radius.md,
+                alignItems: 'center',
+                gap: t.spacing.xxs,
+                paddingVertical: t.spacing.lg,
+              }}
+            >
+              <Ionicons name="image-outline" size={24} color={t.colors.inkFaint} />
+              <Text variant="caption" tone="faint" center>
+                No photo yet. Listings without one show a placeholder.
+              </Text>
+            </Card>
+          )}
+
+          <View style={{ flexDirection: 'row', gap: t.spacing.sm }}>
+            <Button
+              label="Take photo"
+              icon="camera-outline"
+              variant="secondary"
+              onPress={handleTakePhoto}
+              style={{ flex: 1 }}
+            />
+            <Button
+              label="Choose photo"
+              icon="images-outline"
+              variant="secondary"
+              onPress={handleChooseFromGallery}
+              style={{ flex: 1 }}
+            />
+          </View>
+        </View>
+
+        <View style={{ gap: t.spacing.sm }}>
+          <Button
+            label="Publish listing"
+            icon="checkmark-circle-outline"
+            size="lg"
+            fullWidth
+            loading={isSaving}
+            onPress={handleSave}
+          />
+          <Button
+            label="Cancel"
+            variant="ghost"
+            fullWidth
+            disabled={isSaving}
+            onPress={() => navigation.goBack()}
           />
         </View>
-      </View>
-
-      <Text style={styles.sectionTitle}>Photo</Text>
-      <View style={styles.photoButtonRow}>
-        <Pressable style={styles.photoButton} onPress={handleTakePhoto}>
-          <Ionicons name="camera" size={18} color={t.colors.brandDeep} />
-          <Text style={styles.photoButtonText}>Take Photo</Text>
-        </Pressable>
-        <Pressable style={styles.photoButton} onPress={handleChooseFromGallery}>
-          <Ionicons name="images" size={18} color={t.colors.brandDeep} />
-          <Text style={styles.photoButtonText}>Choose from Gallery</Text>
-        </Pressable>
-      </View>
-
-      {photoUri !== '' ? (
-        <View>
-          <Image source={{ uri: photoUri }} style={styles.preview} />
-          <Pressable onPress={() => setPhotoUri('')}>
-            <Text style={styles.removePhotoText}>Remove photo</Text>
-          </Pressable>
-        </View>
-      ) : (
-        <Text style={styles.helperText}>No photo chosen yet (a listing can be saved without one).</Text>
-      )}
-
-      <Pressable style={styles.saveButton} onPress={handleSave} disabled={isSaving}>
-        {isSaving ? (
-          <ActivityIndicator color={t.colors.onBrand} />
-        ) : (
-          <>
-            <Ionicons name="save" size={18} color={t.colors.onBrand} />
-            <Text style={styles.saveButtonText}>Save Listing</Text>
-          </>
-        )}
-      </Pressable>
-
-      <Pressable style={styles.cancelButton} onPress={() => navigation.goBack()}>
-        <Text style={styles.cancelButtonText}>Cancel</Text>
-      </Pressable>
-    </ScrollView>
+      </ScrollView>
+    </Screen>
   );
 }
 
-const createStyles = (t: Theme) => StyleSheet.create({
-  container: { flex: 1, backgroundColor: t.colors.canvas },
-  content: { padding: spacing.lg - 4, paddingBottom: spacing.xl },
-  centered: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.lg },
-  headerRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  headerTitle: { fontSize: 20, fontWeight: 'bold', color: t.colors.ink },
-  sectionTitle: {
-    fontSize: 15,
-    fontWeight: 'bold',
-    marginTop: spacing.lg - 4,
-    marginBottom: spacing.sm + 2,
-    color: t.colors.ink,
-  },
-  smallLabel: { fontSize: 13, color: t.colors.inkSoft, marginBottom: spacing.xs },
-  helperText: { color: t.colors.inkSoft, fontSize: 13, marginTop: spacing.sm },
-  input: {
-    borderWidth: 1,
-    borderColor: t.colors.line,
-    borderRadius: radius.md,
-    paddingHorizontal: spacing.md - 2,
-    paddingVertical: spacing.sm + 2,
-    fontSize: 15,
-    backgroundColor: t.colors.surface,
-    color: t.colors.ink,
-  },
-  textArea: { minHeight: 80, textAlignVertical: 'top' },
-  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
-  chip: {
-    borderWidth: 1,
-    borderColor: t.colors.line,
-    borderRadius: radius.lg,
-    paddingHorizontal: spacing.md - 2,
-    paddingVertical: spacing.sm,
-    backgroundColor: t.colors.surface,
-  },
-  chipSelected: { backgroundColor: t.colors.brand, borderColor: t.colors.brand },
-  chipText: { color: t.colors.inkSoft },
-  chipTextSelected: { color: t.colors.onBrand, fontWeight: '600' },
-  secondaryButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.sm,
-    borderWidth: 1,
-    borderColor: t.colors.brand,
-    borderRadius: radius.md,
-    paddingVertical: spacing.sm + 4,
-    backgroundColor: t.colors.brandSoft,
-  },
-  secondaryButtonText: { color: t.colors.brandDeep, fontWeight: '600' },
-  coordinateRow: { flexDirection: 'row', gap: spacing.sm + 2, marginTop: spacing.sm + 4 },
-  coordinateColumn: { flex: 1 },
-  photoButtonRow: { flexDirection: 'row', gap: spacing.sm + 2 },
-  photoButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 5,
-    borderWidth: 1,
-    borderColor: t.colors.brand,
-    borderRadius: radius.md,
-    paddingVertical: spacing.sm + 4,
-    backgroundColor: t.colors.brandSoft,
-  },
-  photoButtonText: { color: t.colors.brandDeep, fontWeight: '600', fontSize: 13, flexShrink: 1, textAlign: 'center' },
-  preview: {
-    width: '100%',
-    height: 180,
-    borderRadius: radius.md,
-    marginTop: spacing.sm + 4,
-    backgroundColor: t.colors.skeleton,
-  },
-  removePhotoText: {
-    color: t.colors.danger,
-    fontWeight: '600',
-    marginTop: spacing.sm,
-    textAlign: 'center',
-  },
-  saveButton: {
-    flexDirection: 'row',
-    backgroundColor: t.colors.brand,
-    borderRadius: radius.md,
-    paddingVertical: spacing.md - 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.sm,
-    marginTop: spacing.xl,
-    ...t.elevation.low,
-  },
-  saveButtonText: { color: t.colors.onBrand, fontWeight: 'bold', fontSize: 16 },
-  cancelButton: { alignItems: 'center', marginTop: spacing.md - 2 },
-  cancelButtonText: { color: t.colors.inkSoft, fontWeight: '600' },
-});
+// Selection shown by fill AND a tick, never colour alone.
+function Choice({
+  label,
+  selected,
+  onPress,
+}: {
+  label: string;
+  selected: boolean;
+  onPress: () => void;
+}) {
+  const t = useTheme();
+  return (
+    <Pressable
+      accessibilityRole="checkbox"
+      accessibilityState={{ checked: selected }}
+      accessibilityLabel={label}
+      onPress={onPress}
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: t.spacing.xxs,
+        paddingHorizontal: t.spacing.sm,
+        paddingVertical: t.spacing.xs,
+        borderRadius: t.radius.pill,
+        backgroundColor: selected ? t.colors.brand : t.colors.surface,
+        borderWidth: 1,
+        borderColor: selected ? t.colors.brand : t.colors.lineStrong,
+      }}
+    >
+      {selected ? <Ionicons name="checkmark" size={13} color={t.colors.onBrand} /> : null}
+      <Text variant="captionStrong" style={{ color: selected ? t.colors.onBrand : t.colors.inkSoft }}>
+        {label}
+      </Text>
+    </Pressable>
+  );
+}

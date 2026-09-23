@@ -8,17 +8,11 @@
 // Only an admin should ever reach this screen -- ProfileScreen only shows
 // the button that opens it when role === 'admin', and we double-check the
 // role again here just in case.
+//
+// The header comes from RootNavigator (detailHeader('Admin panel')).
 
 import React, { useCallback, useState } from 'react';
-import {
-  ActivityIndicator,
-  Alert,
-  FlatList,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Alert, FlatList, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import {
   collection,
@@ -36,9 +30,22 @@ import { db } from '../firebaseConfig';
 import { useAuth } from '../context/AuthContext';
 import { Property, Review } from '../types';
 import { RootStackParamList } from '../navigation/types';
-import { radius, spacing } from '../theme';
-import { Theme, useTheme, useThemedStyles } from '../context/ThemeContext';
-import { Rating, Screen, ScreenHeader } from '../components/ui';
+import { GUTTER, HIT_SLOP_MIN } from '../theme';
+import { useTheme } from '../context/ThemeContext';
+import {
+  Button,
+  Card,
+  EmptyState,
+  ErrorState,
+  Pill,
+  Pressable,
+  PropertyPhoto,
+  Rating,
+  Screen,
+  Skeleton,
+  Text,
+  formatPeso,
+} from '../components/ui';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -53,59 +60,78 @@ interface ReviewWithProperty extends Review {
 
 export default function AdminScreen() {
   const t = useTheme();
-  const styles = useThemedStyles(createStyles);
   const navigation = useNavigation<NavigationProp>();
   const { role } = useAuth();
+
   const [activeTab, setActiveTab] = useState<AdminTab>('listings');
   const [pendingProperties, setPendingProperties] = useState<Property[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [listingsError, setListingsError] = useState('');
   const [reviews, setReviews] = useState<ReviewWithProperty[]>([]);
   const [isLoadingReviews, setIsLoadingReviews] = useState(true);
+  const [reviewsError, setReviewsError] = useState('');
+  const [busyId, setBusyId] = useState<string | null>(null);
 
   const loadPendingProperties = useCallback(async () => {
     setIsLoading(true);
-    const pendingQuery = query(collection(db, 'properties'), where('isApproved', '==', false));
-    const snapshot = await getDocs(pendingQuery);
-    setPendingProperties(
-      snapshot.docs.map((docSnap) => ({
-        id: docSnap.id,
-        ...(docSnap.data() as Omit<Property, 'id'>),
-      }))
-    );
-    setIsLoading(false);
+    setListingsError('');
+    try {
+      const pendingQuery = query(
+        collection(db, 'properties'),
+        where('isApproved', '==', false)
+      );
+      const snapshot = await getDocs(pendingQuery);
+      setPendingProperties(
+        snapshot.docs.map((docSnap) => ({
+          id: docSnap.id,
+          ...(docSnap.data() as Omit<Property, 'id'>),
+        }))
+      );
+    } catch {
+      // No catch existed here, so a dropped connection left the spinner
+      // running with nothing to act on.
+      setListingsError('Could not load the approval queue.');
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
   const loadReviews = useCallback(async () => {
     setIsLoadingReviews(true);
+    setReviewsError('');
+    try {
+      // Fetch every review in the app, then sort newest-first here in JS.
+      // Sorting inside the Firestore query instead would need a manually
+      // created index in the Firebase console, which this project avoids.
+      const snapshot = await getDocs(collection(db, 'reviews'));
+      const loadedReviews: Review[] = snapshot.docs.map((docSnap) => ({
+        id: docSnap.id,
+        ...(docSnap.data() as Omit<Review, 'id'>),
+      }));
+      loadedReviews.sort((a, b) => b.createdAt - a.createdAt);
 
-    // Fetch every review in the app, then sort newest-first here in JS.
-    // Sorting inside the Firestore query instead would need a manually
-    // created index in the Firebase console, which this project avoids.
-    const snapshot = await getDocs(collection(db, 'reviews'));
-    const loadedReviews: Review[] = snapshot.docs.map((docSnap) => ({
-      id: docSnap.id,
-      ...(docSnap.data() as Omit<Review, 'id'>),
-    }));
-    loadedReviews.sort((a, b) => b.createdAt - a.createdAt);
+      // Each review only knows its propertyId, so go and fetch the listing
+      // titles. We remember every title we've already fetched in `titles`, so
+      // a property with five reviews is only read from Firestore once.
+      const titles: Record<string, string> = {};
+      const reviewsWithTitles: ReviewWithProperty[] = [];
 
-    // Each review only knows its propertyId, so go and fetch the listing
-    // titles. We remember every title we've already fetched in `titles`, so
-    // a property with five reviews is only read from Firestore once.
-    const titles: Record<string, string> = {};
-    const reviewsWithTitles: ReviewWithProperty[] = [];
-
-    for (const review of loadedReviews) {
-      if (!titles[review.propertyId]) {
-        const propertySnap = await getDoc(doc(db, 'properties', review.propertyId));
-        titles[review.propertyId] = propertySnap.exists()
-          ? (propertySnap.data().title as string)
-          : 'Deleted listing';
+      for (const review of loadedReviews) {
+        if (!titles[review.propertyId]) {
+          const propertySnap = await getDoc(doc(db, 'properties', review.propertyId));
+          titles[review.propertyId] = propertySnap.exists()
+            ? (propertySnap.data().title as string)
+            : 'Deleted listing';
+        }
+        reviewsWithTitles.push({ ...review, propertyTitle: titles[review.propertyId] });
       }
-      reviewsWithTitles.push({ ...review, propertyTitle: titles[review.propertyId] });
-    }
 
-    setReviews(reviewsWithTitles);
-    setIsLoadingReviews(false);
+      setReviews(reviewsWithTitles);
+    } catch {
+      setReviewsError('Could not load reviews.');
+    } finally {
+      setIsLoadingReviews(false);
+    }
   }, []);
 
   useFocusEffect(
@@ -115,274 +141,288 @@ export default function AdminScreen() {
     }, [loadPendingProperties, loadReviews])
   );
 
-  async function handleApprove(propertyId: string) {
-    await updateDoc(doc(db, 'properties', propertyId), { isApproved: true });
-    setPendingProperties(pendingProperties.filter((item) => item.id !== propertyId));
-  }
-
-  function handleReject(propertyId: string) {
-    Alert.alert('Reject listing', 'This will permanently delete the listing. Continue?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Reject',
-        style: 'destructive',
-        onPress: async () => {
-          await deleteDoc(doc(db, 'properties', propertyId));
-          setPendingProperties(pendingProperties.filter((item) => item.id !== propertyId));
-        },
-      },
-    ]);
-  }
-
-  // Deleting a review is permanent, so we ask first -- same pattern as
-  // rejecting a listing above.
-  function handleRemoveReview(reviewId: string) {
-    Alert.alert('Remove review', 'This will permanently delete this review. Continue?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Remove',
-        style: 'destructive',
-        onPress: async () => {
-          await deleteDoc(doc(db, 'reviews', reviewId));
-          // Take it out of our own list too, so the screen updates right
-          // away without needing to re-fetch everything from Firestore.
-          setReviews(reviews.filter((item) => item.id !== reviewId));
-        },
-      },
-    ]);
-  }
-
-  // The "Listings" tab: the approve / reject queue.
-  function renderListingsTab() {
-    if (isLoading) {
-      return (
-        <View style={styles.centered}>
-          <ActivityIndicator size="large" color={t.colors.brand} />
-        </View>
-      );
+  async function handleApprove(property: Property) {
+    if (busyId) {
+      return;
     }
+    setBusyId(property.id);
+    try {
+      await updateDoc(doc(db, 'properties', property.id), { isApproved: true });
+      setPendingProperties((current) => current.filter((item) => item.id !== property.id));
+    } catch {
+      Alert.alert('Could not approve', 'Check your connection and try again.');
+    } finally {
+      setBusyId(null);
+    }
+  }
 
-    return (
-      <FlatList
-        style={styles.container}
-        data={pendingProperties}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.list}
-        ListHeaderComponent={
-          <View>
-            {/* Entry point to the form that creates a brand-new listing. */}
-            <Pressable style={styles.addButton} onPress={() => navigation.navigate('AddListing')}>
-              <Ionicons name="add-circle" size={18} color={t.colors.onBrand} />
-              <Text style={styles.addButtonText}>Add New Listing</Text>
-            </Pressable>
-
-            <Text style={styles.title}>Pending Listings</Text>
-          </View>
-        }
-        ListEmptyComponent={
-          <View style={styles.centered}>
-            <Text style={styles.emptyText}>No listings waiting for approval.</Text>
-          </View>
-        }
-        renderItem={({ item }) => (
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>{item.title}</Text>
-            <Text style={styles.cardAddress}>{item.address}</Text>
-            <Text style={styles.cardMeta}>₱{item.price} · {item.roomType}</Text>
-
-            <View style={styles.actionRow}>
-              <Pressable style={styles.approveButton} onPress={() => handleApprove(item.id)}>
-                <Ionicons name="checkmark-circle" size={16} color={t.colors.onBrand} />
-                <Text style={styles.approveButtonText}>Approve</Text>
-              </Pressable>
-              <Pressable style={styles.rejectButton} onPress={() => handleReject(item.id)}>
-                <Ionicons name="close-circle" size={16} color={t.colors.onBrand} />
-                <Text style={styles.rejectButtonText}>Reject</Text>
-              </Pressable>
-            </View>
-          </View>
-        )}
-      />
+  // Names the listing it is about to delete rather than asking "Continue?".
+  function handleReject(property: Property) {
+    Alert.alert(
+      'Reject this listing?',
+      `"${property.title}" will be permanently deleted. This cannot be undone.`,
+      [
+        { text: 'Keep it', style: 'cancel' },
+        {
+          text: 'Reject',
+          style: 'destructive',
+          onPress: async () => {
+            setBusyId(property.id);
+            try {
+              await deleteDoc(doc(db, 'properties', property.id));
+              setPendingProperties((current) =>
+                current.filter((item) => item.id !== property.id)
+              );
+            } catch {
+              Alert.alert('Could not reject', 'Check your connection and try again.');
+            } finally {
+              setBusyId(null);
+            }
+          },
+        },
+      ]
     );
   }
 
-  // The "Reviews" tab: every review in the app, newest first, each with a
-  // Remove button.
-  function renderReviewsTab() {
-    if (isLoadingReviews) {
-      return (
-        <View style={styles.centered}>
-          <ActivityIndicator size="large" color={t.colors.brand} />
-        </View>
-      );
-    }
-
-    return (
-      <FlatList
-        style={styles.container}
-        data={reviews}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.list}
-        ListHeaderComponent={<Text style={styles.title}>All Reviews ({reviews.length})</Text>}
-        ListEmptyComponent={
-          <View style={styles.centered}>
-            <Text style={styles.emptyText}>Nobody has written a review yet.</Text>
-          </View>
-        }
-        renderItem={({ item }) => (
-          <View style={styles.card}>
-            <View style={styles.reviewHeaderRow}>
-              <Text style={styles.cardTitle}>{item.userName}</Text>
-              <Rating value={item.rating} />
-            </View>
-            <Text style={styles.reviewProperty}>on {item.propertyTitle}</Text>
-            <Text style={styles.reviewBody}>{item.body}</Text>
-
-            <Pressable style={styles.removeButton} onPress={() => handleRemoveReview(item.id)}>
-              <Ionicons name="trash" size={16} color={t.colors.onBrand} />
-              <Text style={styles.removeButtonText}>Remove</Text>
-            </Pressable>
-          </View>
-        )}
-      />
+  function handleRemoveReview(review: ReviewWithProperty) {
+    Alert.alert(
+      'Remove this review?',
+      `${review.userName}'s review of "${review.propertyTitle}" will be permanently deleted.`,
+      [
+        { text: 'Keep it', style: 'cancel' },
+        {
+          text: 'Remove',
+          style: 'destructive',
+          onPress: async () => {
+            setBusyId(review.id);
+            try {
+              await deleteDoc(doc(db, 'reviews', review.id));
+              // Take it out of our own list too, so the screen updates right
+              // away without needing to re-fetch everything from Firestore.
+              setReviews((current) => current.filter((item) => item.id !== review.id));
+            } catch {
+              Alert.alert('Could not remove', 'Check your connection and try again.');
+            } finally {
+              setBusyId(null);
+            }
+          },
+        },
+      ]
     );
   }
 
+  // Belt and braces: ProfileScreen already hides the entry point, but a
+  // moderation screen should refuse on its own rather than trust its caller.
   if (role !== 'admin') {
     return (
-      <View style={styles.centered}>
-        <Text>You do not have access to this screen.</Text>
-      </View>
+      <Screen edges={false}>
+        <EmptyState
+          icon="lock-closed-outline"
+          tone="danger"
+          title="Administrators only"
+          message="This account does not have permission to moderate listings or reviews."
+          actionLabel="Go back"
+          onAction={() => navigation.goBack()}
+        />
+      </Screen>
     );
   }
 
   return (
-    <View style={styles.container}>
-      {/* A simple two-tab switcher: tapping one just changes which list we
-          render below. */}
-      <View style={styles.tabRow}>
-        <Pressable
-          style={[styles.tabButton, activeTab === 'listings' && styles.tabButtonActive]}
-          onPress={() => setActiveTab('listings')}
-        >
-          <Ionicons
-            name="home"
-            size={14}
-            color={activeTab === 'listings' ? t.colors.surface : t.colors.inkSoft}
-          />
-          <Text style={[styles.tabText, activeTab === 'listings' && styles.tabTextActive]}>
-            Listings
-          </Text>
-        </Pressable>
-
-        <Pressable
-          style={[styles.tabButton, activeTab === 'reviews' && styles.tabButtonActive]}
-          onPress={() => setActiveTab('reviews')}
-        >
-          <Ionicons
-            name="star"
-            size={14}
-            color={activeTab === 'reviews' ? t.colors.surface : t.colors.inkSoft}
-          />
-          <Text style={[styles.tabText, activeTab === 'reviews' && styles.tabTextActive]}>
-            Reviews
-          </Text>
-        </Pressable>
+    <Screen edges={false}>
+      {/* Both counts are on the tabs, so an admin can see what is waiting
+          without opening each one. */}
+      <View
+        style={{
+          flexDirection: 'row',
+          gap: t.spacing.xxs,
+          marginHorizontal: GUTTER,
+          marginBottom: t.spacing.sm,
+          padding: t.spacing.xxs,
+          borderRadius: t.radius.pill,
+          backgroundColor: t.colors.canvasAlt,
+        }}
+      >
+        {(['listings', 'reviews'] as AdminTab[]).map((tab) => {
+          const active = activeTab === tab;
+          const count = tab === 'listings' ? pendingProperties.length : reviews.length;
+          return (
+            <Pressable
+              key={tab}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: active }}
+              accessibilityLabel={`${tab}, ${count}`}
+              animate={false}
+              onPress={() => setActiveTab(tab)}
+              style={{
+                flex: 1,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: t.spacing.xxs,
+                minHeight: HIT_SLOP_MIN - t.spacing.sm,
+                paddingVertical: t.spacing.xs,
+                borderRadius: t.radius.pill,
+                backgroundColor: active ? t.colors.surface : 'transparent',
+                ...(active ? t.elevation.low : null),
+              }}
+            >
+              <Text variant="captionStrong" tone={active ? 'brand' : 'faint'}>
+                {tab === 'listings' ? 'Pending' : 'Reviews'}
+              </Text>
+              <Text variant="micro" tone={active ? 'brand' : 'faint'}>
+                {count}
+              </Text>
+            </Pressable>
+          );
+        })}
       </View>
 
-      {activeTab === 'listings' ? renderListingsTab() : renderReviewsTab()}
-    </View>
+      {activeTab === 'listings' ? (
+        isLoading ? (
+          <LoadingList />
+        ) : listingsError ? (
+          <ErrorState message={listingsError} onRetry={loadPendingProperties} />
+        ) : (
+          <FlatList
+            data={pendingProperties}
+            keyExtractor={(item) => item.id}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{
+              paddingHorizontal: GUTTER,
+              paddingBottom: t.spacing.xl,
+              gap: t.spacing.sm,
+              flexGrow: 1,
+            }}
+            ListHeaderComponent={
+              <Button
+                label="Add a new listing"
+                icon="add-circle-outline"
+                fullWidth
+                onPress={() => navigation.navigate('AddListing')}
+                style={{ marginBottom: t.spacing.xs }}
+              />
+            }
+            ListEmptyComponent={
+              <EmptyState
+                icon="checkmark-done-outline"
+                title="Queue is clear"
+                message="Every listing has been reviewed. New submissions will appear here."
+              />
+            }
+            renderItem={({ item }) => (
+              <Card level="low" style={{ borderRadius: t.radius.lg, gap: t.spacing.sm }}>
+                <View style={{ flexDirection: 'row', gap: t.spacing.sm }}>
+                  <PropertyPhoto
+                    uri={item.imageUrl}
+                    title={item.title}
+                    roomType={item.roomType}
+                    height={60}
+                    radius={t.radius.sm}
+                    style={{ width: 60 }}
+                  />
+                  <View style={{ flex: 1, gap: 2 }}>
+                    <Text variant="captionStrong" numberOfLines={1}>
+                      {item.title}
+                    </Text>
+                    <Text variant="caption" tone="faint" numberOfLines={1}>
+                      {item.address}
+                    </Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: t.spacing.xxs }}>
+                      <Text variant="captionStrong" tone="brand">
+                        {formatPeso(item.price)}
+                      </Text>
+                      <Pill label={item.roomType} tone="neutral" />
+                    </View>
+                  </View>
+                </View>
+
+                <View style={{ flexDirection: 'row', gap: t.spacing.xs }}>
+                  <Button
+                    label="Approve"
+                    icon="checkmark"
+                    size="sm"
+                    loading={busyId === item.id}
+                    onPress={() => handleApprove(item)}
+                    style={{ flex: 1 }}
+                  />
+                  <Button
+                    label="Reject"
+                    icon="close"
+                    variant="danger"
+                    size="sm"
+                    disabled={busyId === item.id}
+                    onPress={() => handleReject(item)}
+                    style={{ flex: 1 }}
+                  />
+                </View>
+              </Card>
+            )}
+          />
+        )
+      ) : isLoadingReviews ? (
+        <LoadingList />
+      ) : reviewsError ? (
+        <ErrorState message={reviewsError} onRetry={loadReviews} />
+      ) : (
+        <FlatList
+          data={reviews}
+          keyExtractor={(item) => item.id}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{
+            paddingHorizontal: GUTTER,
+            paddingBottom: t.spacing.xl,
+            gap: t.spacing.xs,
+            flexGrow: 1,
+          }}
+          ListEmptyComponent={
+            <EmptyState
+              icon="chatbubble-ellipses-outline"
+              title="No reviews yet"
+              message="Reviews left by tenants anywhere in the app will show up here for moderation."
+            />
+          }
+          renderItem={({ item }) => (
+            <Card level="low" style={{ borderRadius: t.radius.lg, gap: t.spacing.xs }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: t.spacing.xs }}>
+                <View style={{ flex: 1, gap: 1 }}>
+                  <Text variant="captionStrong" numberOfLines={1}>
+                    {item.userName}
+                  </Text>
+                  <Text variant="micro" tone="faint" numberOfLines={1}>
+                    on {item.propertyTitle}
+                  </Text>
+                </View>
+                <Rating value={item.rating} size={12} />
+              </View>
+
+              <Text variant="caption" tone="soft">
+                {item.body}
+              </Text>
+
+              <Button
+                label="Remove review"
+                icon="trash-outline"
+                variant="secondary"
+                size="sm"
+                disabled={busyId === item.id}
+                onPress={() => handleRemoveReview(item)}
+              />
+            </Card>
+          )}
+        />
+      )}
+    </Screen>
   );
 }
 
-const createStyles = (t: Theme) => StyleSheet.create({
-  container: { flex: 1, backgroundColor: t.colors.canvas },
-  centered: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.lg },
-  emptyText: { color: t.colors.inkSoft, textAlign: 'center' },
-  list: { padding: spacing.lg - 4 },
-  tabRow: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-    paddingHorizontal: spacing.lg - 4,
-    paddingTop: spacing.md - 2,
-  },
-  tabButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    backgroundColor: t.colors.surface,
-    borderRadius: radius.sm,
-    paddingVertical: spacing.sm + 2,
-    ...t.elevation.low,
-  },
-  tabButtonActive: { backgroundColor: t.colors.brand },
-  tabText: { color: t.colors.inkSoft, fontWeight: '600', fontSize: 13 },
-  tabTextActive: { color: t.colors.onBrand },
-  title: { fontSize: 20, fontWeight: 'bold', marginBottom: spacing.md, color: t.colors.ink },
-  addButton: {
-    flexDirection: 'row',
-    backgroundColor: t.colors.brand,
-    borderRadius: radius.md,
-    paddingVertical: spacing.md - 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.sm,
-    marginBottom: spacing.lg - 4,
-    ...t.elevation.low,
-  },
-  addButtonText: { color: t.colors.onBrand, fontWeight: 'bold', fontSize: 16 },
-  card: {
-    backgroundColor: t.colors.surface,
-    borderRadius: radius.md,
-    padding: spacing.md - 2,
-    marginBottom: spacing.sm + 4,
-    ...t.elevation.low,
-  },
-  cardTitle: { fontWeight: 'bold', fontSize: 15, color: t.colors.ink },
-  cardAddress: { color: t.colors.inkSoft, fontSize: 13, marginTop: 2 },
-  cardMeta: { color: t.colors.brand, fontSize: 13, marginTop: 4 },
-  actionRow: { flexDirection: 'row', gap: spacing.sm + 2, marginTop: spacing.sm + 4 },
-  approveButton: {
-    flex: 1,
-    flexDirection: 'row',
-    backgroundColor: t.colors.success,
-    borderRadius: radius.sm,
-    paddingVertical: spacing.sm + 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 5,
-  },
-  approveButtonText: { color: t.colors.onBrand, fontWeight: '600' },
-  rejectButton: {
-    flex: 1,
-    flexDirection: 'row',
-    backgroundColor: t.colors.danger,
-    borderRadius: radius.sm,
-    paddingVertical: spacing.sm + 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 5,
-  },
-  rejectButtonText: { color: t.colors.onBrand, fontWeight: '600' },
-  reviewHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  reviewProperty: { color: t.colors.inkSoft, fontSize: 12, marginTop: 2, fontStyle: 'italic' },
-  reviewBody: { color: t.colors.inkSoft, fontSize: 14, lineHeight: 20, marginTop: spacing.sm },
-  removeButton: {
-    flexDirection: 'row',
-    alignSelf: 'flex-start',
-    backgroundColor: t.colors.danger,
-    borderRadius: radius.sm,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md - 2,
-    alignItems: 'center',
-    gap: 5,
-    marginTop: spacing.sm + 4,
-  },
-  removeButtonText: { color: t.colors.onBrand, fontWeight: '600', fontSize: 13 },
-});
+function LoadingList() {
+  const t = useTheme();
+  return (
+    <View style={{ paddingHorizontal: GUTTER, gap: t.spacing.sm }}>
+      <Skeleton height={112} radius={t.radius.lg} />
+      <Skeleton height={112} radius={t.radius.lg} />
+      <Skeleton height={112} radius={t.radius.lg} />
+    </View>
+  );
+}

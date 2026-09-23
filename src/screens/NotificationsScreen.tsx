@@ -4,11 +4,14 @@
 // Every time this screen opens we re-run the alert check in
 // src/utils/matchAlerts.ts. That check looks for approved listings posted
 // since the last time we looked which match the filters the user saved on
-// the Filter screen, pops a phone notification for each one, and stores it
-// so it shows up in the list below. Tapping an alert opens that listing.
+// the Filter screen, and stores each one so it shows up in the list below.
+// Tapping an alert opens that listing.
+//
+// The header comes from RootNavigator (detailHeader('Alerts')), so this
+// screen must not draw one of its own.
 
 import React, { useCallback, useState } from 'react';
-import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, FlatList, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -20,9 +23,16 @@ import {
 } from '../utils/matchAlerts';
 import { AppNotification, EMPTY_FILTERS, Filters } from '../types';
 import { RootStackParamList } from '../navigation/types';
-import { radius, spacing } from '../theme';
-import { Theme, useTheme, useThemedStyles } from '../context/ThemeContext';
-import { Screen, ScreenHeader, EmptyState, IconButton } from '../components/ui';
+import { GUTTER } from '../theme';
+import { useTheme } from '../context/ThemeContext';
+import {
+  Card,
+  EmptyState,
+  Pressable,
+  Screen,
+  Skeleton,
+  Text,
+} from '../components/ui';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -55,7 +65,6 @@ function formatTimeAgo(timestamp: number): string {
 
 export default function NotificationsScreen() {
   const t = useTheme();
-  const styles = useThemedStyles(createStyles);
   const navigation = useNavigation<NavigationProp>();
   const { user } = useAuth();
 
@@ -68,21 +77,26 @@ export default function NotificationsScreen() {
 
   const loadAlerts = useCallback(async () => {
     if (!user) {
+      setIsLoading(false);
       return;
     }
 
     setIsLoading(true);
-
-    const settings = await loadAlertSettings(user.uid);
-    setAlertsOn(settings.alertsEnabled);
-    setSavedFilters(settings.savedFilters || EMPTY_FILTERS);
+    try {
+      const settings = await loadAlertSettings(user.uid);
+      setAlertsOn(settings.alertsEnabled);
+      setSavedFilters(settings.savedFilters || EMPTY_FILTERS);
+    } catch {
+      // Not knowing whether alerts are on is not worth an error screen --
+      // the stored list below is still worth showing.
+      setAlertsOn(false);
+    }
 
     // This both checks for new matches and gives us back the full list to
     // show. It never throws -- if the phone is offline it just returns the
     // alerts already saved on this device.
     const list = await runAlertCheck(user.uid);
     setNotifications(list);
-
     setIsLoading(false);
   }, [user]);
 
@@ -107,13 +121,26 @@ export default function NotificationsScreen() {
     navigation.navigate('Details', { propertyId: notification.propertyId });
   }
 
-  async function clearAll() {
-    if (!user) {
+  // Destructive, so it says how many it is about to throw away.
+  function confirmClearAll() {
+    if (!user || notifications.length === 0) {
       return;
     }
-
-    setNotifications([]);
-    await saveStoredNotifications(user.uid, []);
+    Alert.alert(
+      'Clear all alerts?',
+      `This removes all ${notifications.length} alert${notifications.length === 1 ? '' : 's'} from this phone. The listings themselves are not affected, and new matches will still appear.`,
+      [
+        { text: 'Keep them', style: 'cancel' },
+        {
+          text: 'Clear',
+          style: 'destructive',
+          onPress: async () => {
+            setNotifications([]);
+            await saveStoredNotifications(user.uid, []);
+          },
+        },
+      ]
+    );
   }
 
   function openFilterScreen() {
@@ -126,66 +153,144 @@ export default function NotificationsScreen() {
     });
   }
 
+  const unreadCount = notifications.filter((item) => !item.read).length;
+
   return (
     <Screen edges={false}>
-      {/* No ScreenHeader here: RootNavigator draws this screen's header via
-          detailHeader('Alerts'). Rendering one here too gave two stacked
-          headers and a doubled top safe-area inset. The clear-all action
-          moved into the status row below. */}
-
-      <View style={styles.statusRow}>
+      {/* Status strip: whether alerts are on, and the two things you can do
+          about it. Sits here rather than in a header because the navigator
+          owns this screen's header. */}
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: t.spacing.xs,
+          paddingHorizontal: GUTTER,
+          paddingBottom: t.spacing.sm,
+        }}
+      >
         <Ionicons
           name={alertsOn ? 'checkmark-circle' : 'alert-circle-outline'}
-          size={14}
-          color={alertsOn ? t.colors.success : t.colors.inkSoft}
+          size={15}
+          color={alertsOn ? t.colors.success : t.colors.inkFaint}
         />
-        <Text style={styles.statusText}>
-          {alertsOn ? 'Alerts are on for your saved filters.' : 'Alerts are off.'}
+        <Text variant="caption" tone="soft" style={{ flex: 1 }}>
+          {alertsOn ? 'Alerts are on for your saved filters' : 'Alerts are off'}
         </Text>
-        <Pressable onPress={openFilterScreen}>
-          <Text style={styles.statusLink}>{alertsOn ? 'Edit filters' : 'Turn on'}</Text>
+
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={alertsOn ? 'Edit alert filters' : 'Turn on alerts'}
+          onPress={openFilterScreen}
+          style={{ paddingVertical: t.spacing.xxs }}
+        >
+          <Text variant="captionStrong" tone="brand">
+            {alertsOn ? 'Edit' : 'Turn on'}
+          </Text>
         </Pressable>
 
-        {/* Lives here rather than in a header, because this screen's header
-            comes from the navigator. Without it clearAll had no caller at
-            all and the alerts list could not be emptied. */}
         {notifications.length > 0 ? (
-          <Pressable onPress={clearAll} accessibilityLabel="Clear all alerts">
-            <Text style={[styles.statusLink, { color: t.colors.danger }]}>Clear all</Text>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Clear all alerts"
+            onPress={confirmClearAll}
+            style={{ paddingVertical: t.spacing.xxs }}
+          >
+            <Text variant="captionStrong" tone="danger">
+              Clear
+            </Text>
           </Pressable>
         ) : null}
       </View>
 
       {isLoading ? (
-        <View style={styles.centered}>
-          <ActivityIndicator size="large" color={t.colors.brand} />
+        <View style={{ paddingHorizontal: GUTTER, gap: t.spacing.xs }}>
+          <Skeleton height={76} radius={t.radius.lg} />
+          <Skeleton height={76} radius={t.radius.lg} />
+          <Skeleton height={76} radius={t.radius.lg} />
         </View>
       ) : (
         <FlatList
           data={notifications}
           keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.list}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{
+            paddingHorizontal: GUTTER,
+            paddingBottom: t.spacing.xl,
+            gap: t.spacing.xs,
+            flexGrow: 1,
+          }}
+          ListHeaderComponent={
+            unreadCount > 0 ? (
+              <Text variant="caption" tone="faint" style={{ paddingBottom: t.spacing.xxs }}>
+                {unreadCount} new
+              </Text>
+            ) : null
+          }
           ListEmptyComponent={
-            <EmptyState icon="notifications-off-outline" title="No alerts yet"
-              message={alertsOn ? 'New matches will appear here when you next open BoardEase.' : 'No saved search alerts are active.'}
-              actionLabel={alertsOn ? 'Edit filters' : 'Set up alerts'} onAction={openFilterScreen} />
+            <EmptyState
+              icon="notifications-off-outline"
+              title="No alerts yet"
+              message={
+                alertsOn
+                  ? 'New listings that match your saved filters will appear here when you next open BoardEase.'
+                  : 'Save a set of filters on the Search screen and BoardEase will tell you when a new listing fits.'
+              }
+              actionLabel={alertsOn ? 'Edit filters' : 'Set up alerts'}
+              onAction={openFilterScreen}
+            />
           }
           renderItem={({ item }) => (
             <Pressable
-              style={[styles.card, !item.read && styles.cardUnread]}
+              accessibilityRole="button"
+              accessibilityLabel={`${item.title}. ${item.message}`}
               onPress={() => handleOpenAlert(item)}
             >
-              <View style={styles.iconCircle}>
-                <Ionicons name="home" size={16} color={t.colors.onBrand} />
-              </View>
+              <Card
+                level="low"
+                style={{
+                  flexDirection: 'row',
+                  gap: t.spacing.sm,
+                  borderRadius: t.radius.lg,
+                  // Unread is marked by a brand left edge as well as a tinted
+                  // surface, so the state survives a quick glance and does not
+                  // depend on telling two close shades apart.
+                  borderLeftWidth: item.read ? 0 : 3,
+                  borderLeftColor: t.colors.brand,
+                  backgroundColor: item.read ? t.colors.surface : t.colors.brandSoft,
+                }}
+              >
+                <View
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: t.radius.pill,
+                    backgroundColor: item.read ? t.colors.canvasAlt : t.colors.brand,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Ionicons
+                    name="home"
+                    size={16}
+                    color={item.read ? t.colors.inkSoft : t.colors.onBrand}
+                  />
+                </View>
 
-              <View style={styles.cardTextWrap}>
-                <Text style={styles.cardTitle}>{item.title}</Text>
-                <Text style={styles.cardMessage}>{item.message}</Text>
-                <Text style={styles.cardTime}>{formatTimeAgo(item.createdAt)}</Text>
-              </View>
+                <View style={{ flex: 1, gap: 2 }}>
+                  <Text variant="captionStrong" numberOfLines={1}>
+                    {item.title}
+                  </Text>
+                  <Text variant="caption" tone="soft">
+                    {item.message}
+                  </Text>
+                  <Text variant="micro" tone="faint">
+                    {formatTimeAgo(item.createdAt)}
+                  </Text>
+                </View>
 
-              {!item.read && <View style={styles.unreadDot} />}
+                <Ionicons name="chevron-forward" size={16} color={t.colors.inkFaint} />
+              </Card>
             </Pressable>
           )}
         />
@@ -193,72 +298,3 @@ export default function NotificationsScreen() {
     </Screen>
   );
 }
-
-const createStyles = (t: Theme) => StyleSheet.create({
-  container: { flex: 1, backgroundColor: t.colors.canvas },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: spacing.lg - 4,
-    paddingBottom: spacing.sm,
-  },
-  titleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  title: { fontSize: 20, fontWeight: 'bold', color: t.colors.ink },
-  clearLink: { color: t.colors.brand, fontWeight: '600' },
-  statusRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs + 2,
-    paddingHorizontal: spacing.lg - 4,
-    paddingBottom: spacing.sm + 2,
-  },
-  statusText: { flex: 1, color: t.colors.inkSoft, fontSize: 12 },
-  statusLink: { color: t.colors.brand, fontSize: 12, fontWeight: '600' },
-  centered: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.lg, gap: spacing.sm },
-  emptyTitle: { fontWeight: 'bold', color: t.colors.ink, fontSize: 15 },
-  emptyText: { color: t.colors.inkSoft, textAlign: 'center', lineHeight: 19 },
-  emptyButton: {
-    flexDirection: 'row',
-    backgroundColor: t.colors.brand,
-    borderRadius: radius.md,
-    paddingVertical: spacing.sm + 4,
-    paddingHorizontal: spacing.lg,
-    alignItems: 'center',
-    gap: spacing.sm,
-    marginTop: spacing.sm,
-    ...t.elevation.low,
-  },
-  emptyButtonText: { color: t.colors.onBrand, fontWeight: 'bold' },
-  list: { paddingHorizontal: spacing.lg - 4, paddingBottom: spacing.lg - 4, flexGrow: 1 },
-  card: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    backgroundColor: t.colors.surface,
-    borderRadius: radius.md,
-    padding: spacing.md - 2,
-    marginBottom: spacing.sm + 2,
-    gap: spacing.sm + 2,
-    ...t.elevation.low,
-  },
-  cardUnread: { backgroundColor: t.colors.brandSoft },
-  iconCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: t.colors.brand,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  unreadDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: t.colors.brand,
-    marginTop: 6,
-  },
-  cardTextWrap: { flex: 1 },
-  cardTitle: { fontWeight: 'bold', marginBottom: 2, color: t.colors.ink },
-  cardMessage: { color: t.colors.inkSoft, fontSize: 13, lineHeight: 18 },
-  cardTime: { color: t.colors.inkSoft, fontSize: 11, marginTop: 4 },
-});
