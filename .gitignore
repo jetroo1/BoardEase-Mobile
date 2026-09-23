@@ -43,3 +43,6 @@ yarn-error.*
 # Local AI assistant config (kept out of the repo)
 CLAUDE.md
 .claude/
+
+# Generated preview (regenerate with: node docs/figma/render.js)
+docs/figma/preview.png

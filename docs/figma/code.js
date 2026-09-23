@@ -148,6 +148,24 @@ function chip(w, h, fill, radius) {
   return r;
 }
 
+// A stand-in for a photograph or the map canvas.
+//
+// This is NOT chip() with a light fill. The first version used canvasAlt
+// (#EDF2F4) on a canvas of #F6F9FA -- a two-point difference -- so every photo
+// area and the whole map rendered as invisible blank space. Details, Map and
+// Route Guide each had a 300-400px dead zone that looked like a bug.
+//
+// A mid-tone, plus a lighter band across the middle, reads unmistakably as
+// "an image goes here" at any zoom.
+function photo(w, h, radius, labelText) {
+  var wrap = box({ name: labelText ? 'Photo / ' + labelText : 'Photo', radius: radius == null ? R.md : radius, fill: '#B4C4C9', align: 'CENTER', justify: 'CENTER', gap: 0 });
+  wrap.resize(w, h);
+  wrap.primaryAxisSizingMode = 'FIXED';
+  wrap.counterAxisSizingMode = 'FIXED';
+  wrap.appendChild(chip(Math.min(w * 0.55, 120), Math.max(2, h * 0.16), '#CDD9DD', R.sm));
+  return wrap;
+}
+
 function pill(textValue, fg, bg) {
   var p = box({ name: 'Pill / ' + textValue, horizontal: true, padX: SP.xs, padY: SP.xxs, radius: R.pill, fill: bg, align: 'CENTER', gap: SP.xxs });
   p.appendChild(label(textValue, 'micro', fg));
@@ -258,8 +276,8 @@ function propertyCard(name, price, address, facts, showMatch) {
   var c = box({ name: 'PropertyCard / ' + name, padX: SP.xs, padY: SP.xs, radius: R.lg, fill: C.surface, gap: 0, shadow: true });
   c.layoutAlign = 'STRETCH';
 
-  var photo = chip(W - GUTTER * 2 - SP.xs * 2, 168, C.canvasAlt, R.md);
-  c.appendChild(photo);
+  var photoBlock = photo(W - GUTTER * 2 - SP.xs * 2, 168, R.md, name);
+  c.appendChild(photoBlock);
 
   var bodyBox = box({ name: 'Body', padX: SP.sm, padY: SP.sm, gap: SP.xs });
   bodyBox.layoutAlign = 'STRETCH';
@@ -320,7 +338,16 @@ function spacer(h) {
 function section(parent, nodes) {
   var wrap = box({ name: 'Section', padX: GUTTER, gap: SP.sm });
   wrap.layoutAlign = 'STRETCH';
-  for (var i = 0; i < nodes.length; i += 1) wrap.appendChild(nodes[i]);
+  for (var i = 0; i < nodes.length; i += 1) {
+    // Every child fills the gutter width. Without this each card, button and
+    // input hugged its own text and the whole screen collapsed into a column
+    // of narrow slivers down the left edge.
+    nodes[i].layoutAlign = 'STRETCH';
+    if (nodes[i].type === 'TEXT') {
+      nodes[i].textAutoResize = 'HEIGHT';
+    }
+    wrap.appendChild(nodes[i]);
+  }
   parent.appendChild(wrap);
   return wrap;
 }
@@ -542,7 +569,7 @@ var BUILDERS = {
 
   Details: function () {
     var f = screen('07 Details');
-    f.appendChild(chip(W, 300, C.canvasAlt, 0));
+    f.appendChild(photo(W, 300, 0, "listing hero"));
 
     var actions = box({ name: 'Actions', horizontal: true, gap: SP.xs });
     actions.layoutAlign = 'STRETCH';
@@ -580,6 +607,8 @@ var BUILDERS = {
       label('What it offers', 'heading', C.ink),
       amen,
       label('Reviews', 'heading', C.ink),
+      reviewRow('Maria', 'Quiet at night and the WiFi actually works.'),
+      reviewRow('Paolo', 'Close to campus. Landlady is strict about visitors.'),
     ]);
     return f;
   },
@@ -603,7 +632,7 @@ var BUILDERS = {
     f.appendChild(count);
 
     // Stand-in for the Leaflet canvas, with the price markers on it.
-    var mapArea = box({ name: 'Map canvas', grow: true, fill: C.canvasAlt, padX: SP.xl, padY: SP.xl, gap: SP.lg });
+    var mapArea = box({ name: 'Map canvas', grow: true, fill: '#B4C4C9', padX: SP.xl, padY: SP.xl, gap: SP.lg });
     mapArea.layoutAlign = 'STRETCH';
     mapArea.resize(W, 330);
     mapArea.primaryAxisSizingMode = 'FIXED';
@@ -617,7 +646,7 @@ var BUILDERS = {
     cardWrap.layoutAlign = 'STRETCH';
     var c = box({ name: "PropertyCard / Student's Nest", horizontal: true, padX: SP.xs, padY: SP.xs, radius: R.lg, fill: C.surface, gap: SP.sm, shadow: true, border: C.brand, borderWidth: 2 });
     c.layoutAlign = 'STRETCH';
-    c.appendChild(chip(92, 92, C.canvasAlt, R.md));
+    c.appendChild(photo(92, 92, R.md, "thumb"));
     var cv = box({ name: 'Text', gap: 3 });
     cv.layoutGrow = 1;
     cv.appendChild(label("Student's Nest", 'captionStrong', C.ink));
@@ -643,7 +672,7 @@ var BUILDERS = {
     banner.appendChild(pill('LIVE', C.onBrand, C.brandDeep));
     f.appendChild(banner);
 
-    f.appendChild(chip(W, 400, C.canvasAlt, 0));
+    f.appendChild(photo(W, 400, 0, "route map"));
 
     var steps = box({ name: 'Steps', padX: GUTTER, padY: SP.md, gap: SP.sm, fill: C.surface, radius: R.lg, grow: true });
     steps.layoutAlign = 'STRETCH';
@@ -694,7 +723,7 @@ var BUILDERS = {
       var headCell = box({ name: 'Header cell', padX: SP.xs, padY: SP.xs, width: 150, gap: SP.xxs, fill: C.surfaceAlt });
       headCell.resize(150, 100);
       headCell.primaryAxisSizingMode = 'FIXED';
-      headCell.appendChild(chip(134, 44, C.canvasAlt, R.sm));
+      headCell.appendChild(photo(134, 44, R.sm, "thumb"));
       headCell.appendChild(label(cols[c2].name, 'captionStrong', C.ink, { width: 130 }));
       col.appendChild(headCell);
 
@@ -760,8 +789,9 @@ var BUILDERS = {
     f.appendChild(header('Saved listings', 'Your shortlist'));
     section(f, [
       propertyCard("Student's Nest", '₱2,100', 'Visayan Village, Tagum City', ['Shared', 'WiFi'], false),
+      propertyCard('CityStay Rooms', '₱3,200', 'Magugpo Poblacion, Tagum City', ['Single', 'Own CR'], false),
     ]);
-    f.appendChild(spacer(200));
+    f.appendChild(spacer(SP.xs));
     f.appendChild(tabBar(3));
     return f;
   },
@@ -791,7 +821,24 @@ var BUILDERS = {
     av.appendChild(label('2 hours ago', 'micro', C.inkFaint));
     alertCard.appendChild(av);
 
-    section(f, [alertCard]);
+    function alertRow(titleText, bodyText, when, unread) {
+      var a = box({ name: unread ? 'Alert' : 'Alert read', horizontal: true, padX: SP.md, padY: SP.md, radius: R.lg, fill: unread ? C.brandSoft : C.surface, gap: SP.sm, shadow: true });
+      a.layoutAlign = 'STRETCH';
+      a.appendChild(chip(36, 36, unread ? C.brand : C.canvasAlt, R.pill));
+      var v = box({ name: 'Text', gap: 2 });
+      v.layoutGrow = 1;
+      v.appendChild(label(titleText, 'captionStrong', C.ink));
+      v.appendChild(label(bodyText, 'caption', C.inkSoft, { width: 210 }));
+      v.appendChild(label(when, 'micro', C.inkFaint));
+      a.appendChild(v);
+      return a;
+    }
+
+    section(f, [
+      alertCard,
+      alertRow('Sunrise Boarding House', 'New listing matches your saved filters', '1 day ago', false),
+      alertRow('Greenview Dormitory', 'New listing matches your saved filters', '3 days ago', false),
+    ]);
     return f;
   },
 
@@ -865,7 +912,7 @@ var BUILDERS = {
     pending.layoutAlign = 'STRETCH';
     var pr2 = box({ name: 'Row', horizontal: true, gap: SP.sm });
     pr2.layoutAlign = 'STRETCH';
-    pr2.appendChild(chip(60, 60, C.canvasAlt, R.sm));
+    pr2.appendChild(photo(60, 60, R.sm, "thumb"));
     var pv2 = box({ name: 'Text', gap: 2 });
     pv2.layoutGrow = 1;
     pv2.appendChild(label('Sunrise Boarding House', 'captionStrong', C.ink));
@@ -884,7 +931,29 @@ var BUILDERS = {
     actionRow.appendChild(rj);
     pending.appendChild(actionRow);
 
-    section(f, [tabs, button('Add a new listing', 'primary'), pending]);
+    function queueRow(titleText, addressText, priceText) {
+      var q = card('Pending / ' + titleText);
+      q.layoutAlign = 'STRETCH';
+      var qr = box({ name: 'Row', horizontal: true, gap: SP.sm });
+      qr.layoutAlign = 'STRETCH';
+      qr.appendChild(photo(60, 60, R.sm, 'thumb'));
+      var qv = box({ name: 'Text', gap: 2 });
+      qv.layoutGrow = 1;
+      qv.appendChild(label(titleText, 'captionStrong', C.ink));
+      qv.appendChild(label(addressText, 'caption', C.inkFaint));
+      qv.appendChild(label(priceText, 'captionStrong', C.brand));
+      qr.appendChild(qv);
+      q.appendChild(qr);
+      return q;
+    }
+
+    section(f, [
+      tabs,
+      button('Add a new listing', 'primary'),
+      pending,
+      queueRow('Greenview Dormitory', 'Magugpo East, Tagum City', '₱1,800'),
+      queueRow('CityStay Rooms', 'Magugpo Poblacion, Tagum City', '₱3,200'),
+    ]);
     return f;
   },
 
@@ -914,6 +983,23 @@ var BUILDERS = {
     return f;
   },
 };
+
+// One review card, as Details and Reviews both render them.
+function reviewRow(who, body) {
+  var c = card('Review / ' + who);
+  c.layoutAlign = 'STRETCH';
+  var head = box({ name: 'Row', horizontal: true, gap: SP.xs, align: 'CENTER' });
+  head.layoutAlign = 'STRETCH';
+  head.appendChild(chip(28, 28, C.brandSoft, R.pill));
+  var v = box({ name: 'Who', gap: 1 });
+  v.layoutGrow = 1;
+  v.appendChild(label(who, 'captionStrong', C.ink));
+  head.appendChild(v);
+  head.appendChild(label('★★★★★', 'caption', C.star));
+  c.appendChild(head);
+  c.appendChild(label(body, 'caption', C.inkSoft, { width: W - GUTTER * 2 - SP.md * 2 }));
+  return c;
+}
 
 // One settings row, matching the Row component in ProfileScreen.
 function settingsRow(titleText, subtitleText) {
