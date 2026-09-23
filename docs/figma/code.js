@@ -20,7 +20,10 @@
 // Tokens (mirrored from src/theme.ts)
 // ---------------------------------------------------------------------------
 
-var C = {
+// Both palettes, exactly as src/theme.ts defines them. The app ships light and
+// dark, so the prototype does too -- a Figma file that only shows one of them
+// is not the system.
+var LIGHT = {
   canvas: '#F6F9FA',
   canvasAlt: '#EDF2F4',
   surface: '#FFFFFF',
@@ -41,7 +44,44 @@ var C = {
   danger: '#B03A2B',
   dangerSoft: '#FAE4E0',
   star: '#C08A14',
+  // Not in theme.ts: the tone used for photo and map placeholders. It has to
+  // sit clearly apart from both canvas and surface or the image areas vanish.
+  photoFill: '#B4C4C9',
+  photoBand: '#CDD9DD',
 };
+
+var DARK = {
+  canvas: '#0D1214',
+  canvasAlt: '#141C1F',
+  surface: '#161F22',
+  surfaceAlt: '#1D282C',
+  line: '#243135',
+  lineStrong: '#344449',
+  ink: '#ECF2F3',
+  inkSoft: '#A6B8BD',
+  inkFaint: '#78898E',
+  onBrand: '#052027',
+  brand: '#52B6CC',
+  brandDeep: '#84D0DF',
+  brandSoft: '#0E333D',
+  success: '#56C089',
+  successSoft: '#13301F',
+  warning: '#DCA63E',
+  warningSoft: '#31250E',
+  danger: '#E38271',
+  dangerSoft: '#3A1C18',
+  star: '#DEAE49',
+  photoFill: '#2C3C41',
+  photoBand: '#3B4E54',
+};
+
+// The live palette. Every builder reads C, so switching theme is one call.
+var C = {};
+function applyTheme(dark) {
+  var src = dark ? DARK : LIGHT;
+  Object.keys(src).forEach(function (k) { C[k] = src[k]; });
+}
+applyTheme(false);
 
 var SP = { xxs: 4, xs: 8, sm: 12, md: 16, lg: 24, xl: 32, xxl: 48 };
 var R = { sm: 12, md: 16, lg: 22, xl: 30, pill: 999 };
@@ -158,11 +198,11 @@ function chip(w, h, fill, radius) {
 // A mid-tone, plus a lighter band across the middle, reads unmistakably as
 // "an image goes here" at any zoom.
 function photo(w, h, radius, labelText) {
-  var wrap = box({ name: labelText ? 'Photo / ' + labelText : 'Photo', radius: radius == null ? R.md : radius, fill: '#B4C4C9', align: 'CENTER', justify: 'CENTER', gap: 0 });
+  var wrap = box({ name: labelText ? 'Photo / ' + labelText : 'Photo', radius: radius == null ? R.md : radius, fill: C.photoFill, align: 'CENTER', justify: 'CENTER', gap: 0 });
   wrap.resize(w, h);
   wrap.primaryAxisSizingMode = 'FIXED';
   wrap.counterAxisSizingMode = 'FIXED';
-  wrap.appendChild(chip(Math.min(w * 0.55, 120), Math.max(2, h * 0.16), '#CDD9DD', R.sm));
+  wrap.appendChild(chip(Math.min(w * 0.55, 120), Math.max(2, h * 0.16), C.photoBand, R.sm));
   return wrap;
 }
 
@@ -635,7 +675,7 @@ var BUILDERS = {
     f.appendChild(count);
 
     // Stand-in for the Leaflet canvas, with the price markers on it.
-    var mapArea = box({ name: 'Map canvas', grow: true, fill: '#B4C4C9', padX: SP.xl, padY: SP.xl, gap: SP.lg });
+    var mapArea = box({ name: 'Map canvas', grow: true, fill: C.photoFill, padX: SP.xl, padY: SP.xl, gap: SP.lg });
     mapArea.layoutAlign = 'STRETCH';
     mapArea.resize(W, 330);
     mapArea.primaryAxisSizingMode = 'FIXED';
@@ -1286,76 +1326,101 @@ async function main() {
     'Notifications', 'Profile', 'Admin', 'AddListing',
   ];
 
-  var made = {};
   var page = figma.currentPage;
+  var ROW_H = H + 80;
 
-  // Laid out 6 across, so the whole app fits on one screenful when zoomed to
-  // fit rather than running off in a single long row.
-  for (var n = 0; n < order.length; n += 1) {
-    var key = order[n];
-    var node = BUILDERS[key]();
-    node.x = (n % 6) * (W + 60);
-    node.y = Math.floor(n / 6) * (H + 80);
-    page.appendChild(node);
-    made[key] = node;
+  // Build the same sixteen screens twice, once per theme. Laid out 6 across so
+  // the whole app fits on one screenful when zoomed to fit, with the dark set
+  // below the light one rather than interleaved -- they are two versions of
+  // one app, not thirty-two unrelated frames.
+  function buildSet(dark, yOffset, suffix) {
+    applyTheme(dark);
+    var built = {};
+    for (var n = 0; n < order.length; n += 1) {
+      var key = order[n];
+      var node = BUILDERS[key]();
+      node.name = node.name + suffix;
+      node.x = (n % 6) * (W + 60);
+      node.y = yOffset + Math.floor(n / 6) * ROW_H;
+      page.appendChild(node);
+      built[key] = node;
+    }
+    return built;
   }
+
+  var made = buildSet(false, 0, '');
+  var madeDark = buildSet(true, 3 * ROW_H + 120, '  ·  dark');
 
   // Named-element links. Attaching the reaction to a specific child rather
   // than to the whole frame is what lets one screen have several destinations
   // -- a frame can only carry one click reaction.
+  //
+  // Run once per theme, and only within a set: a tap in the light prototype
+  // must never jump you into the dark one.
   var wired = 0;
   var missed = [];
-  for (var k = 0; k < FLOWS.length; k += 1) {
-    var fromScreen = made[FLOWS[k][0]];
-    var nodeName = FLOWS[k][1];
-    var toScreen = made[FLOWS[k][2]];
-    if (!fromScreen || !toScreen) continue;
 
-    var trigger = nodeName
-      ? fromScreen.findOne(function (candidate) {
-          return candidate.name === nodeName;
-        })
-      : fromScreen;
+  async function wireSet(map) {
+    for (var k = 0; k < FLOWS.length; k += 1) {
+      var fromScreen = map[FLOWS[k][0]];
+      var nodeName = FLOWS[k][1];
+      var toScreen = map[FLOWS[k][2]];
+      if (!fromScreen || !toScreen) continue;
 
-    if (trigger) {
-      await wire(trigger, toScreen);
-      wired += 1;
-    } else {
-      // Say which link could not be made rather than silently producing a
-      // prototype with dead spots in it.
-      missed.push(FLOWS[k][0] + ' → ' + toScreen.name + ' (no "' + nodeName + '")');
-    }
-  }
-
-  // Tab bar: every tabbed screen reaches all five tabs.
-  for (var a = 0; a < TABBED.length; a += 1) {
-    var host = made[TABBED[a]];
-    if (!host) continue;
-    for (var b = 0; b < TAB_SLOTS.length; b += 1) {
-      if (a === b) continue; // the tab you are already on
-      var destination = made[TABBED[b]];
-      if (!destination) continue;
       /* eslint-disable no-loop-func */
-      var slotName = TAB_SLOTS[b];
-      var slot = host.findOne(function (candidate) {
-        return candidate.name === slotName;
-      });
+      var wantedName = nodeName;
+      var trigger = wantedName
+        ? fromScreen.findOne(function (candidate) {
+            return candidate.name === wantedName;
+          })
+        : fromScreen;
       /* eslint-enable no-loop-func */
-      if (slot) {
-        await wire(slot, destination);
+
+      if (trigger) {
+        await wire(trigger, toScreen);
         wired += 1;
+      } else {
+        // Say which link could not be made rather than silently producing a
+        // prototype with dead spots in it.
+        missed.push(FLOWS[k][0] + ' → ' + toScreen.name + ' (no "' + wantedName + '")');
+      }
+    }
+
+    // Tab bar: every tabbed screen reaches all five tabs.
+    for (var a = 0; a < TABBED.length; a += 1) {
+      var host = map[TABBED[a]];
+      if (!host) continue;
+      for (var b = 0; b < TAB_SLOTS.length; b += 1) {
+        if (a === b) continue; // the tab you are already on
+        var destination = map[TABBED[b]];
+        if (!destination) continue;
+        /* eslint-disable no-loop-func */
+        var slotName = TAB_SLOTS[b];
+        var slot = host.findOne(function (candidate) {
+          return candidate.name === slotName;
+        });
+        /* eslint-enable no-loop-func */
+        if (slot) {
+          await wire(slot, destination);
+          wired += 1;
+        }
       }
     }
   }
 
+  await wireSet(made);
+  await wireSet(madeDark);
+
   // Landing is where a prototype run should begin.
-  if (made.Landing) {
-    made.Landing.name = '01 Landing  ▶ START';
-  }
+  if (made.Landing) made.Landing.name = '01 Landing  ▶ START';
+  if (madeDark.Landing) madeDark.Landing.name = '01 Landing  ·  dark  ▶ START';
 
-  figma.viewport.scrollAndZoomIntoView(Object.keys(made).map(function (k2) { return made[k2]; }));
+  figma.viewport.scrollAndZoomIntoView(
+    Object.keys(made).map(function (k2) { return made[k2]; })
+      .concat(Object.keys(madeDark).map(function (k3) { return madeDark[k3]; }))
+  );
 
-  var summary = 'BoardEase: 16 screens, ' + wired + ' links. Press ▶ to run it.' + fontNote;
+  var summary = 'BoardEase: 32 frames (16 light + 16 dark), ' + wired + ' links. Press ▶ to run it.' + fontNote;
   if (missed.length > 0) {
     summary += ' Could not link: ' + missed.join('; ');
   }

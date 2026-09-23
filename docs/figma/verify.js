@@ -108,8 +108,8 @@ setTimeout(() => {
     console.log('\nFAILED — some links did not resolve');
     process.exit(1);
   }
-  if (frames.length !== 16) {
-    console.log('\nFAILED — expected 16 frames');
+  if (frames.length !== 32) {
+    console.log('\nFAILED — expected 32 frames (16 light + 16 dark)');
     process.exit(1);
   }
   console.log('\nPASS');
