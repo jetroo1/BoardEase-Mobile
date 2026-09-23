@@ -147,16 +147,18 @@ function chip(w, h, fill, radius) {
 }
 
 function pill(textValue, fg, bg) {
-  var p = box({ name: 'Pill', horizontal: true, padX: SP.xs, padY: SP.xxs, radius: R.pill, fill: bg, align: 'CENTER', gap: SP.xxs });
+  var p = box({ name: 'Pill / ' + textValue, horizontal: true, padX: SP.xs, padY: SP.xxs, radius: R.pill, fill: bg, align: 'CENTER', gap: SP.xxs });
   p.appendChild(label(textValue, 'micro', fg));
   return p;
 }
 
+// `textValue` doubles as the node name, so the prototype wiring at the bottom
+// of this file can find a specific button by the words on it.
 function button(textValue, variant) {
   var bg = variant === 'secondary' ? C.surface : variant === 'ghost' ? null : C.brand;
   var fg = variant === 'primary' || variant == null ? C.onBrand : C.brand;
   var b = box({
-    name: 'Button / ' + (variant || 'primary'),
+    name: 'Button / ' + textValue,
     horizontal: true,
     padX: SP.md,
     padY: SP.sm,
@@ -681,27 +683,70 @@ function field(labelText, placeholder) {
 // Prototype wiring -- which screen each screen can reach
 // ---------------------------------------------------------------------------
 
+// Taken from the actual navigate() calls in src/screens/*.tsx, not from
+// memory. Each entry is [fromScreen, nodeNameInThatScreen, toScreen]; a null
+// node name links the whole frame, which is the fallback for screens where the
+// trigger is something this mock does not draw.
+//
+// Verified against the app on 23 September 2026:
+//   Landing       -> Login, Register
+//   Login         -> Register        (+ Home, via AuthContext on success)
+//   Register      -> Login           (+ Home, via AuthContext on success)
+//   Home          -> Search, Favorites, Notifications, Details, Admin
+//   Search        -> Filter, Details, Map   (+ Compare, via CompareBar)
+//   Filter        -> back to Search
+//   Details       -> Navigation, Reviews    (+ Compare, via CompareBar)
+//   Map           -> Details
+//   Compare       -> Details
+//   Favorites     -> Details, Search        (+ Compare, via CompareBar)
+//   Notifications -> Details, Filter
+//   Profile       -> Admin, AddListing, Search
+//   Admin         -> AddListing
 var FLOWS = [
-  ['Landing', 'Register'],
-  ['Landing', 'Login'],
-  ['Login', 'Home'],
-  ['Register', 'Home'],
-  ['Home', 'Search'],
-  ['Home', 'Favorites'],
-  ['Home', 'Notifications'],
-  ['Search', 'Filter'],
-  ['Search', 'Details'],
-  ['Search', 'Map'],
-  ['Filter', 'Search'],
-  ['Details', 'Navigation'],
-  ['Details', 'Reviews'],
-  ['Details', 'Compare'],
-  ['Map', 'Details'],
-  ['Favorites', 'Details'],
-  ['Notifications', 'Details'],
-  ['Profile', 'Admin'],
-  ['Admin', 'AddListing'],
+  // Auth. Login and Register do not call navigate('Home') -- AuthContext
+  // swaps the navigator once Firebase signs in -- but that IS what the user
+  // experiences, so the prototype models it.
+  ['Landing', 'Button / Get started', 'Register'],
+  ['Landing', 'Button / I already have an account', 'Login'],
+  ['Login', 'Button / Log in', 'Home'],
+  ['Login', 'New here? Create an account', 'Register'],
+  ['Register', 'Button / Create account', 'Home'],
+
+  // Home
+  ['Home', 'Search entry', 'Search'],
+  ['Home', 'Saved', 'Favorites'],
+  ['Home', 'Alerts', 'Notifications'],
+
+  // Search
+  ['Search', 'Pill / Filter', 'Filter'],
+  ["Search", "PropertyCard / Student's Nest", 'Details'],
+  ['Search', 'PropertyCard / Greenview Dormitory', 'Details'],
+
+  // Filter returns to the list it was opened from.
+  ['Filter', 'Button / Apply 2 filters', 'Search'],
+
+  // Details
+  ['Details', 'Button / Get directions', 'Navigation'],
+  ['Details', 'Button / Compare', 'Compare'],
+  ['Details', 'Reviews', 'Reviews'],
+
+  // Map, Compare, Saved, Alerts
+  ['Map', "PropertyCard / Student's Nest", 'Details'],
+  ['Compare', 'Column', 'Details'],
+  ['Favorites', "PropertyCard / Student's Nest", 'Details'],
+  ['Notifications', 'Alert', 'Details'],
+
+  // Profile / admin
+  ['Profile', 'Button / Log out', 'Landing'],
+  ['Admin', 'Button / Add a new listing', 'AddListing'],
+  ['AddListing', 'Button / Publish listing', 'Admin'],
 ];
+
+// The bottom tab bar reaches five screens from any tabbed screen. Wiring this
+// by hand for every combination would be 25 near-identical lines, so it is
+// generated instead.
+var TABBED = ['Home', 'Search', 'Map', 'Favorites', 'Profile'];
+var TAB_SLOTS = ['Tab / Home', 'Tab / Search', 'Tab / Map', 'Tab / Saved', 'Tab / Profile'];
 
 async function wire(fromNode, toNode) {
   var reaction = {
@@ -775,11 +820,51 @@ async function main() {
     made[key] = node;
   }
 
+  // Named-element links. Attaching the reaction to a specific child rather
+  // than to the whole frame is what lets one screen have several destinations
+  // -- a frame can only carry one click reaction.
+  var wired = 0;
+  var missed = [];
   for (var k = 0; k < FLOWS.length; k += 1) {
-    var from = made[FLOWS[k][0]];
-    var to = made[FLOWS[k][1]];
-    if (from && to) {
-      await wire(from, to);
+    var fromScreen = made[FLOWS[k][0]];
+    var nodeName = FLOWS[k][1];
+    var toScreen = made[FLOWS[k][2]];
+    if (!fromScreen || !toScreen) continue;
+
+    var trigger = nodeName
+      ? fromScreen.findOne(function (candidate) {
+          return candidate.name === nodeName;
+        })
+      : fromScreen;
+
+    if (trigger) {
+      await wire(trigger, toScreen);
+      wired += 1;
+    } else {
+      // Say which link could not be made rather than silently producing a
+      // prototype with dead spots in it.
+      missed.push(FLOWS[k][0] + ' → ' + toScreen.name + ' (no "' + nodeName + '")');
+    }
+  }
+
+  // Tab bar: every tabbed screen reaches all five tabs.
+  for (var a = 0; a < TABBED.length; a += 1) {
+    var host = made[TABBED[a]];
+    if (!host) continue;
+    for (var b = 0; b < TAB_SLOTS.length; b += 1) {
+      if (a === b) continue; // the tab you are already on
+      var destination = made[TABBED[b]];
+      if (!destination) continue;
+      /* eslint-disable no-loop-func */
+      var slotName = TAB_SLOTS[b];
+      var slot = host.findOne(function (candidate) {
+        return candidate.name === slotName;
+      });
+      /* eslint-enable no-loop-func */
+      if (slot) {
+        await wire(slot, destination);
+        wired += 1;
+      }
     }
   }
 
@@ -789,7 +874,12 @@ async function main() {
   }
 
   figma.viewport.scrollAndZoomIntoView(Object.keys(made).map(function (k2) { return made[k2]; }));
-  figma.closePlugin('BoardEase: 16 screens created and linked. Press ▶ to run the prototype.');
+
+  var summary = 'BoardEase: 16 screens, ' + wired + ' links. Press ▶ to run it.';
+  if (missed.length > 0) {
+    summary += ' Could not link: ' + missed.join('; ');
+  }
+  figma.closePlugin(summary);
 }
 
 main();

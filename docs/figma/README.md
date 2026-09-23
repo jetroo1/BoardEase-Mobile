@@ -48,22 +48,35 @@ changed in Figma.
 **Auto-layout everywhere**, so boxes reflow when you edit them instead of
 needing to be dragged back into place.
 
-**A working prototype.** These flows are wired:
+**A working prototype, wired to match the real app.** These flows were taken
+from the actual `navigate()` calls in `src/screens/`, not written from memory:
 
 ```
-Landing  → Register, Login
-Login    → Home
-Register → Home
-Home     → Search, Saved, Alerts
-Search   → Filter, Details, Map
-Filter   → Search
-Details  → Route Guide, Reviews, Compare
-Map      → Details
-Saved    → Details
-Alerts   → Details
-Profile  → Admin panel
-Admin    → Add listing
+Landing       → Register, Login
+Login         → Home, Register
+Register      → Home
+Home          → Search, Saved, Alerts        + all 5 tabs
+Search        → Filter, Details, Map         + all 5 tabs
+Filter        → back to Search
+Details       → Route Guide, Reviews, Compare
+Map           → Details                      + all 5 tabs
+Compare       → Details
+Saved         → Details                      + all 5 tabs
+Alerts        → Details
+Profile       → Landing (log out)            + all 5 tabs
+Admin         → Add listing
+Add listing   → Admin
 ```
+
+Links are attached to the **specific element** you would really tap — the
+button, the listing card, the tab-bar slot — not to the whole frame. A frame
+can only carry one click reaction, so wiring at frame level would have given
+each screen exactly one destination.
+
+Two flows are modelled that the code does not literally call: `Login → Home`
+and `Register → Home`. Those screens never call `navigate('Home')` — Firebase
+signs the user in and `AuthContext` swaps the whole navigator. But that is what
+the user experiences, so the prototype shows it.
 
 Start the run from **01 Landing ▶ START**.
 
