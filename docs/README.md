@@ -34,7 +34,7 @@ Six screens as `.svg` (vector, stays sharp in Word) and `.png`, plus
 
 These predate the current build — treat them as the design intent, not as
 screenshots of the running app. For live screens, run the app and capture it,
-or generate editable frames with the Figma plugin (see the main README).
+or run the Figma plugin in [../figma/](../figma/) to generate editable frames.
 
 ## The proposal itself
 
