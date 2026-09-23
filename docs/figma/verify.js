@@ -68,6 +68,12 @@ global.figma = {
       { fontName: { family: 'Plus Jakarta Sans', style: 'Bold' } },
       { fontName: { family: 'Roboto', style: 'Regular' } },
     ]),
+  // createNodeFromSvg and createImage back the real icons and photographs.
+  // Stubbed so the checkers can run outside Figma; the icon becomes a plain
+  // node of the right size, which is what the layout cares about.
+  createNodeFromSvg: () => { const n = makeNode('FRAME'); n.name='SvgIcon'; return n; },
+  createImage: () => ({ hash: 'stub-image-hash' }),
+  mixed: Symbol('mixed'),
   loadFontAsync: (f) => {
     // Refuse anything that was not in the list above, exactly as Figma does.
     const ok = [

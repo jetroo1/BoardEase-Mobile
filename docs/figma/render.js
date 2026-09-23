@@ -62,6 +62,12 @@ global.figma = {
     { fontName: { family: 'Plus Jakarta Sans', style: 'SemiBold' } },
     { fontName: { family: 'Plus Jakarta Sans', style: 'Bold' } },
   ]),
+  // createNodeFromSvg and createImage back the real icons and photographs.
+  // Stubbed so the checkers can run outside Figma; the icon becomes a plain
+  // node of the right size, which is what the layout cares about.
+  createNodeFromSvg: () => { const n = makeNode('FRAME'); n.name='SvgIcon'; return n; },
+  createImage: () => ({ hash: 'stub-image-hash' }),
+  mixed: Symbol('mixed'),
   loadFontAsync: () => Promise.resolve(),
   currentPage: makeNode('PAGE'),
   viewport: { scrollAndZoomIntoView: () => {} },
