@@ -52,7 +52,35 @@ global.figma = {
   createFrame: () => { const n = makeNode('FRAME'); created.push(n); return n; },
   createText: () => { const n = makeNode('TEXT'); created.push(n); return n; },
   createRectangle: () => { const n = makeNode('RECTANGLE'); created.push(n); return n; },
-  loadFontAsync: () => Promise.resolve(),
+  // Deliberately mirrors how Figma really names weights: Inter's semibold is
+  // "Semi Bold" WITH A SPACE. Asking for "SemiBold" is what broke the first
+  // version, so the stub keeps that trap in place to prove the resolver
+  // handles it.
+  listAvailableFontsAsync: () =>
+    Promise.resolve([
+      { fontName: { family: 'Inter', style: 'Regular' } },
+      { fontName: { family: 'Inter', style: 'Medium' } },
+      { fontName: { family: 'Inter', style: 'Semi Bold' } },
+      { fontName: { family: 'Inter', style: 'Bold' } },
+      { fontName: { family: 'Plus Jakarta Sans', style: 'Regular' } },
+      { fontName: { family: 'Plus Jakarta Sans', style: 'Medium' } },
+      { fontName: { family: 'Plus Jakarta Sans', style: 'SemiBold' } },
+      { fontName: { family: 'Plus Jakarta Sans', style: 'Bold' } },
+      { fontName: { family: 'Roboto', style: 'Regular' } },
+    ]),
+  loadFontAsync: (f) => {
+    // Refuse anything that was not in the list above, exactly as Figma does.
+    const ok = [
+      'Inter|Regular', 'Inter|Medium', 'Inter|Semi Bold', 'Inter|Bold',
+      'Plus Jakarta Sans|Regular', 'Plus Jakarta Sans|Medium',
+      'Plus Jakarta Sans|SemiBold', 'Plus Jakarta Sans|Bold',
+      'Roboto|Regular',
+    ];
+    if (ok.indexOf(f.family + '|' + f.style) < 0) {
+      return Promise.reject(new Error('font not found: ' + f.family + ' ' + f.style));
+    }
+    return Promise.resolve();
+  },
   currentPage: makeNode('PAGE'),
   viewport: { scrollAndZoomIntoView: () => {} },
   closePlugin: (msg) => { closeMessage = msg; },

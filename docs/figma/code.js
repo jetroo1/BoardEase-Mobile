@@ -11,8 +11,10 @@
 //   2. Plugins > Development > BoardEase UI Builder
 //   3. The 16 frames appear on the canvas, already linked.
 //
-// Figma must be able to download Plus Jakarta Sans and Inter (both are free
-// Google fonts). If it cannot, the plugin says so instead of failing silently.
+// Fonts are resolved against whatever Figma actually has installed, because
+// Figma names weights differently from CSS -- Inter's semibold is "Semi Bold"
+// with a space. If Plus Jakarta Sans is missing the plugin falls back to Inter
+// and says so, rather than failing or quietly using the wrong typeface.
 
 // ---------------------------------------------------------------------------
 // Tokens (mirrored from src/theme.ts)
@@ -1056,24 +1058,107 @@ async function wire(fromNode, toNode) {
 async function main() {
   // Every font used must be loaded before any text node is created, or
   // createText throws.
-  var fonts = [
-    { family: 'Plus Jakarta Sans', style: 'Bold' },
-    { family: 'Plus Jakarta Sans', style: 'SemiBold' },
-    { family: 'Inter', style: 'Regular' },
-    { family: 'Inter', style: 'Medium' },
-    { family: 'Inter', style: 'SemiBold' },
-  ];
+  // Figma's own names for weights do not match the names used in CSS or in
+  // React Native. Inter's semibold is "Semi Bold" WITH A SPACE in Figma, so
+  // asking for "SemiBold" throws -- and the old error message then blamed the
+  // network, which sent people looking in entirely the wrong place.
+  //
+  // Rather than guess, ask Figma what it actually has and match against that.
+  var index = {};
+  try {
+    var availableFonts = await figma.listAvailableFontsAsync();
+    for (var a = 0; a < availableFonts.length; a += 1) {
+      var fam = availableFonts[a].fontName.family;
+      if (!index[fam]) index[fam] = [];
+      index[fam].push(availableFonts[a].fontName.style);
+    }
+  } catch (e) {
+    figma.closePlugin('Could not read the font list from Figma. Try restarting the app.');
+    return;
+  }
+
+  // Styles that mean the same weight, in the order we would rather have them.
+  var STYLE_ALIASES = {
+    Bold: ['Bold', 'SemiBold', 'Semi Bold', 'ExtraBold', 'Extra Bold', 'Medium', 'Regular'],
+    SemiBold: ['SemiBold', 'Semi Bold', 'Demi Bold', 'DemiBold', 'Bold', 'Medium', 'Regular'],
+    Medium: ['Medium', 'Regular', 'SemiBold', 'Semi Bold', 'Book'],
+    Regular: ['Regular', 'Book', 'Normal', 'Medium'],
+  };
+
+  // Families to fall back to, in order, if the one we want is not installed.
+  var FAMILY_FALLBACKS = ['Inter', 'Roboto', 'Helvetica Neue', 'Arial', 'Sans Serif'];
+
+  function resolveFont(family, style) {
+    var candidateFamilies = [family].concat(FAMILY_FALLBACKS);
+    var candidateStyles = STYLE_ALIASES[style] || [style, 'Regular'];
+
+    for (var fi = 0; fi < candidateFamilies.length; fi += 1) {
+      var f = candidateFamilies[fi];
+      if (!index[f]) continue;
+      for (var si = 0; si < candidateStyles.length; si += 1) {
+        if (index[f].indexOf(candidateStyles[si]) >= 0) {
+          return { family: f, style: candidateStyles[si] };
+        }
+      }
+      // Family exists but none of the preferred weights do -- take its first.
+      if (index[f].length > 0) {
+        return { family: f, style: index[f][0] };
+      }
+    }
+    return null;
+  }
+
+  // Rewrite each type role to a font that genuinely exists, then load it.
+  var substituted = [];
+  var roles = Object.keys(TYPE);
+  var toLoad = [];
+
+  for (var r = 0; r < roles.length; r += 1) {
+    var spec = TYPE[roles[r]];
+    var resolved = resolveFont(spec.family, spec.style);
+    if (!resolved) {
+      figma.closePlugin('No usable font found at all. This should not happen — report it.');
+      return;
+    }
+    if (resolved.family !== spec.family) {
+      substituted.push(spec.family + ' → ' + resolved.family);
+    }
+    spec.family = resolved.family;
+    spec.style = resolved.style;
+
+    var alreadyQueued = false;
+    for (var q = 0; q < toLoad.length; q += 1) {
+      if (toLoad[q].family === resolved.family && toLoad[q].style === resolved.style) {
+        alreadyQueued = true;
+        break;
+      }
+    }
+    if (!alreadyQueued) toLoad.push(resolved);
+  }
 
   try {
-    for (var i = 0; i < fonts.length; i += 1) {
-      await figma.loadFontAsync(fonts[i]);
+    for (var i = 0; i < toLoad.length; i += 1) {
+      await figma.loadFontAsync(toLoad[i]);
     }
   } catch (e) {
     figma.closePlugin(
-      'Could not load Plus Jakarta Sans or Inter. Both are free Google fonts — ' +
-        'open Figma in the desktop app with an internet connection and run this again.'
+      'Figma listed ' + toLoad[0].family + ' but then refused to load it. ' +
+        'Check your internet connection and run this again.'
     );
     return;
+  }
+
+  // Remember any substitution so it can be reported at the end rather than
+  // silently producing a file in the wrong typeface.
+  var fontNote = '';
+  if (substituted.length > 0) {
+    var unique = [];
+    for (var u = 0; u < substituted.length; u += 1) {
+      if (unique.indexOf(substituted[u]) < 0) unique.push(substituted[u]);
+    }
+    fontNote =
+      ' NOTE: ' + unique.join(', ') +
+      ' — install the real font in Figma and run this again to match the app exactly.';
   }
 
   var order = [
@@ -1151,7 +1236,7 @@ async function main() {
 
   figma.viewport.scrollAndZoomIntoView(Object.keys(made).map(function (k2) { return made[k2]; }));
 
-  var summary = 'BoardEase: 16 screens, ' + wired + ' links. Press ▶ to run it.';
+  var summary = 'BoardEase: 16 screens, ' + wired + ' links. Press ▶ to run it.' + fontNote;
   if (missed.length > 0) {
     summary += ' Could not link: ' + missed.join('; ');
   }
