@@ -36,8 +36,9 @@ import { db } from '../firebaseConfig';
 import { useAuth } from '../context/AuthContext';
 import { Property, Review } from '../types';
 import { RootStackParamList } from '../navigation/types';
-import { colors, radius, shadow, spacing } from '../theme';
-import StarRating from '../components/StarRating';
+import { radius, spacing } from '../theme';
+import { Theme, useTheme, useThemedStyles } from '../context/ThemeContext';
+import { Rating, Screen, ScreenHeader } from '../components/ui';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -51,6 +52,8 @@ interface ReviewWithProperty extends Review {
 }
 
 export default function AdminScreen() {
+  const t = useTheme();
+  const styles = useThemedStyles(createStyles);
   const navigation = useNavigation<NavigationProp>();
   const { role } = useAuth();
   const [activeTab, setActiveTab] = useState<AdminTab>('listings');
@@ -154,7 +157,7 @@ export default function AdminScreen() {
     if (isLoading) {
       return (
         <View style={styles.centered}>
-          <ActivityIndicator size="large" color={colors.sky} />
+          <ActivityIndicator size="large" color={t.colors.brand} />
         </View>
       );
     }
@@ -169,7 +172,7 @@ export default function AdminScreen() {
           <View>
             {/* Entry point to the form that creates a brand-new listing. */}
             <Pressable style={styles.addButton} onPress={() => navigation.navigate('AddListing')}>
-              <Ionicons name="add-circle" size={18} color={colors.white} />
+              <Ionicons name="add-circle" size={18} color={t.colors.onBrand} />
               <Text style={styles.addButtonText}>Add New Listing</Text>
             </Pressable>
 
@@ -189,11 +192,11 @@ export default function AdminScreen() {
 
             <View style={styles.actionRow}>
               <Pressable style={styles.approveButton} onPress={() => handleApprove(item.id)}>
-                <Ionicons name="checkmark-circle" size={16} color={colors.white} />
+                <Ionicons name="checkmark-circle" size={16} color={t.colors.onBrand} />
                 <Text style={styles.approveButtonText}>Approve</Text>
               </Pressable>
               <Pressable style={styles.rejectButton} onPress={() => handleReject(item.id)}>
-                <Ionicons name="close-circle" size={16} color={colors.white} />
+                <Ionicons name="close-circle" size={16} color={t.colors.onBrand} />
                 <Text style={styles.rejectButtonText}>Reject</Text>
               </Pressable>
             </View>
@@ -209,7 +212,7 @@ export default function AdminScreen() {
     if (isLoadingReviews) {
       return (
         <View style={styles.centered}>
-          <ActivityIndicator size="large" color={colors.sky} />
+          <ActivityIndicator size="large" color={t.colors.brand} />
         </View>
       );
     }
@@ -230,13 +233,13 @@ export default function AdminScreen() {
           <View style={styles.card}>
             <View style={styles.reviewHeaderRow}>
               <Text style={styles.cardTitle}>{item.userName}</Text>
-              <StarRating rating={item.rating} />
+              <Rating value={item.rating} />
             </View>
             <Text style={styles.reviewProperty}>on {item.propertyTitle}</Text>
             <Text style={styles.reviewBody}>{item.body}</Text>
 
             <Pressable style={styles.removeButton} onPress={() => handleRemoveReview(item.id)}>
-              <Ionicons name="trash" size={16} color={colors.white} />
+              <Ionicons name="trash" size={16} color={t.colors.onBrand} />
               <Text style={styles.removeButtonText}>Remove</Text>
             </Pressable>
           </View>
@@ -265,7 +268,7 @@ export default function AdminScreen() {
           <Ionicons
             name="home"
             size={14}
-            color={activeTab === 'listings' ? colors.white : colors.inkSoft}
+            color={activeTab === 'listings' ? t.colors.surface : t.colors.inkSoft}
           />
           <Text style={[styles.tabText, activeTab === 'listings' && styles.tabTextActive]}>
             Listings
@@ -279,7 +282,7 @@ export default function AdminScreen() {
           <Ionicons
             name="star"
             size={14}
-            color={activeTab === 'reviews' ? colors.white : colors.inkSoft}
+            color={activeTab === 'reviews' ? t.colors.surface : t.colors.inkSoft}
           />
           <Text style={[styles.tabText, activeTab === 'reviews' && styles.tabTextActive]}>
             Reviews
@@ -292,10 +295,10 @@ export default function AdminScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.mist },
+const createStyles = (t: Theme) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: t.colors.canvas },
   centered: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.lg },
-  emptyText: { color: colors.muted, textAlign: 'center' },
+  emptyText: { color: t.colors.inkSoft, textAlign: 'center' },
   list: { padding: spacing.lg - 4 },
   tabRow: {
     flexDirection: 'row',
@@ -309,71 +312,71 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    backgroundColor: colors.white,
+    backgroundColor: t.colors.surface,
     borderRadius: radius.sm,
     paddingVertical: spacing.sm + 2,
-    ...shadow.card,
+    ...t.elevation.low,
   },
-  tabButtonActive: { backgroundColor: colors.sky },
-  tabText: { color: colors.inkSoft, fontWeight: '600', fontSize: 13 },
-  tabTextActive: { color: colors.white },
-  title: { fontSize: 20, fontWeight: 'bold', marginBottom: spacing.md, color: colors.ink },
+  tabButtonActive: { backgroundColor: t.colors.brand },
+  tabText: { color: t.colors.inkSoft, fontWeight: '600', fontSize: 13 },
+  tabTextActive: { color: t.colors.onBrand },
+  title: { fontSize: 20, fontWeight: 'bold', marginBottom: spacing.md, color: t.colors.ink },
   addButton: {
     flexDirection: 'row',
-    backgroundColor: colors.sky,
+    backgroundColor: t.colors.brand,
     borderRadius: radius.md,
     paddingVertical: spacing.md - 2,
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing.sm,
     marginBottom: spacing.lg - 4,
-    ...shadow.card,
+    ...t.elevation.low,
   },
-  addButtonText: { color: colors.white, fontWeight: 'bold', fontSize: 16 },
+  addButtonText: { color: t.colors.onBrand, fontWeight: 'bold', fontSize: 16 },
   card: {
-    backgroundColor: colors.white,
+    backgroundColor: t.colors.surface,
     borderRadius: radius.md,
     padding: spacing.md - 2,
     marginBottom: spacing.sm + 4,
-    ...shadow.card,
+    ...t.elevation.low,
   },
-  cardTitle: { fontWeight: 'bold', fontSize: 15, color: colors.ink },
-  cardAddress: { color: colors.muted, fontSize: 13, marginTop: 2 },
-  cardMeta: { color: colors.sky, fontSize: 13, marginTop: 4 },
+  cardTitle: { fontWeight: 'bold', fontSize: 15, color: t.colors.ink },
+  cardAddress: { color: t.colors.inkSoft, fontSize: 13, marginTop: 2 },
+  cardMeta: { color: t.colors.brand, fontSize: 13, marginTop: 4 },
   actionRow: { flexDirection: 'row', gap: spacing.sm + 2, marginTop: spacing.sm + 4 },
   approveButton: {
     flex: 1,
     flexDirection: 'row',
-    backgroundColor: colors.green,
+    backgroundColor: t.colors.success,
     borderRadius: radius.sm,
     paddingVertical: spacing.sm + 2,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 5,
   },
-  approveButtonText: { color: colors.white, fontWeight: '600' },
+  approveButtonText: { color: t.colors.onBrand, fontWeight: '600' },
   rejectButton: {
     flex: 1,
     flexDirection: 'row',
-    backgroundColor: colors.danger,
+    backgroundColor: t.colors.danger,
     borderRadius: radius.sm,
     paddingVertical: spacing.sm + 2,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 5,
   },
-  rejectButtonText: { color: colors.white, fontWeight: '600' },
+  rejectButtonText: { color: t.colors.onBrand, fontWeight: '600' },
   reviewHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  reviewProperty: { color: colors.muted, fontSize: 12, marginTop: 2, fontStyle: 'italic' },
-  reviewBody: { color: colors.inkSoft, fontSize: 14, lineHeight: 20, marginTop: spacing.sm },
+  reviewProperty: { color: t.colors.inkSoft, fontSize: 12, marginTop: 2, fontStyle: 'italic' },
+  reviewBody: { color: t.colors.inkSoft, fontSize: 14, lineHeight: 20, marginTop: spacing.sm },
   removeButton: {
     flexDirection: 'row',
     alignSelf: 'flex-start',
-    backgroundColor: colors.danger,
+    backgroundColor: t.colors.danger,
     borderRadius: radius.sm,
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md - 2,
@@ -381,5 +384,5 @@ const styles = StyleSheet.create({
     gap: 5,
     marginTop: spacing.sm + 4,
   },
-  removeButtonText: { color: colors.white, fontWeight: '600', fontSize: 13 },
+  removeButtonText: { color: t.colors.onBrand, fontWeight: '600', fontSize: 13 },
 });

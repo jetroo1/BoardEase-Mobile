@@ -20,7 +20,9 @@ import {
 } from '../utils/matchAlerts';
 import { AppNotification, EMPTY_FILTERS, Filters } from '../types';
 import { RootStackParamList } from '../navigation/types';
-import { colors, radius, shadow, spacing } from '../theme';
+import { radius, spacing } from '../theme';
+import { Theme, useTheme, useThemedStyles } from '../context/ThemeContext';
+import { Screen, ScreenHeader, EmptyState, IconButton } from '../components/ui';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -52,6 +54,8 @@ function formatTimeAgo(timestamp: number): string {
 }
 
 export default function NotificationsScreen() {
+  const t = useTheme();
+  const styles = useThemedStyles(createStyles);
   const navigation = useNavigation<NavigationProp>();
   const { user } = useAuth();
 
@@ -123,24 +127,17 @@ export default function NotificationsScreen() {
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <View style={styles.titleRow}>
-          <Ionicons name="notifications" size={20} color={colors.deep} />
-          <Text style={styles.title}>Match Alerts</Text>
-        </View>
-        {notifications.length > 0 && (
-          <Pressable onPress={clearAll}>
-            <Text style={styles.clearLink}>Clear all</Text>
-          </Pressable>
-        )}
-      </View>
+    <Screen edges={false}>
+      {/* No ScreenHeader here: RootNavigator draws this screen's header via
+          detailHeader('Alerts'). Rendering one here too gave two stacked
+          headers and a doubled top safe-area inset. The clear-all action
+          moved into the status row below. */}
 
       <View style={styles.statusRow}>
         <Ionicons
           name={alertsOn ? 'checkmark-circle' : 'alert-circle-outline'}
           size={14}
-          color={alertsOn ? colors.green : colors.muted}
+          color={alertsOn ? t.colors.success : t.colors.inkSoft}
         />
         <Text style={styles.statusText}>
           {alertsOn ? 'Alerts are on for your saved filters.' : 'Alerts are off.'}
@@ -148,11 +145,20 @@ export default function NotificationsScreen() {
         <Pressable onPress={openFilterScreen}>
           <Text style={styles.statusLink}>{alertsOn ? 'Edit filters' : 'Turn on'}</Text>
         </Pressable>
+
+        {/* Lives here rather than in a header, because this screen's header
+            comes from the navigator. Without it clearAll had no caller at
+            all and the alerts list could not be emptied. */}
+        {notifications.length > 0 ? (
+          <Pressable onPress={clearAll} accessibilityLabel="Clear all alerts">
+            <Text style={[styles.statusLink, { color: t.colors.danger }]}>Clear all</Text>
+          </Pressable>
+        ) : null}
       </View>
 
       {isLoading ? (
         <View style={styles.centered}>
-          <ActivityIndicator size="large" color={colors.sky} />
+          <ActivityIndicator size="large" color={t.colors.brand} />
         </View>
       ) : (
         <FlatList
@@ -160,21 +166,9 @@ export default function NotificationsScreen() {
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.list}
           ListEmptyComponent={
-            <View style={styles.centered}>
-              <Ionicons name="notifications-off-outline" size={36} color={colors.muted} />
-              <Text style={styles.emptyTitle}>No alerts yet</Text>
-              <Text style={styles.emptyText}>
-                {alertsOn
-                  ? "You're all set. As soon as a new boarding house matches your saved filters, it will show up here."
-                  : 'Pick the price, room type and amenities you want on the Filter screen, then switch on "Save these filters and alert me".'}
-              </Text>
-              {!alertsOn && (
-                <Pressable style={styles.emptyButton} onPress={openFilterScreen}>
-                  <Ionicons name="options" size={16} color={colors.white} />
-                  <Text style={styles.emptyButtonText}>Set Up Alerts</Text>
-                </Pressable>
-              )}
-            </View>
+            <EmptyState icon="notifications-off-outline" title="No alerts yet"
+              message={alertsOn ? 'New matches will appear here when you next open BoardEase.' : 'No saved search alerts are active.'}
+              actionLabel={alertsOn ? 'Edit filters' : 'Set up alerts'} onAction={openFilterScreen} />
           }
           renderItem={({ item }) => (
             <Pressable
@@ -182,7 +176,7 @@ export default function NotificationsScreen() {
               onPress={() => handleOpenAlert(item)}
             >
               <View style={styles.iconCircle}>
-                <Ionicons name="home" size={16} color={colors.white} />
+                <Ionicons name="home" size={16} color={t.colors.onBrand} />
               </View>
 
               <View style={styles.cardTextWrap}>
@@ -196,12 +190,12 @@ export default function NotificationsScreen() {
           )}
         />
       )}
-    </View>
+    </Screen>
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.mist },
+const createStyles = (t: Theme) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: t.colors.canvas },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -210,8 +204,8 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.sm,
   },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  title: { fontSize: 20, fontWeight: 'bold', color: colors.ink },
-  clearLink: { color: colors.sky, fontWeight: '600' },
+  title: { fontSize: 20, fontWeight: 'bold', color: t.colors.ink },
+  clearLink: { color: t.colors.brand, fontWeight: '600' },
   statusRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -219,40 +213,40 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg - 4,
     paddingBottom: spacing.sm + 2,
   },
-  statusText: { flex: 1, color: colors.muted, fontSize: 12 },
-  statusLink: { color: colors.sky, fontSize: 12, fontWeight: '600' },
+  statusText: { flex: 1, color: t.colors.inkSoft, fontSize: 12 },
+  statusLink: { color: t.colors.brand, fontSize: 12, fontWeight: '600' },
   centered: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.lg, gap: spacing.sm },
-  emptyTitle: { fontWeight: 'bold', color: colors.ink, fontSize: 15 },
-  emptyText: { color: colors.muted, textAlign: 'center', lineHeight: 19 },
+  emptyTitle: { fontWeight: 'bold', color: t.colors.ink, fontSize: 15 },
+  emptyText: { color: t.colors.inkSoft, textAlign: 'center', lineHeight: 19 },
   emptyButton: {
     flexDirection: 'row',
-    backgroundColor: colors.sky,
+    backgroundColor: t.colors.brand,
     borderRadius: radius.md,
     paddingVertical: spacing.sm + 4,
     paddingHorizontal: spacing.lg,
     alignItems: 'center',
     gap: spacing.sm,
     marginTop: spacing.sm,
-    ...shadow.card,
+    ...t.elevation.low,
   },
-  emptyButtonText: { color: colors.white, fontWeight: 'bold' },
+  emptyButtonText: { color: t.colors.onBrand, fontWeight: 'bold' },
   list: { paddingHorizontal: spacing.lg - 4, paddingBottom: spacing.lg - 4, flexGrow: 1 },
   card: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    backgroundColor: colors.white,
+    backgroundColor: t.colors.surface,
     borderRadius: radius.md,
     padding: spacing.md - 2,
     marginBottom: spacing.sm + 2,
     gap: spacing.sm + 2,
-    ...shadow.card,
+    ...t.elevation.low,
   },
-  cardUnread: { backgroundColor: colors.paperMint },
+  cardUnread: { backgroundColor: t.colors.brandSoft },
   iconCircle: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: colors.sky,
+    backgroundColor: t.colors.brand,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -260,11 +254,11 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: colors.cyan,
+    backgroundColor: t.colors.brand,
     marginTop: 6,
   },
   cardTextWrap: { flex: 1 },
-  cardTitle: { fontWeight: 'bold', marginBottom: 2, color: colors.ink },
-  cardMessage: { color: colors.inkSoft, fontSize: 13, lineHeight: 18 },
-  cardTime: { color: colors.muted, fontSize: 11, marginTop: 4 },
+  cardTitle: { fontWeight: 'bold', marginBottom: 2, color: t.colors.ink },
+  cardMessage: { color: t.colors.inkSoft, fontSize: 13, lineHeight: 18 },
+  cardTime: { color: t.colors.inkSoft, fontSize: 11, marginTop: 4 },
 });

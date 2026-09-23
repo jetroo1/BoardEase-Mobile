@@ -9,17 +9,31 @@
 // and alert me" switch at the bottom. That copies the current choices onto
 // the user's own users/{uid} document so the app can check for matching new
 // listings later (see src/utils/matchAlerts.ts).
+//
+// Opens as a sheet, because a filter is a decision you make and dismiss
+// rather than a place you travel to.
 
 import React, { useEffect, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ScrollView, Switch, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { loadAlertSettings, saveFilterAlerts, turnOffFilterAlerts } from '../utils/matchAlerts';
 import { Filters } from '../types';
 import { RootStackParamList } from '../navigation/types';
-import { colors, radius, shadow, spacing } from '../theme';
+import { GUTTER } from '../theme';
+import {
+  Button,
+  Card,
+  IconButton,
+  Input,
+  Pressable,
+  Screen,
+  Text,
+} from '../components/ui';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type FilterRouteProp = RouteProp<RootStackParamList, 'Filter'>;
@@ -29,31 +43,46 @@ type FilterRouteProp = RouteProp<RootStackParamList, 'Filter'>;
 const ROOM_TYPE_OPTIONS = ['Single', 'Shared', 'Studio'];
 const AMENITY_OPTIONS = ['WiFi', 'CR', 'Parking', 'Aircon', 'Kitchen', 'Laundry'];
 
+// Budgets students actually ask for, so the common case is one tap instead of
+// typing. Every preset is a field they do not have to fill in.
+const PRICE_PRESETS = [1500, 2500, 3500, 5000];
+
 export default function FilterScreen() {
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<FilterRouteProp>();
   const { currentFilters, onApply } = route.params;
   const { user } = useAuth();
+  const t = useTheme();
+  const insets = useSafeAreaInsets();
 
   const [maxPriceText, setMaxPriceText] = useState(
     currentFilters.maxPrice !== null ? String(currentFilters.maxPrice) : ''
   );
   const [roomType, setRoomType] = useState<string | null>(currentFilters.roomType);
   const [amenities, setAmenities] = useState<string[]>(currentFilters.amenities);
+  const [priceError, setPriceError] = useState<string | null>(null);
 
   // Whether "Save these filters and alert me" is currently switched on for
   // this user. We load the real answer from Firestore when the screen opens.
   const [alertsOn, setAlertsOn] = useState(false);
+  const [alertError, setAlertError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!user) {
       return;
     }
 
+    let cancelled = false;
     (async () => {
       const settings = await loadAlertSettings(user.uid);
-      setAlertsOn(settings.alertsEnabled);
+      if (!cancelled) {
+        setAlertsOn(settings.alertsEnabled);
+      }
     })();
+    return () => {
+      cancelled = true;
+    };
   }, [user]);
 
   function toggleAmenity(amenity: string) {
@@ -74,13 +103,35 @@ export default function FilterScreen() {
     };
   }
 
+  // The old screen accepted anything typed into the price box, so "abc"
+  // became NaN and quietly filtered every listing out.
+  function checkPrice(value: string): string | null {
+    const trimmed = value.trim();
+    if (trimmed === '') {
+      return null;
+    }
+    const parsed = Number(trimmed);
+    if (!Number.isFinite(parsed)) {
+      return 'Enter a number, like 3000.';
+    }
+    if (parsed <= 0) {
+      return 'Enter an amount greater than zero.';
+    }
+    return null;
+  }
+
   async function toggleAlerts() {
-    if (!user) {
+    if (!user || saving) {
       return;
     }
+    const error = checkPrice(maxPriceText);
+    setPriceError(error);
+    if (!alertsOn && error) return;
+    setSaving(true);
 
     const turningOn = !alertsOn;
     setAlertsOn(turningOn); // update the switch straight away so it feels instant
+    setAlertError(null);
 
     try {
       if (turningOn) {
@@ -92,21 +143,36 @@ export default function FilterScreen() {
       // The save failed (usually no internet), so put the switch back to
       // where it was and tell the user instead of pretending it worked.
       setAlertsOn(!turningOn);
-      Alert.alert('Could not save', 'Please check your internet connection and try again.');
+      setAlertError('Could not save. Check your internet connection and try again.');
+    } finally {
+      setSaving(false);
     }
   }
 
   async function handleApply() {
+    if (saving) return;
+    const error = checkPrice(maxPriceText);
+    setPriceError(error);
+    if (error) {
+      return;
+    }
+
     const newFilters = buildFilters();
 
     // If alerts are switched on, keep the saved copy in step with whatever
     // the user is applying now.
     if (user && alertsOn) {
+      setSaving(true);
       try {
         await saveFilterAlerts(user.uid, newFilters);
       } catch {
-        // Updating the saved copy is a bonus. Even if it fails, the filters
-        // themselves should still be applied to the search results.
+        // Updating the saved copy is a bonus. Filtering the list in front of
+        // the user must still happen -- returning here meant that with alerts
+        // switched on and no internet, Apply did nothing at all and the user
+        // could not filter the results they were already looking at.
+        setAlertError('Filters applied, but the alert copy could not be saved.');
+      } finally {
+        setSaving(false);
       }
     }
 
@@ -118,140 +184,226 @@ export default function FilterScreen() {
     setMaxPriceText('');
     setRoomType(null);
     setAmenities([]);
+    setPriceError(null);
   }
 
+  const activeCount =
+    (maxPriceText.trim() !== '' ? 1 : 0) + (roomType !== null ? 1 : 0) + amenities.length;
+
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <View style={styles.headerRow}>
-        <Ionicons name="options" size={20} color={colors.deep} />
-        <Text style={styles.headerTitle}>Filter Results</Text>
+    <Screen>
+      {/* A sheet gets a close button, not a back arrow -- the difference tells
+          the user whether they are leaving a page or dismissing a decision. */}
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: t.spacing.xs,
+          paddingHorizontal: GUTTER,
+          paddingTop: t.spacing.xs,
+          paddingBottom: t.spacing.sm,
+        }}
+      >
+        <IconButton icon="close" label="Close filters" onPress={() => navigation.goBack()} />
+        <Text variant="heading" style={{ flex: 1 }}>
+          Filters
+        </Text>
+        {activeCount > 0 ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Reset all filters"
+            onPress={handleReset}
+            style={{ padding: t.spacing.xs }}
+          >
+            <Text variant="captionStrong" tone="brand">
+              Reset
+            </Text>
+          </Pressable>
+        ) : null}
       </View>
 
-      <Text style={styles.sectionTitle}>Max Price</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="e.g. 3500"
-        keyboardType="numeric"
-        value={maxPriceText}
-        onChangeText={setMaxPriceText}
-      />
-
-      <Text style={styles.sectionTitle}>Room Type</Text>
-      <View style={styles.chipRow}>
-        {ROOM_TYPE_OPTIONS.map((option) => {
-          const isSelected = roomType === option;
-          return (
-            <Pressable
-              key={option}
-              style={[styles.chip, isSelected && styles.chipSelected]}
-              onPress={() => setRoomType(isSelected ? null : option)}
-            >
-              <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>
-                {option}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </View>
-
-      <Text style={styles.sectionTitle}>Amenities</Text>
-      <View style={styles.chipRow}>
-        {AMENITY_OPTIONS.map((option) => {
-          const isSelected = amenities.includes(option);
-          return (
-            <Pressable
-              key={option}
-              style={[styles.chip, isSelected && styles.chipSelected]}
-              onPress={() => toggleAmenity(option)}
-            >
-              <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>
-                {option}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </View>
-
-      {/* Match Alerts: saves the choices above to the user's own account so
-          the app can check for new listings that fit them. */}
-      <Pressable style={styles.alertRow} onPress={toggleAlerts}>
-        <Ionicons
-          name={alertsOn ? 'checkbox' : 'square-outline'}
-          size={22}
-          color={alertsOn ? colors.sky : colors.muted}
-        />
-        <View style={styles.alertTextWrap}>
-          <Text style={styles.alertTitle}>Save these filters and alert me</Text>
-          <Text style={styles.alertHelp}>
-            We'll check for new boarding houses that match every time you open BoardEase, and show
-            them on the Notifications tab.
-          </Text>
+      <ScrollView
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{
+          paddingHorizontal: GUTTER,
+          paddingBottom: t.spacing.xl,
+          gap: t.spacing.lg,
+        }}
+      >
+        <View style={{ gap: t.spacing.xs }}>
+          <Text variant="heading">Budget</Text>
+          <Input
+            label="Maximum monthly rent"
+            icon="cash-outline"
+            placeholder="Any price"
+            keyboardType="number-pad"
+            value={maxPriceText}
+            onChangeText={setMaxPriceText}
+            onBlur={() => setPriceError(checkPrice(maxPriceText))}
+            error={priceError}
+            optional
+          />
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: t.spacing.xs }}>
+            {PRICE_PRESETS.map((preset) => {
+              const selected = maxPriceText === String(preset);
+              return (
+                <Choice
+                  key={preset}
+                  label={`Under ₱${preset.toLocaleString('en-PH')}`}
+                  selected={selected}
+                  onPress={() => {
+                    setMaxPriceText(selected ? '' : String(preset));
+                    setPriceError(null);
+                  }}
+                />
+              );
+            })}
+          </View>
         </View>
-      </Pressable>
 
-      <Pressable style={styles.applyButton} onPress={handleApply}>
-        <Ionicons name="checkmark" size={18} color={colors.white} />
-        <Text style={styles.applyButtonText}>Apply Filters</Text>
-      </Pressable>
+        <View style={{ gap: t.spacing.xs }}>
+          <Text variant="heading">Room type</Text>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: t.spacing.xs }}>
+            {ROOM_TYPE_OPTIONS.map((option) => (
+              <Choice
+                key={option}
+                label={option}
+                selected={roomType === option}
+                // Tapping the selected one clears it, so there is always a way
+                // back to "any" without hunting for a Reset button.
+                onPress={() => setRoomType(roomType === option ? null : option)}
+              />
+            ))}
+          </View>
+        </View>
 
-      <Pressable style={styles.resetButton} onPress={handleReset}>
-        <Text style={styles.resetButtonText}>Reset</Text>
-      </Pressable>
-    </ScrollView>
+        <View style={{ gap: t.spacing.xs }}>
+          <Text variant="heading">Amenities</Text>
+          <Text variant="caption" tone="faint">
+            Listings must have all of the ones you pick.
+          </Text>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: t.spacing.xs }}>
+            {AMENITY_OPTIONS.map((option) => (
+              <Choice
+                key={option}
+                label={option}
+                selected={amenities.includes(option)}
+                onPress={() => toggleAmenity(option)}
+              />
+            ))}
+          </View>
+        </View>
+
+        <Card level="low" style={{ gap: t.spacing.xs, borderRadius: t.radius.lg }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: t.spacing.sm }}>
+            <View
+              style={{
+                width: 38,
+                height: 38,
+                borderRadius: t.radius.pill,
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: t.colors.brandSoft,
+              }}
+            >
+              <Ionicons name="notifications-outline" size={18} color={t.colors.brand} />
+            </View>
+            <View style={{ flex: 1, gap: 1 }}>
+              <Text variant="captionStrong">Alert me about new matches</Text>
+              <Text variant="caption" tone="faint">
+                Saves these filters and tells you when a new listing fits.
+              </Text>
+            </View>
+            <Switch
+              value={alertsOn}
+              onValueChange={toggleAlerts}
+              disabled={!user || saving}
+              accessibilityLabel="Alert me about new matches"
+              trackColor={{ false: t.colors.lineStrong, true: t.colors.brand }}
+              thumbColor={t.colors.surface}
+            />
+          </View>
+
+          {alertError ? (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: t.spacing.xxs }}>
+              <Ionicons name="alert-circle" size={13} color={t.colors.danger} />
+              <Text variant="caption" tone="danger" style={{ flex: 1 }}>
+                {alertError}
+              </Text>
+            </View>
+          ) : null}
+        </Card>
+      </ScrollView>
+
+      {/* The action bar is pinned, so Apply is reachable without scrolling
+          back down through every section. */}
+      <View
+        style={{
+          flexDirection: 'row',
+          gap: t.spacing.sm,
+          paddingHorizontal: GUTTER,
+          paddingTop: t.spacing.sm,
+          paddingBottom: Math.max(insets.bottom, t.spacing.md),
+          backgroundColor: t.colors.surface,
+          borderTopWidth: 1,
+          borderTopColor: t.colors.line,
+        }}
+      >
+        <Button
+          label="Reset"
+          variant="secondary"
+          size="lg"
+          onPress={handleReset}
+          disabled={activeCount === 0 || saving}
+        />
+        <Button
+          label={activeCount > 0 ? `Apply ${activeCount} filter${activeCount === 1 ? '' : 's'}` : 'Show all listings'}
+          size="lg"
+          onPress={handleApply}
+          loading={saving}
+          style={{ flex: 1 }}
+        />
+      </View>
+    </Screen>
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.mist },
-  content: { padding: spacing.lg - 4 },
-  headerRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  headerTitle: { fontSize: 20, fontWeight: 'bold', color: colors.ink },
-  sectionTitle: { fontSize: 15, fontWeight: 'bold', marginTop: spacing.lg - 4, marginBottom: spacing.sm + 2, color: colors.ink },
-  input: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    paddingHorizontal: spacing.md - 2,
-    paddingVertical: spacing.sm + 2,
-    fontSize: 15,
-    backgroundColor: colors.white,
-  },
-  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
-  chip: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.lg,
-    paddingHorizontal: spacing.md - 2,
-    paddingVertical: spacing.sm,
-    backgroundColor: colors.white,
-  },
-  chipSelected: { backgroundColor: colors.sky, borderColor: colors.sky },
-  chipText: { color: colors.inkSoft },
-  chipTextSelected: { color: colors.white, fontWeight: '600' },
-  alertRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: spacing.sm + 2,
-    backgroundColor: colors.paperMint,
-    borderRadius: radius.md,
-    padding: spacing.md - 2,
-    marginTop: spacing.lg,
-  },
-  alertTextWrap: { flex: 1 },
-  alertTitle: { fontWeight: 'bold', color: colors.ink, fontSize: 14 },
-  alertHelp: { color: colors.inkSoft, fontSize: 12, marginTop: 4, lineHeight: 17 },
-  applyButton: {
-    flexDirection: 'row',
-    backgroundColor: colors.sky,
-    borderRadius: radius.md,
-    paddingVertical: spacing.md - 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.sm,
-    marginTop: spacing.lg,
-    ...shadow.card,
-  },
-  applyButtonText: { color: colors.white, fontWeight: 'bold', fontSize: 16 },
-  resetButton: { alignItems: 'center', marginTop: spacing.md - 2 },
-  resetButtonText: { color: colors.muted, fontWeight: '600' },
-});
+// A selectable chip. Selection is shown by fill AND a check mark, not colour
+// alone -- a colour-only state disappears for anyone who cannot distinguish
+// the two shades.
+function Choice({
+  label,
+  selected,
+  onPress,
+}: {
+  label: string;
+  selected: boolean;
+  onPress: () => void;
+}) {
+  const t = useTheme();
+  return (
+    <Pressable
+      accessibilityRole="checkbox"
+      accessibilityState={{ checked: selected }}
+      accessibilityLabel={label}
+      onPress={onPress}
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: t.spacing.xxs,
+        paddingHorizontal: t.spacing.sm,
+        paddingVertical: t.spacing.xs,
+        borderRadius: t.radius.pill,
+        backgroundColor: selected ? t.colors.brand : t.colors.surface,
+        borderWidth: 1,
+        borderColor: selected ? t.colors.brand : t.colors.lineStrong,
+      }}
+    >
+      {selected ? <Ionicons name="checkmark" size={13} color={t.colors.onBrand} /> : null}
+      <Text variant="captionStrong" style={{ color: selected ? t.colors.onBrand : t.colors.inkSoft }}>
+        {label}
+      </Text>
+    </Pressable>
+  );
+}

@@ -10,7 +10,7 @@
 // show that copy plus an "offline" note instead of an empty list.
 
 import React, { useCallback, useState } from 'react';
-import { ActivityIndicator, FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, FlatList, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { collection, deleteDoc, doc, getDoc, getDocs, query, where } from 'firebase/firestore';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -18,12 +18,14 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { db } from '../firebaseConfig';
 import { useAuth } from '../context/AuthContext';
 import { Property } from '../types';
-import { RootStackParamList } from '../navigation/types';
+import { AppParamList } from '../navigation/types';
 import CompareBar from '../components/CompareBar';
 import { cacheFavorites, loadCachedFavorites } from '../utils/offlineCache';
-import { colors, radius, shadow, spacing } from '../theme';
+import { GUTTER } from '../theme';
+import { useTheme } from '../context/ThemeContext';
+import { Screen, ScreenHeader, EmptyState, PropertyCard, Text } from '../components/ui';
 
-type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
+type NavigationProp = NativeStackNavigationProp<AppParamList>;
 
 // A favorited property, along with the id of the favorite record itself
 // (needed so we know which document to delete when "unfavoriting").
@@ -32,6 +34,7 @@ interface FavoriteProperty extends Property {
 }
 
 export default function FavoritesScreen() {
+  const t = useTheme();
   const navigation = useNavigation<NavigationProp>();
   const { user } = useAuth();
 
@@ -98,108 +101,34 @@ export default function FavoritesScreen() {
     }
   }
 
-  if (isLoading) {
-    return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color={colors.sky} />
-      </View>
-    );
-  }
-
   return (
-    <View style={styles.container}>
-      <FlatList
-        data={favorites}
-        keyExtractor={(item) => item.favoriteDocId}
-        contentContainerStyle={styles.list}
-        ListHeaderComponent={
-          <View>
-            <Text style={styles.title}>My Favorites</Text>
-            {isShowingCached && (
-              <View style={styles.offlineBanner}>
-                <Ionicons name="cloud-offline-outline" size={16} color={colors.deep} />
-                <Text style={styles.offlineBannerText}>
-                  You're offline — showing your saved copy.
-                </Text>
-              </View>
-            )}
-          </View>
-        }
-        ListEmptyComponent={
-          <View style={styles.centered}>
-            <Ionicons name="heart-outline" size={36} color={colors.muted} />
-            <Text style={styles.emptyText}>
-              {isShowingCached
-                ? "You're offline and nothing is saved on this phone yet."
-                : "You haven't favorited any properties yet."}
-            </Text>
-          </View>
-        }
-        renderItem={({ item }) => (
-          <Pressable
-            style={styles.card}
-            onPress={() => navigation.navigate('Details', { propertyId: item.id })}
-          >
-            {item.imageUrl ? (
-              <Image source={{ uri: item.imageUrl }} style={styles.image} />
-            ) : (
-              <View style={[styles.image, styles.imagePlaceholder]} />
-            )}
-            <View style={styles.info}>
-              <Text style={styles.cardTitle}>{item.title}</Text>
-              <Text style={styles.cardAddress}>{item.address}</Text>
-              <Text style={styles.cardPrice}>₱{item.price} / month</Text>
-            </View>
-            <Pressable
-              style={styles.unfavoriteButton}
-              onPress={() => handleUnfavorite(item.favoriteDocId)}
-            >
-              <Ionicons name="heart" size={16} color={colors.danger} />
-            </Pressable>
-          </Pressable>
-        )}
-      />
+    <Screen>
+      <ScreenHeader title="Saved listings" large />
+      {isLoading ? (
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+          <ActivityIndicator color={t.colors.brand} />
+        </View>
+      ) : (
+        <FlatList
+          data={favorites}
+          keyExtractor={(item) => item.favoriteDocId}
+          contentContainerStyle={{ paddingHorizontal: GUTTER, paddingBottom: 80, flexGrow: 1, gap: t.spacing.sm }}
+          ListHeaderComponent={isShowingCached ? <Text variant="caption" tone="soft">Offline: showing the saved copy on this phone.</Text> : null}
+          ListEmptyComponent={
+            <EmptyState icon="heart-outline" title={isShowingCached ? 'No saved copy available' : 'Your shortlist starts here'}
+              message={isShowingCached ? 'Reconnect to load your saved listings.' : 'No boarding houses saved yet.'}
+              actionLabel={isShowingCached ? 'Try again' : 'Browse listings'}
+              onAction={isShowingCached ? loadFavorites : () => navigation.navigate('Search')} />
+          }
+          renderItem={({ item }) => (
+            <PropertyCard property={item} isFavorite onPress={() => navigation.navigate('Details', { propertyId: item.id })}
+              onToggleFavorite={isShowingCached ? undefined : () => {
+                handleUnfavorite(item.favoriteDocId).catch(() => Alert.alert('Could not remove listing', 'Check your connection and try again.'));
+              }} />
+          )}
+        />
+      )}
       <CompareBar />
-    </View>
+    </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.mist },
-  centered: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.lg, gap: spacing.sm },
-  list: { padding: spacing.md },
-  title: { fontSize: 20, fontWeight: 'bold', marginBottom: spacing.md, color: colors.ink },
-  emptyText: { color: colors.muted, textAlign: 'center' },
-  offlineBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs + 2,
-    backgroundColor: colors.mist,
-    borderRadius: radius.sm,
-    paddingHorizontal: spacing.sm + 2,
-    paddingVertical: spacing.sm,
-    marginBottom: spacing.md,
-  },
-  offlineBannerText: { flex: 1, color: colors.deep, fontSize: 12, fontWeight: '600' },
-  card: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.white,
-    borderRadius: radius.md,
-    padding: spacing.sm + 2,
-    marginBottom: spacing.sm + 4,
-    gap: spacing.sm + 2,
-    ...shadow.card,
-  },
-  image: { width: 60, height: 60, borderRadius: radius.sm },
-  imagePlaceholder: { backgroundColor: colors.placeholder },
-  info: { flex: 1 },
-  cardTitle: { fontWeight: 'bold', fontSize: 15, color: colors.ink },
-  cardAddress: { fontSize: 12, color: colors.muted, marginTop: 2 },
-  cardPrice: { fontSize: 12, color: colors.sky, marginTop: 4 },
-  unfavoriteButton: {
-    backgroundColor: colors.mist,
-    padding: spacing.sm + 2,
-    borderRadius: radius.lg,
-  },
-});

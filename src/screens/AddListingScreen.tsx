@@ -31,7 +31,9 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { db, storage } from '../firebaseConfig';
 import { useAuth } from '../context/AuthContext';
 import { RootStackParamList } from '../navigation/types';
-import { colors, radius, shadow, spacing } from '../theme';
+import { radius, spacing } from '../theme';
+import { Theme, useTheme, useThemedStyles } from '../context/ThemeContext';
+import { Screen, ScreenHeader } from '../components/ui';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -41,6 +43,8 @@ const ROOM_TYPE_OPTIONS = ['Single', 'Shared', 'Studio'];
 const AMENITY_OPTIONS = ['WiFi', 'CR', 'Parking', 'Aircon', 'Kitchen', 'Laundry'];
 
 export default function AddListingScreen() {
+  const t = useTheme();
+  const styles = useThemedStyles(createStyles);
   const navigation = useNavigation<NavigationProp>();
   const { user, role } = useAuth();
 
@@ -279,7 +283,7 @@ export default function AddListingScreen() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.headerRow}>
-        <Ionicons name="add-circle" size={20} color={colors.deep} />
+        <Ionicons name="add-circle" size={20} color={t.colors.brandDeep} />
         <Text style={styles.headerTitle}>New Boarding House</Text>
       </View>
 
@@ -303,7 +307,7 @@ export default function AddListingScreen() {
       <Text style={styles.sectionTitle}>Address</Text>
       <TextInput
         style={styles.input}
-        placeholder="e.g. Bolton St, Davao City"
+        placeholder="e.g. Visayan Village, Tagum City"
         value={address}
         onChangeText={setAddress}
       />
@@ -356,10 +360,10 @@ export default function AddListingScreen() {
         disabled={isLocating}
       >
         {isLocating ? (
-          <ActivityIndicator color={colors.deep} />
+          <ActivityIndicator color={t.colors.brandDeep} />
         ) : (
           <>
-            <Ionicons name="locate" size={18} color={colors.deep} />
+            <Ionicons name="locate" size={18} color={t.colors.brandDeep} />
             <Text style={styles.secondaryButtonText}>Use my current location</Text>
           </>
         )}
@@ -376,7 +380,7 @@ export default function AddListingScreen() {
           <Text style={styles.smallLabel}>Latitude</Text>
           <TextInput
             style={styles.input}
-            placeholder="e.g. 7.0731"
+            placeholder="e.g. 7.4478"
             keyboardType="numeric"
             value={latitudeText}
             onChangeText={setLatitudeText}
@@ -386,7 +390,7 @@ export default function AddListingScreen() {
           <Text style={styles.smallLabel}>Longitude</Text>
           <TextInput
             style={styles.input}
-            placeholder="e.g. 125.6128"
+            placeholder="e.g. 125.8078"
             keyboardType="numeric"
             value={longitudeText}
             onChangeText={setLongitudeText}
@@ -397,11 +401,11 @@ export default function AddListingScreen() {
       <Text style={styles.sectionTitle}>Photo</Text>
       <View style={styles.photoButtonRow}>
         <Pressable style={styles.photoButton} onPress={handleTakePhoto}>
-          <Ionicons name="camera" size={18} color={colors.deep} />
+          <Ionicons name="camera" size={18} color={t.colors.brandDeep} />
           <Text style={styles.photoButtonText}>Take Photo</Text>
         </Pressable>
         <Pressable style={styles.photoButton} onPress={handleChooseFromGallery}>
-          <Ionicons name="images" size={18} color={colors.deep} />
+          <Ionicons name="images" size={18} color={t.colors.brandDeep} />
           <Text style={styles.photoButtonText}>Choose from Gallery</Text>
         </Pressable>
       </View>
@@ -419,10 +423,10 @@ export default function AddListingScreen() {
 
       <Pressable style={styles.saveButton} onPress={handleSave} disabled={isSaving}>
         {isSaving ? (
-          <ActivityIndicator color={colors.white} />
+          <ActivityIndicator color={t.colors.onBrand} />
         ) : (
           <>
-            <Ionicons name="save" size={18} color={colors.white} />
+            <Ionicons name="save" size={18} color={t.colors.onBrand} />
             <Text style={styles.saveButtonText}>Save Listing</Text>
           </>
         )}
@@ -435,55 +439,56 @@ export default function AddListingScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.mist },
+const createStyles = (t: Theme) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: t.colors.canvas },
   content: { padding: spacing.lg - 4, paddingBottom: spacing.xl },
   centered: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.lg },
   headerRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  headerTitle: { fontSize: 20, fontWeight: 'bold', color: colors.ink },
+  headerTitle: { fontSize: 20, fontWeight: 'bold', color: t.colors.ink },
   sectionTitle: {
     fontSize: 15,
     fontWeight: 'bold',
     marginTop: spacing.lg - 4,
     marginBottom: spacing.sm + 2,
-    color: colors.ink,
+    color: t.colors.ink,
   },
-  smallLabel: { fontSize: 13, color: colors.muted, marginBottom: spacing.xs },
-  helperText: { color: colors.muted, fontSize: 13, marginTop: spacing.sm },
+  smallLabel: { fontSize: 13, color: t.colors.inkSoft, marginBottom: spacing.xs },
+  helperText: { color: t.colors.inkSoft, fontSize: 13, marginTop: spacing.sm },
   input: {
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: t.colors.line,
     borderRadius: radius.md,
     paddingHorizontal: spacing.md - 2,
     paddingVertical: spacing.sm + 2,
     fontSize: 15,
-    backgroundColor: colors.white,
+    backgroundColor: t.colors.surface,
+    color: t.colors.ink,
   },
   textArea: { minHeight: 80, textAlignVertical: 'top' },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   chip: {
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: t.colors.line,
     borderRadius: radius.lg,
     paddingHorizontal: spacing.md - 2,
     paddingVertical: spacing.sm,
-    backgroundColor: colors.white,
+    backgroundColor: t.colors.surface,
   },
-  chipSelected: { backgroundColor: colors.sky, borderColor: colors.sky },
-  chipText: { color: colors.inkSoft },
-  chipTextSelected: { color: colors.white, fontWeight: '600' },
+  chipSelected: { backgroundColor: t.colors.brand, borderColor: t.colors.brand },
+  chipText: { color: t.colors.inkSoft },
+  chipTextSelected: { color: t.colors.onBrand, fontWeight: '600' },
   secondaryButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing.sm,
     borderWidth: 1,
-    borderColor: colors.cyan,
+    borderColor: t.colors.brand,
     borderRadius: radius.md,
     paddingVertical: spacing.sm + 4,
-    backgroundColor: colors.paperMint,
+    backgroundColor: t.colors.brandSoft,
   },
-  secondaryButtonText: { color: colors.deep, fontWeight: '600' },
+  secondaryButtonText: { color: t.colors.brandDeep, fontWeight: '600' },
   coordinateRow: { flexDirection: 'row', gap: spacing.sm + 2, marginTop: spacing.sm + 4 },
   coordinateColumn: { flex: 1 },
   photoButtonRow: { flexDirection: 'row', gap: spacing.sm + 2 },
@@ -494,37 +499,37 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 5,
     borderWidth: 1,
-    borderColor: colors.cyan,
+    borderColor: t.colors.brand,
     borderRadius: radius.md,
     paddingVertical: spacing.sm + 4,
-    backgroundColor: colors.paperMint,
+    backgroundColor: t.colors.brandSoft,
   },
-  photoButtonText: { color: colors.deep, fontWeight: '600', fontSize: 13 },
+  photoButtonText: { color: t.colors.brandDeep, fontWeight: '600', fontSize: 13, flexShrink: 1, textAlign: 'center' },
   preview: {
     width: '100%',
     height: 180,
     borderRadius: radius.md,
     marginTop: spacing.sm + 4,
-    backgroundColor: colors.placeholder,
+    backgroundColor: t.colors.skeleton,
   },
   removePhotoText: {
-    color: colors.danger,
+    color: t.colors.danger,
     fontWeight: '600',
     marginTop: spacing.sm,
     textAlign: 'center',
   },
   saveButton: {
     flexDirection: 'row',
-    backgroundColor: colors.sky,
+    backgroundColor: t.colors.brand,
     borderRadius: radius.md,
     paddingVertical: spacing.md - 2,
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing.sm,
     marginTop: spacing.xl,
-    ...shadow.card,
+    ...t.elevation.low,
   },
-  saveButtonText: { color: colors.white, fontWeight: 'bold', fontSize: 16 },
+  saveButtonText: { color: t.colors.onBrand, fontWeight: 'bold', fontSize: 16 },
   cancelButton: { alignItems: 'center', marginTop: spacing.md - 2 },
-  cancelButtonText: { color: colors.muted, fontWeight: '600' },
+  cancelButtonText: { color: t.colors.inkSoft, fontWeight: '600' },
 });

@@ -50,6 +50,7 @@ export function getDistanceInKm(
 // Small helper used by the UI to show a friendly distance string,
 // e.g. "350 m" for anything under 1 km, otherwise "2.3 km".
 export function formatDistance(distanceKm: number): string {
+  if (!Number.isFinite(distanceKm)) return 'Distance unavailable';
   if (distanceKm < 1) {
     const meters = Math.round(distanceKm * 1000);
     return `${meters} m`;

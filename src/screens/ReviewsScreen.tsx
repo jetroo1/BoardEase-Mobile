@@ -27,12 +27,15 @@ import { db } from '../firebaseConfig';
 import { useAuth } from '../context/AuthContext';
 import { Review } from '../types';
 import { RootStackParamList } from '../navigation/types';
-import { colors, radius, shadow, spacing } from '../theme';
-import StarRating from '../components/StarRating';
+import { radius, spacing } from '../theme';
+import { Theme, useTheme, useThemedStyles } from '../context/ThemeContext';
+import { Rating, Screen, ScreenHeader } from '../components/ui';
 
 type ReviewsRouteProp = RouteProp<RootStackParamList, 'Reviews'>;
 
 export default function ReviewsScreen() {
+  const t = useTheme();
+  const styles = useThemedStyles(createStyles);
   const route = useRoute<ReviewsRouteProp>();
   const { propertyId, propertyTitle } = route.params;
   const { user } = useAuth();
@@ -129,7 +132,7 @@ export default function ReviewsScreen() {
                       <Ionicons
                         name={value <= rating ? 'star' : 'star-outline'}
                         size={28}
-                        color={colors.amber}
+                        color={t.colors.star}
                       />
                     </Pressable>
                   ))}
@@ -150,7 +153,7 @@ export default function ReviewsScreen() {
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? (
-                    <ActivityIndicator color={colors.white} />
+                    <ActivityIndicator color={t.colors.onBrand} />
                   ) : (
                     <Text style={styles.submitButtonText}>Submit Review</Text>
                   )}
@@ -171,7 +174,7 @@ export default function ReviewsScreen() {
           <View style={styles.reviewCard}>
             <View style={styles.reviewAuthorRow}>
               <Text style={styles.reviewAuthor}>{item.userName}</Text>
-              <StarRating rating={item.rating} />
+              <Rating value={item.rating} />
             </View>
             <Text style={styles.reviewBody}>{item.body}</Text>
           </View>
@@ -185,40 +188,41 @@ export default function ReviewsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.white },
+const createStyles = (t: Theme) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: t.colors.surface },
   list: { padding: spacing.lg - 4 },
-  title: { fontSize: 18, fontWeight: 'bold', marginBottom: spacing.md, color: colors.ink },
+  title: { fontSize: 18, fontWeight: 'bold', marginBottom: spacing.md, color: t.colors.ink },
   form: {
-    backgroundColor: colors.mist,
+    backgroundColor: t.colors.canvas,
     borderRadius: radius.md,
     padding: spacing.md,
     marginBottom: spacing.lg - 4,
   },
-  formLabel: { fontWeight: '600', marginBottom: spacing.sm, marginTop: spacing.xs, color: colors.ink },
+  formLabel: { fontWeight: '600', marginBottom: spacing.sm, marginTop: spacing.xs, color: t.colors.ink },
   starRow: { flexDirection: 'row', gap: 6, marginBottom: spacing.sm + 4 },
   textInput: {
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: t.colors.line,
     borderRadius: radius.sm,
     padding: spacing.sm + 2,
     minHeight: 70,
     textAlignVertical: 'top',
-    backgroundColor: colors.white,
+    backgroundColor: t.colors.surface,
+    color: t.colors.ink,
   },
   submitButton: {
-    backgroundColor: colors.sky,
+    backgroundColor: t.colors.brand,
     borderRadius: radius.sm,
     paddingVertical: spacing.sm + 4,
     alignItems: 'center',
     marginTop: spacing.sm + 4,
-    ...shadow.card,
+    ...t.elevation.low,
   },
-  submitButtonText: { color: colors.white, fontWeight: 'bold' },
-  alreadyReviewedText: { color: colors.green, marginBottom: spacing.lg - 4, fontWeight: '600' },
-  reviewCard: { marginBottom: spacing.md - 2, borderBottomWidth: 1, borderBottomColor: colors.border, paddingBottom: spacing.sm + 4 },
+  submitButtonText: { color: t.colors.onBrand, fontWeight: 'bold' },
+  alreadyReviewedText: { color: t.colors.success, marginBottom: spacing.lg - 4, fontWeight: '600' },
+  reviewCard: { marginBottom: spacing.md - 2, borderBottomWidth: 1, borderBottomColor: t.colors.line, paddingBottom: spacing.sm + 4 },
   reviewAuthorRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
-  reviewAuthor: { fontWeight: '600', color: colors.ink },
-  reviewBody: { color: colors.inkSoft, lineHeight: 20 },
-  emptyText: { color: colors.muted, textAlign: 'center', marginTop: spacing.lg - 4 },
+  reviewAuthor: { fontWeight: '600', color: t.colors.ink, flex: 1, marginRight: spacing.xs },
+  reviewBody: { color: t.colors.inkSoft, lineHeight: 20 },
+  emptyText: { color: t.colors.inkSoft, textAlign: 'center', marginTop: spacing.lg - 4 },
 });

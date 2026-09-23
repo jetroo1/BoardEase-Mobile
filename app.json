@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true
     },
@@ -29,7 +29,8 @@
           "photosPermission": "BoardEase needs access to your photos so an admin can attach a listing picture.",
           "cameraPermission": "BoardEase needs access to your camera so an admin can take a listing photo."
         }
-      ]
+      ],
+      "expo-font"
     ]
   }
 }
