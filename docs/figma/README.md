@@ -82,6 +82,20 @@ Start the run from **01 Landing ▶ START**.
 
 ---
 
+## Checking it without opening Figma
+
+```bash
+node docs/figma/verify.js
+```
+
+This runs the plugin against a stub of the Figma API and reports how many
+frames and links it produced. It exists because a prototype with a dead link
+looks fine until someone taps it in front of a panel.
+
+Current result: **16 frames, 48 links, none unresolved.**
+
+---
+
 ## What it deliberately does not do
 
 **No icons.** Icon positions are drawn as plain rounded shapes. The app uses

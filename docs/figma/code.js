@@ -323,42 +323,63 @@ function section(parent, nodes) {
   return wrap;
 }
 
+// Every string below is the text the app actually renders. They were read out
+// of src/screens/*.tsx rather than invented, so the prototype and the build
+// say the same words -- a mock that paraphrases its own app is worse than no
+// mock, because the panel spots the difference.
 var BUILDERS = {
   Landing: function () {
     var f = screen('01 Landing');
-    f.appendChild(chip(W, 300, C.brand, 0));
+
+    var topRow = box({ name: 'Top row', horizontal: true, padX: GUTTER, padY: SP.xs, grow: true, align: 'CENTER', justify: 'SPACE_BETWEEN' });
+    topRow.layoutAlign = 'STRETCH';
+    topRow.appendChild(label('Tagum City', 'captionStrong', C.brand));
+    topRow.appendChild(chip(40, 40, C.surfaceAlt, R.pill));
+    f.appendChild(topRow);
+
+    // The real screen uses an ImageBackground with a dark scrim over it.
+    var hero = box({ name: 'Hero photo', grow: true, fill: C.ink, padX: GUTTER, padY: GUTTER, gap: SP.xxs, justify: 'MAX' });
+    hero.layoutAlign = 'STRETCH';
+    hero.resize(W, 240);
+    hero.primaryAxisSizingMode = 'FIXED';
+    hero.appendChild(label('BoardEase', 'display', C.onBrand));
+    hero.appendChild(label('Boarding houses in Tagum City', 'body', C.onBrand));
+    f.appendChild(hero);
+
     section(f, [
-      label('BoardEase', 'display', C.ink),
-      label('Find your perfect boarding house in Tagum', 'title', C.ink, { width: W - GUTTER * 2 }),
-      label('Discover, compare, and get directions to safe, affordable boarding houses near your school.', 'body', C.inkSoft, { width: W - GUTTER * 2 }),
+      label('Find a place that fits your budget.', 'heading', C.ink, { width: W - GUTTER * 2 }),
       button('Get started', 'primary'),
-      button('I already have an account', 'ghost'),
+      button('Log in', 'secondary'),
+      label('Booking and payments are arranged directly with the owner.', 'caption', C.inkSoft, { width: W - GUTTER * 2 }),
     ]);
     return f;
   },
 
   Login: function () {
     var f = screen('02 Login');
-    f.appendChild(header('Welcome back', null, true));
+    f.appendChild(header('', null, true));
     section(f, [
-      label('Log in to find your next boarding house.', 'body', C.inkSoft),
+      label('Welcome back', 'display', C.ink),
+      label('Log in to find your next boarding house.', 'body', C.inkSoft, { width: W - GUTTER * 2 }),
       field('Email', 'you@example.com'),
       field('Password', 'Your password'),
       button('Log in', 'primary'),
-      label('New here? Create an account', 'caption', C.brand),
+      label('Create an account', 'captionStrong', C.brand),
     ]);
     return f;
   },
 
   Register: function () {
     var f = screen('03 Register');
-    f.appendChild(header('Create account', null, true));
+    f.appendChild(header('', null, true));
     section(f, [
-      label('Join BoardEase to start browsing.', 'body', C.inkSoft),
+      label('Create account', 'display', C.ink),
+      label('Join BoardEase to start browsing boarding houses near you.', 'body', C.inkSoft, { width: W - GUTTER * 2 }),
       field('Email', 'you@example.com'),
       field('Password', 'At least 6 characters'),
       field('Confirm password', 'Type it again'),
       button('Create account', 'primary'),
+      label('Log in', 'captionStrong', C.brand),
     ]);
     return f;
   },
@@ -366,6 +387,7 @@ var BUILDERS = {
   Home: function () {
     var f = screen('04 Home');
     f.appendChild(header('Find your next room', 'Good to see you, Jetroy'));
+
     var searchCard = card('Search entry');
     searchCard.layoutMode = 'HORIZONTAL';
     searchCard.counterAxisAlignItems = 'CENTER';
@@ -377,29 +399,53 @@ var BUILDERS = {
     st.appendChild(label('Browse boarding houses', 'bodyStrong', C.ink));
     st.appendChild(label('Tagum City', 'caption', C.inkFaint));
     searchCard.appendChild(st);
+    searchCard.appendChild(chip(18, 18, C.canvasAlt, R.sm));
 
     var tiles = box({ name: 'Tiles', horizontal: true, gap: SP.sm });
     tiles.layoutAlign = 'STRETCH';
     var t1 = card('Saved');
     t1.layoutGrow = 1;
+    t1.appendChild(chip(19, 19, C.brandSoft, R.sm));
     t1.appendChild(label('Saved', 'captionStrong', C.ink));
     t1.appendChild(label('Your shortlist', 'micro', C.inkFaint));
     var t2 = card('Alerts');
     t2.layoutGrow = 1;
+    t2.appendChild(chip(19, 19, C.brandSoft, R.sm));
     t2.appendChild(label('Alerts', 'captionStrong', C.ink));
     t2.appendChild(label('New matches', 'micro', C.inkFaint));
     tiles.appendChild(t1);
     tiles.appendChild(t2);
 
-    section(f, [searchCard, tiles, label('Recently viewed', 'heading', C.ink)]);
-    f.appendChild(spacer(120));
+    // The empty state a fresh account actually sees.
+    var empty = box({ name: 'Nothing viewed yet', padX: SP.md, padY: SP.md, radius: R.lg, fill: C.canvas, border: C.line, align: 'CENTER', gap: SP.xxs });
+    empty.layoutAlign = 'STRETCH';
+    empty.appendChild(chip(24, 24, C.canvasAlt, R.pill));
+    empty.appendChild(label('Nothing viewed yet', 'captionStrong', C.ink));
+    empty.appendChild(label('Listings you open will show up here, and stay readable offline.', 'caption', C.inkFaint, { width: 240 }));
+
+    section(f, [searchCard, tiles, empty]);
+    f.appendChild(spacer(200));
     f.appendChild(tabBar(0));
     return f;
   },
 
   Search: function () {
     var f = screen('05 Search');
-    f.appendChild(header('Search', 'Boarding houses'));
+
+    var head = box({ name: 'Header', padX: GUTTER, padY: SP.xs, gap: SP.xxs });
+    head.layoutAlign = 'STRETCH';
+    var hr = box({ name: 'Row', horizontal: true, gap: SP.xs, align: 'CENTER' });
+    hr.layoutAlign = 'STRETCH';
+    var hs = box({ name: 'Titles', gap: 2 });
+    hs.layoutGrow = 1;
+    hs.appendChild(label('Boarding houses', 'micro', C.brand, { uppercase: true }));
+    hs.appendChild(label('Search', 'title', C.ink));
+    hr.appendChild(hs);
+    hr.appendChild(pill('Map', C.brand, C.brandSoft));
+    hr.appendChild(chip(40, 40, C.surfaceAlt, R.pill));
+    head.appendChild(hr);
+    f.appendChild(head);
+
     var controls = box({ name: 'Controls', horizontal: true, gap: SP.xs });
     controls.layoutAlign = 'STRETCH';
     var seg = box({ name: 'Sort', horizontal: true, padX: SP.xxs, padY: SP.xxs, radius: R.pill, fill: C.canvasAlt, gap: SP.xxs });
@@ -409,9 +455,21 @@ var BUILDERS = {
     controls.appendChild(seg);
     controls.appendChild(pill('Filter', C.inkSoft, C.canvasAlt));
 
+    // The banner shown when location permission is off -- which is the state
+    // the app is usually demoed in.
+    var banner = box({ name: 'GPS banner', horizontal: true, padX: SP.sm, padY: SP.xs, radius: R.md, fill: C.warningSoft, gap: SP.xs, align: 'CENTER' });
+    banner.layoutAlign = 'STRETCH';
+    var bt = label('Browsing without distance', 'caption', C.warning);
+    banner.appendChild(bt);
+    var bspacer = box({ name: 'Gap' });
+    bspacer.layoutGrow = 1;
+    banner.appendChild(bspacer);
+    banner.appendChild(label('Settings', 'captionStrong', C.brand));
+
     section(f, [
       controls,
-      propertyCard("Student's Nest", '₱2,100', 'Visayan Village, Tagum City', ['Shared', 'WiFi', 'Study Area'], true),
+      banner,
+      propertyCard("Student's Nest", '₱2,100', 'Visayan Village, Tagum City', ['Shared', 'WiFi', 'Study Area'], false),
       propertyCard('Greenview Dormitory', '₱1,800', 'Magugpo East, Tagum City', ['Shared', 'WiFi', 'Kitchen'], false),
     ]);
     f.appendChild(tabBar(1));
@@ -420,31 +478,70 @@ var BUILDERS = {
 
   Filter: function () {
     var f = screen('06 Filter');
-    f.appendChild(header('Filters', null, true));
-    var chips = box({ name: 'Room types', horizontal: true, gap: SP.xs });
-    chips.appendChild(pill('Single', C.onBrand, C.brand));
-    chips.appendChild(pill('Shared', C.inkSoft, C.surface));
-    chips.appendChild(pill('Studio', C.inkSoft, C.surface));
+
+    var bar = box({ name: 'Sheet header', horizontal: true, padX: GUTTER, padY: SP.xs, gap: SP.xs, align: 'CENTER' });
+    bar.layoutAlign = 'STRETCH';
+    bar.appendChild(chip(40, 40, C.surfaceAlt, R.pill));
+    var bt2 = label('Filters', 'heading', C.ink);
+    bar.appendChild(bt2);
+    var bg2 = box({ name: 'Gap' });
+    bg2.layoutGrow = 1;
+    bar.appendChild(bg2);
+    bar.appendChild(label('Reset', 'captionStrong', C.brand));
+    f.appendChild(bar);
+
+    var presets = box({ name: 'Presets', horizontal: true, gap: SP.xs });
+    presets.appendChild(pill('Under ₱1,500', C.inkSoft, C.surface));
+    presets.appendChild(pill('Under ₱2,500', C.onBrand, C.brand));
+    presets.appendChild(pill('Under ₱3,500', C.inkSoft, C.surface));
+
+    var types = box({ name: 'Room types', horizontal: true, gap: SP.xs });
+    types.appendChild(pill('Single', C.inkSoft, C.surface));
+    types.appendChild(pill('Shared', C.onBrand, C.brand));
+    types.appendChild(pill('Studio', C.inkSoft, C.surface));
 
     var am = box({ name: 'Amenities', horizontal: true, gap: SP.xs });
     var list = ['WiFi', 'CR', 'Parking', 'Aircon'];
     for (var i = 0; i < list.length; i += 1) am.appendChild(pill(list[i], C.inkSoft, C.surface));
 
+    var alertsCard = card('Alerts');
+    alertsCard.layoutMode = 'HORIZONTAL';
+    alertsCard.counterAxisAlignItems = 'CENTER';
+    alertsCard.itemSpacing = SP.sm;
+    alertsCard.layoutAlign = 'STRETCH';
+    alertsCard.appendChild(chip(38, 38, C.brandSoft, R.pill));
+    var ac = box({ name: 'Text', gap: 1 });
+    ac.layoutGrow = 1;
+    ac.appendChild(label('Alert me about new matches', 'captionStrong', C.ink));
+    ac.appendChild(label('Saves these filters and tells you when a new listing fits.', 'caption', C.inkFaint, { width: 210 }));
+    alertsCard.appendChild(ac);
+    alertsCard.appendChild(chip(44, 26, C.brand, R.pill));
+
     section(f, [
       label('Budget', 'heading', C.ink),
       field('Maximum monthly rent', 'Any price'),
+      presets,
       label('Room type', 'heading', C.ink),
-      chips,
+      types,
       label('Amenities', 'heading', C.ink),
       am,
-      button('Apply 2 filters', 'primary'),
+      alertsCard,
     ]);
+
+    var actions = box({ name: 'Action bar', horizontal: true, padX: GUTTER, padY: SP.sm, gap: SP.sm, fill: C.surface, grow: true });
+    actions.layoutAlign = 'STRETCH';
+    actions.appendChild(button('Reset', 'secondary'));
+    var apply = button('Apply 2 filters', 'primary');
+    apply.layoutGrow = 1;
+    actions.appendChild(apply);
+    f.appendChild(actions);
     return f;
   },
 
   Details: function () {
     var f = screen('07 Details');
     f.appendChild(chip(W, 300, C.canvasAlt, 0));
+
     var actions = box({ name: 'Actions', horizontal: true, gap: SP.xs });
     actions.layoutAlign = 'STRETCH';
     var b1 = button('Get directions', 'primary');
@@ -452,15 +549,32 @@ var BUILDERS = {
     actions.appendChild(b1);
     actions.appendChild(button('Compare', 'secondary'));
 
+    var about = card('About');
+    about.layoutAlign = 'STRETCH';
+    about.appendChild(label('ABOUT THIS PLACE', 'micro', C.inkSoft));
+    about.appendChild(label('Quiet study-friendly boarding house for students.', 'body', C.inkSoft, { width: W - GUTTER * 2 - SP.md * 2 }));
+
     var amen = box({ name: 'Amenities', horizontal: true, gap: SP.xs });
     var aList = ['Shared', 'WiFi', 'Study Area'];
     for (var i = 0; i < aList.length; i += 1) amen.appendChild(pill(aList[i], C.brand, C.brandSoft));
 
+    var priceRow = box({ name: 'Title row', horizontal: true, gap: SP.sm, align: 'MIN' });
+    priceRow.layoutAlign = 'STRETCH';
+    var pl = box({ name: 'Left', gap: SP.xxs });
+    pl.layoutGrow = 1;
+    pl.appendChild(label("Student's Nest", 'title', C.ink));
+    pl.appendChild(label('Visayan Village, Tagum City', 'caption', C.inkFaint));
+    priceRow.appendChild(pl);
+    var pr = box({ name: 'Price', align: 'MAX', gap: 0 });
+    pr.appendChild(label('₱2,100', 'metric', C.brand));
+    pr.appendChild(label('per month', 'micro', C.inkFaint));
+    priceRow.appendChild(pr);
+
     section(f, [
-      label("Student's Nest", 'title', C.ink),
-      label('Visayan Village, Tagum City', 'caption', C.inkFaint),
-      label('₱2,100', 'metric', C.brand),
+      priceRow,
+      label('★ 4.6  (12)', 'caption', C.inkSoft),
       actions,
+      about,
       label('What it offers', 'heading', C.ink),
       amen,
       label('Reviews', 'heading', C.ink),
@@ -470,11 +584,48 @@ var BUILDERS = {
 
   Map: function () {
     var f = screen('08 Map');
-    f.appendChild(chip(W, 560, C.canvasAlt, 0));
-    section(f, [
-      pill('₱2,100', C.onBrand, C.brand),
-      propertyCard("Student's Nest", '₱2,100', 'Visayan Village, Tagum City', ['Shared', '450 m'], false),
-    ]);
+
+    var search = box({ name: 'Map search', horizontal: true, padX: GUTTER, padY: SP.xs, gap: SP.xs, grow: true, align: 'CENTER' });
+    search.layoutAlign = 'STRETCH';
+    var sBox = box({ name: 'Field', horizontal: true, padX: SP.sm, padY: SP.sm, radius: R.pill, fill: C.surface, gap: SP.xs, align: 'CENTER', shadow: true });
+    sBox.layoutGrow = 1;
+    sBox.appendChild(chip(17, 17, C.canvasAlt, R.pill));
+    sBox.appendChild(label('Search this map', 'body', C.inkFaint));
+    search.appendChild(sBox);
+    search.appendChild(chip(44, 44, C.surface, R.pill));
+    f.appendChild(search);
+
+    var count = box({ name: 'Count', padX: GUTTER });
+    count.layoutAlign = 'STRETCH';
+    count.appendChild(pill('4 listings on the map', C.inkSoft, C.surface));
+    f.appendChild(count);
+
+    // Stand-in for the Leaflet canvas, with the price markers on it.
+    var mapArea = box({ name: 'Map canvas', grow: true, fill: C.canvasAlt, padX: SP.xl, padY: SP.xl, gap: SP.lg });
+    mapArea.layoutAlign = 'STRETCH';
+    mapArea.resize(W, 330);
+    mapArea.primaryAxisSizingMode = 'FIXED';
+    mapArea.appendChild(pill('₱2,100', C.onBrand, C.brand));
+    mapArea.appendChild(pill('₱1,800', C.ink, C.surface));
+    mapArea.appendChild(pill('₱3,200', C.ink, C.surface));
+    f.appendChild(mapArea);
+
+    // The swipeable carousel card.
+    var cardWrap = box({ name: 'Carousel', padX: GUTTER });
+    cardWrap.layoutAlign = 'STRETCH';
+    var c = box({ name: "PropertyCard / Student's Nest", horizontal: true, padX: SP.xs, padY: SP.xs, radius: R.lg, fill: C.surface, gap: SP.sm, shadow: true, border: C.brand, borderWidth: 2 });
+    c.layoutAlign = 'STRETCH';
+    c.appendChild(chip(92, 92, C.canvasAlt, R.md));
+    var cv = box({ name: 'Text', gap: 3 });
+    cv.layoutGrow = 1;
+    cv.appendChild(label("Student's Nest", 'captionStrong', C.ink));
+    cv.appendChild(label('Visayan Village, Tagum City', 'micro', C.inkFaint));
+    cv.appendChild(label('Distance unavailable · Shared', 'micro', C.inkFaint));
+    cv.appendChild(label('₱2,100 /mo', 'bodyStrong', C.brand));
+    c.appendChild(cv);
+    cardWrap.appendChild(c);
+    f.appendChild(cardWrap);
+
     f.appendChild(tabBar(2));
     return f;
   },
@@ -484,41 +635,72 @@ var BUILDERS = {
     var banner = box({ name: 'Banner', horizontal: true, padX: GUTTER, padY: SP.sm, fill: C.brand, gap: SP.xs, align: 'CENTER', grow: true });
     banner.layoutAlign = 'STRETCH';
     banner.appendChild(label('450 m to go', 'captionStrong', C.onBrand));
+    var bgap = box({ name: 'Gap' });
+    bgap.layoutGrow = 1;
+    banner.appendChild(bgap);
     banner.appendChild(pill('LIVE', C.onBrand, C.brandDeep));
     f.appendChild(banner);
-    f.appendChild(chip(W, 420, C.canvasAlt, 0));
-    section(f, [
-      label("Directions to Student's Nest", 'captionStrong', C.ink),
-      label('1.  Head north on Visayan Street', 'caption', C.ink),
-      label('2.  Turn right onto Gazmen Road', 'caption', C.ink),
-      label('3.  Your destination is on the left', 'caption', C.ink),
-    ]);
+
+    f.appendChild(chip(W, 400, C.canvasAlt, 0));
+
+    var steps = box({ name: 'Steps', padX: GUTTER, padY: SP.md, gap: SP.sm, fill: C.surface, radius: R.lg, grow: true });
+    steps.layoutAlign = 'STRETCH';
+    steps.appendChild(label("Directions to Student's Nest", 'captionStrong', C.ink));
+    var lines = ['Head north on Visayan Street', 'Turn right onto Gazmen Road', 'Your destination is on the left'];
+    for (var i = 0; i < lines.length; i += 1) {
+      var row = box({ name: 'Step', horizontal: true, gap: SP.sm, align: 'MIN' });
+      row.layoutAlign = 'STRETCH';
+      row.appendChild(chip(22, 22, C.brand, R.pill));
+      var sv = box({ name: 'Text', gap: 1 });
+      sv.layoutGrow = 1;
+      sv.appendChild(label(lines[i], 'caption', C.ink, { width: 260 }));
+      sv.appendChild(label('120 m', 'micro', C.inkFaint));
+      row.appendChild(sv);
+      steps.appendChild(row);
+    }
+    f.appendChild(steps);
     return f;
   },
 
   Compare: function () {
     var f = screen('10 Compare');
-    f.appendChild(header('Compare', null, true));
+    var sub = box({ name: 'Subtitle', padX: GUTTER, padY: SP.xs });
+    sub.layoutAlign = 'STRETCH';
+    sub.appendChild(label('2 listings side by side', 'caption', C.inkFaint));
+    f.appendChild(sub);
+
     var table = box({ name: 'Table', horizontal: true, gap: 0 });
     table.layoutAlign = 'STRETCH';
+
+    var rowLabels = ['', 'Price', 'Room type', 'Distance', 'Rating', 'WiFi', 'Study Area'];
     var labels = box({ name: 'Labels', gap: 0, fill: C.canvasAlt, width: 104 });
-    var rows = ['', 'Price', 'Room type', 'Distance', 'Rating', 'WiFi'];
-    for (var i = 0; i < rows.length; i += 1) {
+    for (var i = 0; i < rowLabels.length; i += 1) {
       var cell = box({ name: 'Cell', padX: SP.sm, padY: SP.sm, width: 104 });
-      cell.appendChild(label(rows[i] || ' ', 'captionStrong', C.ink));
+      cell.resize(104, i === 0 ? 100 : 52);
+      cell.primaryAxisSizingMode = 'FIXED';
+      cell.appendChild(label(rowLabels[i] || ' ', 'captionStrong', C.ink));
       labels.appendChild(cell);
     }
     table.appendChild(labels);
 
-    var colValues = [
-      ["Student's Nest", '₱2,100', 'Shared', '450 m', '4.6', 'Yes'],
-      ['Greenview', '₱1,800', 'Shared', '820 m', '4.2', 'Yes'],
+    var cols = [
+      { name: "Student's Nest", values: ['₱2,100', 'Shared', 'Unknown', '4.6 (12)', 'Yes', 'Yes'] },
+      { name: 'Greenview Dormitory', values: ['₱1,800', 'Shared', 'Unknown', '4.2 (7)', 'Yes', 'No'] },
     ];
-    for (var c = 0; c < colValues.length; c += 1) {
+    for (var c2 = 0; c2 < cols.length; c2 += 1) {
       var col = box({ name: 'Column', gap: 0, width: 150 });
-      for (var r2 = 0; r2 < colValues[c].length; r2 += 1) {
+      var headCell = box({ name: 'Header cell', padX: SP.xs, padY: SP.xs, width: 150, gap: SP.xxs, fill: C.surfaceAlt });
+      headCell.resize(150, 100);
+      headCell.primaryAxisSizingMode = 'FIXED';
+      headCell.appendChild(chip(134, 44, C.canvasAlt, R.sm));
+      headCell.appendChild(label(cols[c2].name, 'captionStrong', C.ink, { width: 130 }));
+      col.appendChild(headCell);
+
+      for (var v = 0; v < cols[c2].values.length; v += 1) {
         var cc = box({ name: 'Cell', padX: SP.sm, padY: SP.sm, width: 150 });
-        cc.appendChild(label(colValues[c][r2], r2 === 0 ? 'captionStrong' : 'caption', r2 === 1 ? C.brand : C.inkSoft));
+        cc.resize(150, 52);
+        cc.primaryAxisSizingMode = 'FIXED';
+        cc.appendChild(label(cols[c2].values[v], v === 0 ? 'bodyStrong' : 'caption', v === 0 ? C.brand : C.inkSoft));
         col.appendChild(cc);
       }
       table.appendChild(col);
@@ -529,54 +711,84 @@ var BUILDERS = {
 
   Reviews: function () {
     var f = screen('11 Reviews');
-    f.appendChild(header('Reviews', null, true));
+
     var summary = card('Summary');
     summary.layoutMode = 'HORIZONTAL';
     summary.counterAxisAlignItems = 'CENTER';
     summary.itemSpacing = SP.md;
     summary.layoutAlign = 'STRETCH';
-    summary.appendChild(label('4.6', 'display', C.ink));
-    var sv = box({ name: 'Meta', gap: 2 });
-    sv.layoutGrow = 1;
-    sv.appendChild(label("Student's Nest", 'captionStrong', C.ink));
-    sv.appendChild(label('12 reviews from tenants', 'caption', C.inkFaint));
-    summary.appendChild(sv);
+    var sl = box({ name: 'Score', align: 'CENTER', gap: SP.xxs });
+    sl.appendChild(label('4.6', 'display', C.ink));
+    sl.appendChild(label('★★★★★', 'caption', C.star));
+    summary.appendChild(sl);
+    var sv2 = box({ name: 'Meta', gap: 2 });
+    sv2.layoutGrow = 1;
+    sv2.appendChild(label("Student's Nest", 'captionStrong', C.ink));
+    sv2.appendChild(label('12 reviews from tenants', 'caption', C.inkFaint));
+    summary.appendChild(sv2);
+
+    var form = card('Write a review');
+    form.layoutAlign = 'STRETCH';
+    form.appendChild(label('Write a review', 'heading', C.ink));
+    form.appendChild(label('Your rating', 'captionStrong', C.inkSoft));
+    form.appendChild(label('★★★★★', 'title', C.star));
+    form.appendChild(field('Your review', 'What was it like to live here?'));
+    form.appendChild(button('Submit review', 'primary'));
 
     var review = card('Review');
     review.layoutAlign = 'STRETCH';
-    review.appendChild(label('Maria', 'captionStrong', C.ink));
+    var rh = box({ name: 'Row', horizontal: true, gap: SP.xs, align: 'CENTER' });
+    rh.layoutAlign = 'STRETCH';
+    rh.appendChild(chip(32, 32, C.brandSoft, R.pill));
+    var rv = box({ name: 'Who', gap: 1 });
+    rv.layoutGrow = 1;
+    rv.appendChild(label('Maria', 'captionStrong', C.ink));
+    rv.appendChild(label('3 days ago', 'micro', C.inkFaint));
+    rh.appendChild(rv);
+    rh.appendChild(label('★★★★★', 'caption', C.star));
+    review.appendChild(rh);
     review.appendChild(label('Quiet at night and the WiFi actually works. Landlady is strict about visitors.', 'caption', C.inkSoft, { width: W - GUTTER * 2 - SP.md * 2 }));
 
-    section(f, [summary, label('What tenants say', 'heading', C.ink), review]);
+    section(f, [summary, form, label('What tenants say', 'heading', C.ink), review]);
     return f;
   },
 
   Favorites: function () {
     var f = screen('12 Saved');
-    f.appendChild(header('Saved', 'Your shortlist'));
+    f.appendChild(header('Saved listings', 'Your shortlist'));
     section(f, [
       propertyCard("Student's Nest", '₱2,100', 'Visayan Village, Tagum City', ['Shared', 'WiFi'], false),
     ]);
-    f.appendChild(spacer(120));
+    f.appendChild(spacer(200));
     f.appendChild(tabBar(3));
     return f;
   },
 
   Notifications: function () {
     var f = screen('13 Alerts');
-    f.appendChild(header('Alerts', null, true));
-    var alertCard = card('Alert');
-    alertCard.layoutMode = 'HORIZONTAL';
-    alertCard.itemSpacing = SP.sm;
+
+    var status = box({ name: 'Status', horizontal: true, padX: GUTTER, padY: SP.xs, gap: SP.xs, align: 'CENTER' });
+    status.layoutAlign = 'STRETCH';
+    status.appendChild(chip(15, 15, C.success, R.pill));
+    var sgap = label('Alerts are on for your saved filters', 'caption', C.inkSoft);
+    status.appendChild(sgap);
+    var sg = box({ name: 'Gap' });
+    sg.layoutGrow = 1;
+    status.appendChild(sg);
+    status.appendChild(label('Edit', 'captionStrong', C.brand));
+    status.appendChild(label('Clear', 'captionStrong', C.danger));
+    f.appendChild(status);
+
+    var alertCard = box({ name: 'Alert', horizontal: true, padX: SP.md, padY: SP.md, radius: R.lg, fill: C.brandSoft, gap: SP.sm, shadow: true });
     alertCard.layoutAlign = 'STRETCH';
-    alertCard.fills = solid(C.brandSoft);
     alertCard.appendChild(chip(36, 36, C.brand, R.pill));
     var av = box({ name: 'Text', gap: 2 });
     av.layoutGrow = 1;
     av.appendChild(label('CityStay Rooms', 'captionStrong', C.ink));
-    av.appendChild(label('New listing matches your saved filters', 'caption', C.inkSoft));
+    av.appendChild(label('New listing matches your saved filters', 'caption', C.inkSoft, { width: 220 }));
     av.appendChild(label('2 hours ago', 'micro', C.inkFaint));
     alertCard.appendChild(av);
+
     section(f, [alertCard]);
     return f;
   },
@@ -584,17 +796,19 @@ var BUILDERS = {
   Profile: function () {
     var f = screen('14 Profile');
     f.appendChild(header('Profile'));
+
     var account = card('Account');
     account.layoutAlign = 'STRETCH';
-    account.layoutMode = 'HORIZONTAL';
-    account.counterAxisAlignItems = 'CENTER';
-    account.itemSpacing = SP.sm;
-    account.appendChild(chip(52, 52, C.brandSoft, R.pill));
+    var ar = box({ name: 'Row', horizontal: true, gap: SP.sm, align: 'CENTER' });
+    ar.layoutAlign = 'STRETCH';
+    ar.appendChild(chip(52, 52, C.brandSoft, R.pill));
     var pv = box({ name: 'Meta', gap: SP.xxs });
     pv.layoutGrow = 1;
-    pv.appendChild(label('j.martin@umindanao.edu.ph', 'bodyStrong', C.ink));
+    pv.appendChild(label('j.martin.147292.tc@umindanao...', 'bodyStrong', C.ink));
     pv.appendChild(pill('Tenant', C.inkSoft, C.canvasAlt));
-    account.appendChild(pv);
+    ar.appendChild(pv);
+    account.appendChild(ar);
+    account.appendChild(settingsRow('Change password', 'Sends a reset link to your email'));
 
     var appearance = box({ name: 'Appearance', horizontal: true, padX: SP.xxs, padY: SP.xxs, radius: R.md, fill: C.canvasAlt, gap: SP.xxs });
     appearance.layoutAlign = 'STRETCH';
@@ -602,22 +816,44 @@ var BUILDERS = {
     appearance.appendChild(pill('Light', C.inkSoft, C.canvasAlt));
     appearance.appendChild(pill('Dark', C.inkSoft, C.canvasAlt));
 
+    var permissions = card('Permissions');
+    permissions.layoutAlign = 'STRETCH';
+    permissions.appendChild(settingsRow('Match alerts', 'On — new listings matching your filters'));
+    permissions.appendChild(settingsRow('Location access', 'Denied — distances unavailable'));
+
+    var data = card('Data');
+    data.layoutAlign = 'STRETCH';
+    data.appendChild(settingsRow('Clear comparison list', 'Nothing selected'));
+    data.appendChild(settingsRow('Clear offline data', 'Removes cached favourites from this phone'));
+
+    // The app only renders this block for role === 'admin'. The prototype
+    // shows it so the panel can reach the moderation screens; a tenant
+    // account would not see it.
+    var admin = card('Administration');
+    admin.layoutAlign = 'STRETCH';
+    admin.appendChild(settingsRow('Admin panel', 'Approve or reject submitted listings'));
+    admin.appendChild(settingsRow('Add a listing', 'Publish a new boarding house'));
+
     section(f, [
       account,
       label('Appearance', 'heading', C.ink),
       appearance,
       label('Alerts & permissions', 'heading', C.ink),
+      permissions,
       label('Data', 'heading', C.ink),
+      data,
+      label('Administration', 'heading', C.ink),
+      admin,
       button('Log out', 'secondary'),
     ]);
-    f.appendChild(spacer(80));
+    f.appendChild(spacer(40));
     f.appendChild(tabBar(4));
     return f;
   },
 
   Admin: function () {
     var f = screen('15 Admin panel');
-    f.appendChild(header('Admin panel', null, true));
+
     var tabs = box({ name: 'Tabs', horizontal: true, padX: SP.xxs, padY: SP.xxs, radius: R.pill, fill: C.canvasAlt, gap: SP.xxs });
     tabs.layoutAlign = 'STRETCH';
     tabs.appendChild(pill('Pending  3', C.brand, C.surface));
@@ -625,8 +861,17 @@ var BUILDERS = {
 
     var pending = card('Pending listing');
     pending.layoutAlign = 'STRETCH';
-    pending.appendChild(label('Sunrise Boarding House', 'captionStrong', C.ink));
-    pending.appendChild(label('Visayan Village, Tagum City', 'caption', C.inkFaint));
+    var pr2 = box({ name: 'Row', horizontal: true, gap: SP.sm });
+    pr2.layoutAlign = 'STRETCH';
+    pr2.appendChild(chip(60, 60, C.canvasAlt, R.sm));
+    var pv2 = box({ name: 'Text', gap: 2 });
+    pv2.layoutGrow = 1;
+    pv2.appendChild(label('Sunrise Boarding House', 'captionStrong', C.ink));
+    pv2.appendChild(label('Visayan Village, Tagum City', 'caption', C.inkFaint));
+    pv2.appendChild(label('₱2,500', 'captionStrong', C.brand));
+    pr2.appendChild(pv2);
+    pending.appendChild(pr2);
+
     var actionRow = box({ name: 'Actions', horizontal: true, gap: SP.xs });
     actionRow.layoutAlign = 'STRETCH';
     var ap = button('Approve', 'primary');
@@ -643,19 +888,44 @@ var BUILDERS = {
 
   AddListing: function () {
     var f = screen('16 Add listing');
-    f.appendChild(header('Add listing', null, true));
     section(f, [
       label('The basics', 'heading', C.ink),
       field('Name', 'e.g. Sunrise Boarding House'),
       field('Address', 'e.g. Visayan Village, Tagum City'),
       field('Monthly rent', '2500'),
+      label('Room type', 'heading', C.ink),
+    ]);
+
+    var types = box({ name: 'Room types', horizontal: true, gap: SP.xs, padX: GUTTER });
+    types.layoutAlign = 'STRETCH';
+    types.appendChild(pill('Single', C.onBrand, C.brand));
+    types.appendChild(pill('Shared', C.inkSoft, C.surface));
+    types.appendChild(pill('Studio', C.inkSoft, C.surface));
+    f.appendChild(types);
+
+    section(f, [
       label('Location on the map', 'heading', C.ink),
       button('Use my current location', 'secondary'),
+      label('Photo', 'heading', C.ink),
       button('Publish listing', 'primary'),
     ]);
     return f;
   },
 };
+
+// One settings row, matching the Row component in ProfileScreen.
+function settingsRow(titleText, subtitleText) {
+  var row = box({ name: 'Row / ' + titleText, horizontal: true, gap: SP.sm, align: 'CENTER' });
+  row.layoutAlign = 'STRETCH';
+  row.appendChild(chip(36, 36, C.canvasAlt, R.sm));
+  var v = box({ name: 'Text', gap: 1 });
+  v.layoutGrow = 1;
+  v.appendChild(label(titleText, 'captionStrong', C.ink));
+  v.appendChild(label(subtitleText, 'caption', C.inkFaint, { width: 200 }));
+  row.appendChild(v);
+  row.appendChild(chip(16, 16, C.canvasAlt, R.sm));
+  return row;
+}
 
 // A labelled input, matching src/components/ui/Input.tsx.
 function field(labelText, placeholder) {
@@ -707,10 +977,11 @@ var FLOWS = [
   // swaps the navigator once Firebase signs in -- but that IS what the user
   // experiences, so the prototype models it.
   ['Landing', 'Button / Get started', 'Register'],
-  ['Landing', 'Button / I already have an account', 'Login'],
+  ['Landing', 'Button / Log in', 'Login'],
   ['Login', 'Button / Log in', 'Home'],
-  ['Login', 'New here? Create an account', 'Register'],
+  ['Login', 'Create an account', 'Register'],
   ['Register', 'Button / Create account', 'Home'],
+  ['Register', 'Log in', 'Login'],
 
   // Home
   ['Home', 'Search entry', 'Search'],
@@ -719,11 +990,14 @@ var FLOWS = [
 
   // Search
   ['Search', 'Pill / Filter', 'Filter'],
+  ['Search', 'Pill / Map', 'Map'],
+  ['Search', 'Settings', 'Profile'],
   ["Search", "PropertyCard / Student's Nest", 'Details'],
   ['Search', 'PropertyCard / Greenview Dormitory', 'Details'],
 
   // Filter returns to the list it was opened from.
   ['Filter', 'Button / Apply 2 filters', 'Search'],
+  ['Filter', 'Button / Reset', 'Search'],
 
   // Details
   ['Details', 'Button / Get directions', 'Navigation'],
@@ -737,6 +1011,8 @@ var FLOWS = [
   ['Notifications', 'Alert', 'Details'],
 
   // Profile / admin
+  ['Profile', 'Row / Admin panel', 'Admin'],
+  ['Profile', 'Row / Add a listing', 'AddListing'],
   ['Profile', 'Button / Log out', 'Landing'],
   ['Admin', 'Button / Add a new listing', 'AddListing'],
   ['AddListing', 'Button / Publish listing', 'Admin'],
