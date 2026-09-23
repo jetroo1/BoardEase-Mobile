@@ -393,6 +393,7 @@ var BUILDERS = {
       field('Email', 'you@example.com'),
       field('Password', 'Your password'),
       button('Log in', 'primary'),
+      label('New here?', 'caption', C.inkSoft),
       label('Create an account', 'captionStrong', C.brand),
     ]);
     return f;
@@ -406,8 +407,10 @@ var BUILDERS = {
       label('Join BoardEase to start browsing boarding houses near you.', 'body', C.inkSoft, { width: W - GUTTER * 2 }),
       field('Email', 'you@example.com'),
       field('Password', 'At least 6 characters'),
+      label('Use at least 6 characters.', 'caption', C.inkFaint),
       field('Confirm password', 'Type it again'),
       button('Create account', 'primary'),
+      label('Already have an account?', 'caption', C.inkSoft),
       label('Log in', 'captionStrong', C.brand),
     ]);
     return f;
@@ -450,7 +453,7 @@ var BUILDERS = {
     empty.layoutAlign = 'STRETCH';
     empty.appendChild(chip(24, 24, C.canvasAlt, R.pill));
     empty.appendChild(label('Nothing viewed yet', 'captionStrong', C.ink));
-    empty.appendChild(label('Listings you open will show up here, and stay readable offline.', 'caption', C.inkFaint, { width: 240 }));
+    empty.appendChild(label('Recently viewed boarding houses', 'caption', C.inkFaint, { width: 240 }));
 
     section(f, [searchCard, tiles, empty]);
     f.appendChild(spacer(200));
@@ -467,7 +470,7 @@ var BUILDERS = {
     hr.layoutAlign = 'STRETCH';
     var hs = box({ name: 'Titles', gap: 2 });
     hs.layoutGrow = 1;
-    hs.appendChild(label('Boarding houses', 'micro', C.brand, { uppercase: true }));
+    hs.appendChild(label('Near your location', 'micro', C.brand, { uppercase: true }));
     hs.appendChild(label('Search', 'title', C.ink));
     hr.appendChild(hs);
     hr.appendChild(pill('Map', C.brand, C.brandSoft));
@@ -580,7 +583,7 @@ var BUILDERS = {
 
     var about = card('About');
     about.layoutAlign = 'STRETCH';
-    about.appendChild(label('ABOUT THIS PLACE', 'micro', C.inkSoft));
+    about.appendChild(label('About this place', 'captionStrong', C.inkSoft));
     about.appendChild(label('Quiet study-friendly boarding house for students.', 'body', C.inkSoft, { width: W - GUTTER * 2 - SP.md * 2 }));
 
     var amen = box({ name: 'Amenities', horizontal: true, gap: SP.xs });
@@ -606,7 +609,7 @@ var BUILDERS = {
       about,
       label('What it offers', 'heading', C.ink),
       amen,
-      label('Reviews', 'heading', C.ink),
+      reviewsHeading(),
       reviewRow('Maria', 'Quiet at night and the WiFi actually works.'),
       reviewRow('Paolo', 'Close to campus. Landlady is strict about visitors.'),
     ]);
@@ -652,7 +655,14 @@ var BUILDERS = {
     cv.appendChild(label("Student's Nest", 'captionStrong', C.ink));
     cv.appendChild(label('Visayan Village, Tagum City', 'micro', C.inkFaint));
     cv.appendChild(label('Distance unavailable · Shared', 'micro', C.inkFaint));
-    cv.appendChild(label('₱2,100 /mo', 'bodyStrong', C.brand));
+    var priceRow = box({ name: 'Price row', horizontal: true, gap: SP.xs, align: 'CENTER' });
+    priceRow.layoutAlign = 'STRETCH';
+    priceRow.appendChild(label('₱2,100 /mo', 'bodyStrong', C.brand));
+    var pgap = box({ name: 'Gap' });
+    pgap.layoutGrow = 1;
+    priceRow.appendChild(pgap);
+    priceRow.appendChild(label('Details', 'micro', C.brand));
+    cv.appendChild(priceRow);
     c.appendChild(cv);
     cardWrap.appendChild(c);
     f.appendChild(cardWrap);
@@ -725,6 +735,10 @@ var BUILDERS = {
       headCell.primaryAxisSizingMode = 'FIXED';
       headCell.appendChild(photo(134, 44, R.sm, "thumb"));
       headCell.appendChild(label(cols[c2].name, 'captionStrong', C.ink, { width: 130 }));
+      var hActions = box({ name: 'Actions', horizontal: true, gap: SP.xs });
+      hActions.appendChild(label('Remove', 'micro', C.danger));
+      hActions.appendChild(label('View', 'micro', C.brand));
+      headCell.appendChild(hActions);
       col.appendChild(headCell);
 
       for (var v = 0; v < cols[c2].values.length; v += 1) {
@@ -737,6 +751,13 @@ var BUILDERS = {
       table.appendChild(col);
     }
     f.appendChild(table);
+
+    // The app puts "Clear comparison" under the table, and each column header
+    // carries Remove and View.
+    var clear = box({ name: 'Clear comparison', padX: GUTTER, padY: SP.md, align: 'CENTER', justify: 'CENTER', grow: true });
+    clear.layoutAlign = 'STRETCH';
+    clear.appendChild(label('Clear comparison', 'captionStrong', C.danger));
+    f.appendChild(clear);
     return f;
   },
 
@@ -983,6 +1004,18 @@ var BUILDERS = {
     return f;
   },
 };
+
+// The Reviews heading on Details carries a "See all" link on the right.
+function reviewsHeading() {
+  var row = box({ name: 'Reviews', horizontal: true, gap: SP.sm, align: 'CENTER' });
+  row.layoutAlign = 'STRETCH';
+  row.appendChild(label('Reviews', 'heading', C.ink));
+  var g = box({ name: 'Gap' });
+  g.layoutGrow = 1;
+  row.appendChild(g);
+  row.appendChild(label('See all 12', 'captionStrong', C.brand));
+  return row;
+}
 
 // One review card, as Details and Reviews both render them.
 function reviewRow(who, body) {
