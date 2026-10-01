@@ -11,18 +11,18 @@
         </mxCell>
 
         <!-- Column captions -->
-        <mxCell id="cap-tenant" value="TENANT-SEEKER" style="text;html=1;align=center;verticalAlign=middle;fontSize=11;fontColor=#55697A;fontFamily=Courier New;" vertex="1" parent="1">
+        <mxCell id="cap-tenant" value="TENANT-SEEKER" style="text;html=1;align=center;verticalAlign=middle;fontSize=12;fontColor=#55697A;fontFamily=Courier New;" vertex="1" parent="1">
           <mxGeometry x="320" y="98" width="200" height="20" as="geometry" />
         </mxCell>
-        <mxCell id="cap-admin" value="ADMINISTRATOR" style="text;html=1;align=center;verticalAlign=middle;fontSize=11;fontColor=#55697A;fontFamily=Courier New;" vertex="1" parent="1">
+        <mxCell id="cap-admin" value="ADMINISTRATOR" style="text;html=1;align=center;verticalAlign=middle;fontSize=12;fontColor=#55697A;fontFamily=Courier New;" vertex="1" parent="1">
           <mxGeometry x="660" y="215" width="200" height="20" as="geometry" />
         </mxCell>
 
         <!-- Actors -->
-        <mxCell id="actor-tenant" value="&lt;b&gt;Tenant-Seeker&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#55697A&quot; style=&quot;font-size:11px&quot;&gt;student / young professional&lt;/font&gt;" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;strokeColor=#0369A1;strokeWidth=2;fontSize=13;fontColor=#0D1B26;" vertex="1" parent="1">
+        <mxCell id="actor-tenant" value="&lt;b&gt;Tenant-Seeker&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#55697A&quot; style=&quot;font-size:12px&quot;&gt;student / young professional&lt;/font&gt;" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;strokeColor=#0369A1;strokeWidth=2;fontSize=13;fontColor=#0D1B26;" vertex="1" parent="1">
           <mxGeometry x="80" y="380" width="40" height="80" as="geometry" />
         </mxCell>
-        <mxCell id="actor-admin" value="&lt;b&gt;Administrator&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#55697A&quot; style=&quot;font-size:11px&quot;&gt;verifies listings&lt;/font&gt;" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;strokeColor=#0F766E;strokeWidth=2;fontSize=13;fontColor=#0D1B26;" vertex="1" parent="1">
+        <mxCell id="actor-admin" value="&lt;b&gt;Administrator&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#55697A&quot; style=&quot;font-size:12px&quot;&gt;verifies listings&lt;/font&gt;" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;strokeColor=#0F766E;strokeWidth=2;fontSize=13;fontColor=#0D1B26;" vertex="1" parent="1">
           <mxGeometry x="955" y="150" width="40" height="80" as="geometry" />
         </mxCell>
 
@@ -51,8 +51,14 @@
         <mxCell id="uc-favorites" value="Save to Favorites" style="ellipse;whiteSpace=wrap;html=1;fillColor=#EEF4F7;strokeColor=#D5E3EA;fontSize=13;fontColor=#0D1B26;" vertex="1" parent="1">
           <mxGeometry x="300" y="585" width="240" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="uc-profile" value="Manage Profile" style="ellipse;whiteSpace=wrap;html=1;fillColor=#EEF4F7;strokeColor=#D5E3EA;fontSize=13;fontColor=#0D1B26;" vertex="1" parent="1">
+        <mxCell id="uc-map" value="Browse Map of Listings" style="ellipse;whiteSpace=wrap;html=1;fillColor=#EEF4F7;strokeColor=#D5E3EA;fontSize=13;fontColor=#0D1B26;" vertex="1" parent="1">
           <mxGeometry x="300" y="650" width="240" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="uc-alerts" value="Receive Match Alerts" style="ellipse;whiteSpace=wrap;html=1;fillColor=#EEF4F7;strokeColor=#D5E3EA;fontSize=13;fontColor=#0D1B26;" vertex="1" parent="1">
+          <mxGeometry x="300" y="715" width="240" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="uc-profile" value="Manage Profile" style="ellipse;whiteSpace=wrap;html=1;fillColor=#EEF4F7;strokeColor=#D5E3EA;fontSize=13;fontColor=#0D1B26;" vertex="1" parent="1">
+          <mxGeometry x="300" y="780" width="240" height="50" as="geometry" />
         </mxCell>
 
         <!-- Administrator use cases -->
@@ -94,6 +100,12 @@
         <mxCell id="as-tenant-favorites" style="endArrow=none;html=1;rounded=0;strokeColor=#55697A;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="actor-tenant" target="uc-favorites">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
+        <mxCell id="as-tenant-map" style="endArrow=none;html=1;rounded=0;strokeColor=#55697A;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="actor-tenant" target="uc-map">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="as-tenant-alerts" style="endArrow=none;html=1;rounded=0;strokeColor=#55697A;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="actor-tenant" target="uc-alerts">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
         <mxCell id="as-tenant-profile" style="endArrow=none;html=1;rounded=0;strokeColor=#55697A;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="actor-tenant" target="uc-profile">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
@@ -117,10 +129,10 @@
 
         <!-- Legend -->
         <mxCell id="legend-swatch" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#EEF4F7;strokeColor=#B45309;dashed=1;dashPattern=5 4;" vertex="1" parent="1">
-          <mxGeometry x="270" y="756" width="14" height="14" as="geometry" />
+          <mxGeometry x="850" y="756" width="14" height="14" as="geometry" />
         </mxCell>
-        <mxCell id="legend-note" value="dashed = specified but not yet built" style="text;html=1;align=left;verticalAlign=middle;fontSize=11;fontColor=#B45309;" vertex="1" parent="1">
-          <mxGeometry x="292" y="751" width="320" height="24" as="geometry" />
+        <mxCell id="legend-note" value="dashed = not yet built" style="text;html=1;align=left;verticalAlign=middle;fontSize=12;fontColor=#B45309;" vertex="1" parent="1">
+          <mxGeometry x="872" y="751" width="180" height="24" as="geometry" />
         </mxCell>
 
         <!-- Title -->

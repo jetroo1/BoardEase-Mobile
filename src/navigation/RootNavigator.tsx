@@ -26,6 +26,8 @@ import { useTheme } from '../context/ThemeContext';
 import LandingScreen from '../screens/LandingScreen';
 import LoginScreen from '../screens/LoginScreen';
 import RegisterScreen from '../screens/RegisterScreen';
+import VerifyEmailScreen from '../screens/VerifyEmailScreen';
+import CompleteFacebookProfileScreen from '../screens/CompleteFacebookProfileScreen';
 import DetailsScreen from '../screens/DetailsScreen';
 import FilterScreen from '../screens/FilterScreen';
 import CompareScreen from '../screens/CompareScreen';
@@ -34,6 +36,8 @@ import ReviewsScreen from '../screens/ReviewsScreen';
 import AdminScreen from '../screens/AdminScreen';
 import AddListingScreen from '../screens/AddListingScreen';
 import NotificationsScreen from '../screens/NotificationsScreen';
+import LegalScreen from '../screens/LegalScreen';
+import PickLocationScreen from '../screens/PickLocationScreen';
 import MainTabs from './MainTabs';
 import { RootStackParamList } from './types';
 import { Screen, ScreenHeader } from '../components/ui';
@@ -41,7 +45,7 @@ import { Screen, ScreenHeader } from '../components/ui';
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function RootNavigator() {
-  const { user, loading } = useAuth();
+  const { user, loading, needsProfileSetup } = useAuth();
   const t = useTheme();
   const detailHeader = (title: string) => ({
     headerShown: true,
@@ -73,6 +77,17 @@ export default function RootNavigator() {
           <Stack.Screen name="Landing" component={LandingScreen} />
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="Register" component={RegisterScreen} />
+          {/* Reachable from the consent line on Register, before an account
+              exists. Registered again in the signed-in half below, so it can
+              also be opened from Profile. */}
+          <Stack.Screen name="Legal" component={LegalScreen} />
+        </>
+      ) : needsEmailVerification(user) ? (
+        <Stack.Screen name="VerifyEmail" component={VerifyEmailScreen} />
+      ) : needsProfileSetup ? (
+        <>
+          <Stack.Screen name="CompleteFacebookProfile" component={CompleteFacebookProfileScreen} />
+          <Stack.Screen name="Legal" component={LegalScreen} />
         </>
       ) : (
         // Logged in: the tab bar, plus every screen that can open on top of it.
@@ -91,9 +106,31 @@ export default function RootNavigator() {
           <Stack.Screen name="Reviews" component={ReviewsScreen} options={detailHeader('Reviews')} />
           <Stack.Screen name="Notifications" component={NotificationsScreen} options={detailHeader('Alerts')} />
           <Stack.Screen name="Admin" component={AdminScreen} options={detailHeader('Admin panel')} />
-          <Stack.Screen name="AddListing" component={AddListingScreen} options={detailHeader('Add listing')} />
+          {/* One screen, two titles: the same form creates a listing and
+              edits one, and the header says which. */}
+          <Stack.Screen
+            name="AddListing"
+            component={AddListingScreen}
+            options={({ route }) =>
+              detailHeader(route.params?.propertyId ? 'Edit listing' : 'Add listing')
+            }
+          />
+          {/* Slides up over the form rather than across from it: choosing a
+              point is a decision you make and dismiss, like Filter, not a
+              place you navigate to. */}
+          <Stack.Screen
+            name="PickLocation"
+            component={PickLocationScreen}
+            options={{ presentation: 'modal', animation: 'slide_from_bottom' }}
+          />
+          <Stack.Screen name="Legal" component={LegalScreen} />
         </>
       )}
     </Stack.Navigator>
   );
+}
+
+function needsEmailVerification(user: NonNullable<ReturnType<typeof useAuth>['user']>): boolean {
+  return user.providerData.some((provider) => provider.providerId === 'password')
+    && !user.emailVerified;
 }

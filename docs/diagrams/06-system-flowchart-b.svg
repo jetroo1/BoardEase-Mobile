@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="592" height="570" viewBox="324 694 592 570" font-family="Arial, Helvetica, sans-serif">
+<rect x="324" y="694" width="592" height="570" fill="#FFFFFF"/>
+<defs><marker id="arrow-e-55697A" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="8" markerHeight="8" orient="auto"><path d="M1,1 L11,6 L1,11 z" fill="#55697A"/></marker></defs>
+<polyline points="460,756 460,790" fill="none" stroke="#55697A" stroke-width="1.4" marker-end="url(#arrow-e-55697A)"/>
+<polyline points="460,860 460,894" fill="none" stroke="#55697A" stroke-width="1.4" marker-end="url(#arrow-e-55697A)"/>
+<polyline points="460,944 460,980" fill="none" stroke="#55697A" stroke-width="1.4" marker-end="url(#arrow-e-55697A)"/>
+<polyline points="550,1025 700,1025" fill="none" stroke="#55697A" stroke-width="1.4" marker-end="url(#arrow-e-55697A)"/>
+<polyline points="800,1053 800,1141 580,1141" fill="none" stroke="#55697A" stroke-width="1.4" marker-end="url(#arrow-e-55697A)"/>
+<polyline points="460,1070 460,1114" fill="none" stroke="#55697A" stroke-width="1.4" marker-end="url(#arrow-e-55697A)"/>
+<polyline points="460,1168 460,1202" fill="none" stroke="#55697A" stroke-width="1.4" marker-end="url(#arrow-e-55697A)"/>
+<polygon points="385.2,710 570,710 534.8,756 350,756" fill="#FFFFFF" stroke="#0F766E" stroke-width="1"/>
+<text x="460" y="737.08" font-size="12" fill="#0D1B26" text-anchor="middle">Read GPS and compute distances</text>
+<rect x="380" y="798" width="160" height="54" fill="#EEF4F7" stroke="#0F766E" stroke-width="1"/>
+<ellipse cx="460" cy="798" rx="80" ry="8" fill="#EEF4F7" stroke="#0F766E" stroke-width="1"/>
+<ellipse cx="460" cy="852" rx="80" ry="8" fill="#EEF4F7" stroke="#0F766E" stroke-width="1"/>
+<text x="460" y="821.4" font-size="12" fill="#0D1B26" text-anchor="middle">Fetch approved listings</text>
+<text x="460" y="836.76" font-size="12" fill="#55697A" text-anchor="middle">Firestore: properties</text>
+<rect x="360" y="894" width="200" height="50" rx="0" fill="#FFFFFF" stroke="#55697A" stroke-width="1"/>
+<text x="460" y="907.72" font-size="12" fill="#0D1B26" text-anchor="middle">Calculate distance to each</text>
+<text x="460" y="923.08" font-size="12" fill="#0D1B26" text-anchor="middle">listing</text>
+<text x="460" y="938.44" font-size="12" fill="#55697A" text-anchor="middle">Haversine formula</text>
+<polygon points="460,980 550,1025 460,1070 370,1025" fill="#EEF4F7" stroke="#0369A1" stroke-width="1"/>
+<text x="460" y="1021.4" font-size="12" fill="#0D1B26" text-anchor="middle">Filters</text>
+<text x="460" y="1036.76" font-size="12" fill="#0D1B26" text-anchor="middle">applied?</text>
+<rect x="700" y="997" width="200" height="56" rx="0" fill="#FFFFFF" stroke="#55697A" stroke-width="1"/>
+<text x="800" y="1013.72" font-size="12" fill="#0D1B26" text-anchor="middle">Remove listings that fail</text>
+<text x="800" y="1029.08" font-size="12" fill="#0D1B26" text-anchor="middle">price, room type or amenity</text>
+<text x="800" y="1044.4399999999998" font-size="12" fill="#0D1B26" text-anchor="middle">filters</text>
+<rect x="340" y="1114" width="240" height="54" rx="0" fill="#FFFFFF" stroke="#0369A1" stroke-width="2"/>
+<text x="460" y="1129.72" font-size="12" fill="#0D1B26" text-anchor="middle">Score every listing out of 100</text>
+<text x="460" y="1145.08" font-size="12" fill="#55697A" text-anchor="middle">distance 40 · fits budget 30 ·</text>
+<text x="460" y="1160.4399999999998" font-size="12" fill="#55697A" text-anchor="middle">amenities 30</text>
+<polygon points="385.2,1202 570,1202 534.8,1248 350,1248" fill="#FFFFFF" stroke="#0F766E" stroke-width="1"/>
+<text x="460" y="1221.4" font-size="12" fill="#0D1B26" text-anchor="middle">Display listings, best match</text>
+<text x="460" y="1236.76" font-size="12" fill="#0D1B26" text-anchor="middle">first</text>
+<rect x="613.46" y="1019.1199999999999" width="23.080000000000002" height="15" fill="#FFFFFF" opacity="0.92"/>
+<text x="625" y="1029.32" font-size="12" fill="#55697A" text-anchor="middle">Yes</text>
+<rect x="451.64" y="1086.12" width="16.72" height="15" fill="#FFFFFF" opacity="0.92"/>
+<text x="460" y="1096.32" font-size="12" fill="#55697A" text-anchor="middle">No</text>
+</svg>

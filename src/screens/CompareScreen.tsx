@@ -14,7 +14,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import * as Location from 'expo-location';
+import { requestLocation } from '../utils/locationAccess';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -68,13 +68,8 @@ export default function CompareScreen() {
     let cancelled = false;
     (async () => {
       try {
-        const { status } = await Location.requestForegroundPermissionsAsync();
-        if (status === 'granted') {
-          const position = await Location.getCurrentPositionAsync({});
-          if (!cancelled) {
-            setUserLocation({ lat: position.coords.latitude, lng: position.coords.longitude });
-          }
-        }
+        const located = await requestLocation('compare');
+        if (located.ok && !cancelled) setUserLocation(located.coords);
       } catch {
         // Distance is a nice-to-have here; everything else on this screen
         // still works without it.

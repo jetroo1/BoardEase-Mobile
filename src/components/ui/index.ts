@@ -16,6 +16,8 @@ export type { ButtonVariant, ButtonSize } from './Button';
 
 export { default as Input } from './Input';
 
+export { default as Checkbox } from './Checkbox';
+
 export {
   default as EmptyState,
   ErrorState,
@@ -33,5 +35,7 @@ export {
 export { default as Rating, RatingInput } from './Rating';
 
 export { default as PropertyPhoto } from './PropertyPhoto';
+
+export { default as PhotoGallery } from './PhotoGallery';
 
 export { default as PropertyCard, formatPeso } from './PropertyCard';

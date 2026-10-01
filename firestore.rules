@@ -22,12 +22,64 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    // Password accounts must confirm ownership of their email before reading
+    // listings or writing reviews/favorites. Federated providers authenticate
+    // identity through their provider and do not use Firebase email links.
+    function isVerifiedAccount() {
+      return isSignedIn()
+             && (request.auth.token.email_verified == true
+                 || request.auth.token.firebase.sign_in_provider != 'password');
+    }
+
     function userRole() {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
     }
 
     function isAdmin() {
       return isSignedIn() && userRole() == 'admin';
+    }
+
+    function isValidFilters(filters) {
+      return filters is map
+             && filters.keys().hasOnly(['maxPrice', 'roomType', 'amenities'])
+             && filters.keys().hasAll(['maxPrice', 'roomType', 'amenities'])
+             && (filters.maxPrice == null
+                 || (filters.maxPrice is number
+                     && filters.maxPrice >= 0
+                     && filters.maxPrice <= 1000000))
+             && (filters.roomType == null
+                 || filters.roomType in ['Single', 'Shared', 'Studio'])
+             && filters.amenities is list
+             && filters.amenities.size() <= 6
+             && filters.amenities.hasOnly(
+                  ['WiFi', 'CR', 'Parking', 'Aircon', 'Kitchen', 'Laundry']
+                );
+    }
+
+    function isValidReview(reviewId) {
+      return request.resource.data.keys().hasOnly(
+               ['propertyId', 'userId', 'userName', 'rating', 'body', 'createdAt']
+             )
+             && request.resource.data.keys().hasAll(
+               ['propertyId', 'userId', 'userName', 'rating', 'body', 'createdAt']
+             )
+             && request.resource.data.propertyId is string
+             && request.resource.data.propertyId.size() > 0
+             && request.resource.data.propertyId.size() <= 128
+             && request.resource.data.userId == request.auth.uid
+             && request.resource.data.userName is string
+             && request.resource.data.userName.size() > 0
+             && request.resource.data.userName.size() <= 128
+             && request.resource.data.rating is int
+             && request.resource.data.rating >= 1
+             && request.resource.data.rating <= 5
+             && request.resource.data.body is string
+             && request.resource.data.body.size() > 0
+             && request.resource.data.body.size() <= 2000
+             && request.resource.data.createdAt is number
+             && reviewId == request.resource.data.propertyId + '_' + request.auth.uid
+             && exists(/databases/$(database)/documents/properties/$(request.resource.data.propertyId))
+             && get(/databases/$(database)/documents/properties/$(request.resource.data.propertyId)).data.isApproved == true;
     }
 
     // ── users ────────────────────────────────────────────────────────────
@@ -41,12 +93,45 @@ service cloud.firestore {
       // the admin role -- that has to be set from the Firebase console.
       allow create: if isSignedIn()
                     && request.auth.uid == userId
-                    && request.resource.data.role == 'tenant';
+                    && request.resource.data.keys().hasOnly(['email', 'role', 'consent'])
+                    && request.resource.data.keys().hasAll(['email', 'role', 'consent'])
+                    && request.resource.data.email is string
+                    && request.resource.data.email.size() > 0
+                    && request.resource.data.email.size() <= 254
+                    && request.resource.data.role == 'tenant'
+                    && request.resource.data.consent is map
+                    && request.resource.data.consent.keys().hasOnly(
+                      ['termsVersion', 'privacyVersion', 'acceptedAt']
+                    )
+                    && request.resource.data.consent.keys().hasAll(
+                      ['termsVersion', 'privacyVersion', 'acceptedAt']
+                    )
+                    && request.resource.data.consent.termsVersion is string
+                    && request.resource.data.consent.privacyVersion is string
+                    && request.resource.data.consent.acceptedAt is timestamp;
 
-      // A user can update their own document but can never change their role.
-      allow update: if isSignedIn()
+      // A user can update their own document but can never change their role,
+      // and can never rewrite the consent recorded when the account was made.
+      //
+      // Consent is evidence, not a setting. The Data Privacy Act asks us to be
+      // able to show what a person agreed to and when; a record the same
+      // person can edit from the client afterwards proves nothing. Every
+      // update the application makes to this document is a merge, so the
+      // block survives untouched and this comparison passes. Accounts created
+      // before consent was recorded have no block on either side, which
+      // compares equal, so they are not locked out of their own profile.
+      allow update: if isVerifiedAccount()
                     && request.auth.uid == userId
-                    && request.resource.data.role == resource.data.role;
+                    && request.resource.data.role == resource.data.role
+                    && request.resource.data.get('consent', null)
+                       == resource.data.get('consent', null)
+                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(
+                      ['savedFilters', 'alertsEnabled', 'lastAlertCheck']
+                    )
+                    && request.resource.data.get('alertsEnabled', false) is bool
+                    && request.resource.data.get('lastAlertCheck', 0) is number
+                    && (request.resource.data.get('savedFilters', null) == null
+                      || isValidFilters(request.resource.data.savedFilters));
 
       allow delete: if false;
     }
@@ -55,8 +140,8 @@ service cloud.firestore {
     // Anyone signed in can browse listings. Only admins may add, edit,
     // approve, or delete them -- this app has no owner self-publishing.
     match /properties/{propertyId} {
-      allow read: if isSignedIn();
-      allow create, update, delete: if isAdmin();
+      allow read: if isVerifiedAccount();
+      allow create, update, delete: if isVerifiedAccount() && isAdmin();
     }
 
     // ── reviews ──────────────────────────────────────────────────────────
@@ -64,23 +149,32 @@ service cloud.firestore {
     // under their own user id, and the rating must be a sensible 1-5.
     // People can delete their own review; admins can delete any (moderation).
     match /reviews/{reviewId} {
-      allow read: if isSignedIn();
+      allow read: if isVerifiedAccount();
 
-      allow create: if isSignedIn()
-                    && request.resource.data.userId == request.auth.uid
-                    && request.resource.data.rating is int
-                    && request.resource.data.rating >= 1
-                    && request.resource.data.rating <= 5;
+      allow create: if isVerifiedAccount()
+                    && isValidReview(reviewId);
 
-      allow update: if isSignedIn() && resource.data.userId == request.auth.uid;
-      allow delete: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      // Reviews are immutable after publication. This prevents a valid review
+      // being rewritten into arbitrary content through an update request.
+      allow update: if false;
+      allow delete: if (isVerifiedAccount() && isAdmin())
+                    || (isVerifiedAccount() && resource.data.userId == request.auth.uid);
     }
 
     // ── favorites ────────────────────────────────────────────────────────
     // Completely private: you can only see and change your own saved list.
     match /favorites/{favoriteId} {
-      allow read, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow read, delete: if isVerifiedAccount() && resource.data.userId == request.auth.uid;
+      allow create: if isVerifiedAccount()
+                    && request.resource.data.keys().hasOnly(['userId', 'propertyId', 'createdAt'])
+                    && request.resource.data.keys().hasAll(['userId', 'propertyId', 'createdAt'])
+                    && request.resource.data.userId == request.auth.uid
+                    && request.resource.data.propertyId is string
+                    && request.resource.data.propertyId.size() > 0
+                    && request.resource.data.propertyId.size() <= 128
+                    && request.resource.data.createdAt is number
+                    && favoriteId == request.auth.uid + '_' + request.resource.data.propertyId
+                    && exists(/databases/$(database)/documents/properties/$(request.resource.data.propertyId));
       allow update: if false;
     }
 

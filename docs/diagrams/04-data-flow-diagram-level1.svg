@@ -1,0 +1,102 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1149" height="650" viewBox="-53.24 26.32 1149.24 649.68" font-family="Arial, Helvetica, sans-serif">
+<rect x="-53.24" y="26.32" width="1149.24" height="649.68" fill="#FFFFFF"/>
+<defs><marker id="arrow-e-55697A" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="8" markerHeight="8" orient="auto"><path d="M1,1 L11,6 L1,11 z" fill="#55697A"/></marker></defs>
+<polyline points="190,130 240,130" fill="none" stroke="#55697A" stroke-width="1.4" marker-end="url(#arrow-e-55697A)"/>
+<polyline points="420,130 460,130" fill="none" stroke="#55697A" stroke-width="1.4" marker-end="url(#arrow-e-55697A)"/>
+<polyline points="190,145 215,145 215,230 240,230" fill="none" stroke="#55697A" stroke-width="1.4" marker-end="url(#arrow-e-55697A)"/>
+<polyline points="420,230 440,230 440,237 460,237" fill="none" stroke="#55697A" stroke-width="1.4" marker-end="url(#arrow-e-55697A)"/>
+<polyline points="420,330 440,330 440,267 460,267" fill="none" stroke="#55697A" stroke-width="1.4" marker-end="url(#arrow-e-55697A)"/>
+<polyline points="420,430 440,430 440,285 460,285" fill="none" stroke="#55697A" stroke-width="1.4" marker-end="url(#arrow-e-55697A)"/>
+<polyline points="152.5,160 152.5,330 240,330" fill="none" stroke="#55697A" stroke-width="1.4" marker-end="url(#arrow-e-55697A)"/>
+<polyline points="115,160 115,430 240,430" fill="none" stroke="#55697A" stroke-width="1.4" marker-end="url(#arrow-e-55697A)"/>
+<polyline points="190,630 330,630 330,565" fill="none" stroke="#55697A" stroke-width="1.4" marker-end="url(#arrow-e-55697A)"/>
+<polyline points="910,645 440,645 440,530 420,530" fill="none" stroke="#55697A" stroke-width="1.4" marker-end="url(#arrow-e-55697A)"/>
+<polyline points="240,530 20,530 20,145 40,145" fill="none" stroke="#55697A" stroke-width="1.4" marker-end="url(#arrow-e-55697A)"/>
+<polyline points="77.5,100 77.5,50 78,50 1080,50 1080,375 860,375" fill="none" stroke="#55697A" stroke-width="1.4" marker-end="url(#arrow-e-55697A)"/>
+<polyline points="680,375 630,375" fill="none" stroke="#55697A" stroke-width="1.4" marker-end="url(#arrow-e-55697A)"/>
+<polyline points="77.5,160 77.5,580 78,580 885,580 885,495 860,495" fill="none" stroke="#55697A" stroke-width="1.4" marker-end="url(#arrow-e-55697A)"/>
+<polyline points="680,495 630,495" fill="none" stroke="#55697A" stroke-width="1.4" marker-end="url(#arrow-e-55697A)"/>
+<polyline points="985,160 985,255 860,255" fill="none" stroke="#55697A" stroke-width="1.4" marker-end="url(#arrow-e-55697A)"/>
+<polyline points="680,241 655,241 655,240 630,240" fill="none" stroke="#55697A" stroke-width="1.4" marker-end="url(#arrow-e-55697A)"/>
+<polyline points="630,270 655,270 655,269 680,269" fill="none" stroke="#55697A" stroke-width="1.4" marker-end="url(#arrow-e-55697A)"/>
+<rect x="40" y="100" width="150" height="60" rx="0" fill="#FFFFFF" stroke="#55697A" stroke-width="1"/>
+<text x="115" y="126.74" font-size="13" fill="#0D1B26" text-anchor="middle" font-weight="bold">Tenant-Seeker</text>
+<text x="115" y="143.38" font-size="12" fill="#55697A" text-anchor="middle">student</text>
+<rect x="910" y="100" width="150" height="60" rx="0" fill="#FFFFFF" stroke="#55697A" stroke-width="1"/>
+<text x="985" y="126.74" font-size="13" fill="#0D1B26" text-anchor="middle" font-weight="bold">Administrator</text>
+<text x="985" y="143.38" font-size="12" fill="#55697A" text-anchor="middle">curator</text>
+<rect x="40" y="600" width="150" height="60" rx="0" fill="#FFFFFF" stroke="#55697A" stroke-width="1"/>
+<text x="115" y="626.74" font-size="13" fill="#0D1B26" text-anchor="middle" font-weight="bold">GPS Service</text>
+<text x="115" y="643.38" font-size="12" fill="#55697A" text-anchor="middle">device</text>
+<rect x="910" y="600" width="150" height="60" rx="0" fill="#FFFFFF" stroke="#55697A" stroke-width="1"/>
+<text x="985" y="626.74" font-size="13" fill="#0D1B26" text-anchor="middle" font-weight="bold">OSM / OSRM</text>
+<text x="985" y="643.38" font-size="12" fill="#55697A" text-anchor="middle">tiles &amp; routes</text>
+<rect x="240" y="95" width="180" height="70" rx="8" fill="#EEF4F7" stroke="#0369A1" stroke-width="1"/>
+<text x="330" y="126.39999999999999" font-size="12" fill="#0369A1" text-anchor="middle">1.0</text>
+<text x="330" y="141.76" font-size="12" fill="#0D1B26" text-anchor="middle">Manage Authentication</text>
+<rect x="240" y="195" width="180" height="70" rx="8" fill="#EEF4F7" stroke="#0369A1" stroke-width="1"/>
+<text x="330" y="226.4" font-size="12" fill="#0369A1" text-anchor="middle">2.0</text>
+<text x="330" y="241.76" font-size="12" fill="#0D1B26" text-anchor="middle">Search &amp; Compute Distance</text>
+<rect x="240" y="295" width="180" height="70" rx="8" fill="#EEF4F7" stroke="#0369A1" stroke-width="1"/>
+<text x="330" y="326.4" font-size="12" fill="#0369A1" text-anchor="middle">3.0</text>
+<text x="330" y="341.76" font-size="12" fill="#0D1B26" text-anchor="middle">Filter &amp; Rank Matches</text>
+<rect x="240" y="395" width="180" height="70" rx="8" fill="#EEF4F7" stroke="#0369A1" stroke-width="1"/>
+<text x="330" y="426.4" font-size="12" fill="#0369A1" text-anchor="middle">4.0</text>
+<text x="330" y="441.76" font-size="12" fill="#0D1B26" text-anchor="middle">Compare Listings</text>
+<rect x="240" y="495" width="180" height="70" rx="8" fill="#EEF4F7" stroke="#0369A1" stroke-width="1"/>
+<text x="330" y="526.4" font-size="12" fill="#0369A1" text-anchor="middle">5.0</text>
+<text x="330" y="541.76" font-size="12" fill="#0D1B26" text-anchor="middle">Generate Route Guide</text>
+<rect x="680" y="220" width="180" height="70" rx="8" fill="#EEF4F7" stroke="#0369A1" stroke-width="1"/>
+<text x="770" y="251.4" font-size="12" fill="#0369A1" text-anchor="middle">8.0</text>
+<text x="770" y="266.76" font-size="12" fill="#0D1B26" text-anchor="middle">Administer Listings</text>
+<rect x="680" y="340" width="180" height="70" rx="8" fill="#EEF4F7" stroke="#0369A1" stroke-width="1"/>
+<text x="770" y="371.4" font-size="12" fill="#0369A1" text-anchor="middle">6.0</text>
+<text x="770" y="386.76" font-size="12" fill="#0D1B26" text-anchor="middle">Manage Reviews</text>
+<rect x="680" y="460" width="180" height="70" rx="8" fill="#EEF4F7" stroke="#0369A1" stroke-width="1"/>
+<text x="770" y="491.4" font-size="12" fill="#0369A1" text-anchor="middle">7.0</text>
+<text x="770" y="506.76" font-size="12" fill="#0D1B26" text-anchor="middle">Manage Favorites</text>
+<rect x="460" y="105" width="170" height="50" rx="0" fill="#EEF4F7" stroke="#0F766E" stroke-width="1"/>
+<text x="545" y="134.08" font-size="12" fill="#0369A1" text-anchor="middle">D1  users</text>
+<rect x="460" y="225" width="170" height="60" rx="0" fill="#EEF4F7" stroke="#0F766E" stroke-width="1"/>
+<text x="545" y="259.08" font-size="12" fill="#0369A1" text-anchor="middle">D2  properties</text>
+<rect x="460" y="350" width="170" height="50" rx="0" fill="#EEF4F7" stroke="#0F766E" stroke-width="1"/>
+<text x="545" y="379.08" font-size="12" fill="#0369A1" text-anchor="middle">D3  reviews</text>
+<rect x="460" y="470" width="170" height="50" rx="0" fill="#EEF4F7" stroke="#0F766E" stroke-width="1"/>
+<text x="545" y="499.08" font-size="12" fill="#0369A1" text-anchor="middle">D4  favorites</text>
+<rect x="178.01999999999998" y="68.8" width="73.96000000000001" height="15" fill="#FFFFFF" opacity="0.92"/>
+<text x="215" y="79" font-size="12" fill="#55697A" text-anchor="middle">credentials</text>
+<rect x="393.48" y="78.8" width="93.04" height="15" fill="#FFFFFF" opacity="0.92"/>
+<text x="440" y="89" font-size="12" fill="#55697A" text-anchor="middle">account record</text>
+<rect x="168.48" y="181.62" width="93.04" height="15" fill="#FFFFFF" opacity="0.92"/>
+<text x="215" y="191.82" font-size="12" fill="#55697A" text-anchor="middle">search request</text>
+<rect x="389.84" y="178.8" width="80.32000000000001" height="15" fill="#FFFFFF" opacity="0.92"/>
+<text x="430" y="189" font-size="12" fill="#55697A" text-anchor="middle">listing data</text>
+<rect x="393.48" y="292.62" width="93.04" height="15" fill="#FFFFFF" opacity="0.92"/>
+<text x="440" y="302.82" font-size="12" fill="#55697A" text-anchor="middle">ranked matches</text>
+<rect x="383.94" y="351.62" width="112.12" height="15" fill="#FFFFFF" opacity="0.92"/>
+<text x="440" y="361.82" font-size="12" fill="#55697A" text-anchor="middle">selected listings</text>
+<rect x="105.97999999999999" y="239.12" width="93.04" height="15" fill="#FFFFFF" opacity="0.92"/>
+<text x="152.5" y="249.32" font-size="12" fill="#55697A" text-anchor="middle">filter choices</text>
+<rect x="65.3" y="289.12" width="99.4" height="15" fill="#FFFFFF" opacity="0.92"/>
+<text x="115" y="299.32" font-size="12" fill="#55697A" text-anchor="middle">compare request</text>
+<rect x="197.57999999999998" y="624.12" width="124.84" height="15" fill="#FFFFFF" opacity="0.92"/>
+<text x="260" y="634.32" font-size="12" fill="#55697A" text-anchor="middle">current coordinates</text>
+<rect x="644.38" y="639.12" width="61.24" height="15" fill="#FFFFFF" opacity="0.92"/>
+<text x="675" y="649.32" font-size="12" fill="#55697A" text-anchor="middle">road path</text>
+<rect x="-39.24" y="331.62" width="118.48" height="15" fill="#FFFFFF" opacity="0.92"/>
+<text x="20" y="341.82" font-size="12" fill="#55697A" text-anchor="middle">walking directions</text>
+<rect x="542.02" y="44.120000000000005" width="73.96000000000001" height="15" fill="#FFFFFF" opacity="0.92"/>
+<text x="579" y="54.32" font-size="12" fill="#55697A" text-anchor="middle">review text</text>
+<rect x="611.66" y="323.8" width="86.68" height="15" fill="#FFFFFF" opacity="0.92"/>
+<text x="655" y="334" font-size="12" fill="#55697A" text-anchor="middle">review record</text>
+<rect x="438.15999999999997" y="574.12" width="86.68" height="15" fill="#FFFFFF" opacity="0.92"/>
+<text x="481.5" y="584.32" font-size="12" fill="#55697A" text-anchor="middle">saved listing</text>
+<rect x="605.3" y="443.8" width="99.4" height="15" fill="#FFFFFF" opacity="0.92"/>
+<text x="655" y="454" font-size="12" fill="#55697A" text-anchor="middle">favorite record</text>
+<rect x="888.04" y="249.12" width="143.92000000000002" height="15" fill="#FFFFFF" opacity="0.92"/>
+<text x="960" y="259.32" font-size="12" fill="#55697A" text-anchor="middle">new / approve / reject</text>
+<rect x="614.62" y="203.8" width="105.76" height="15" fill="#FFFFFF" opacity="0.92"/>
+<text x="667.5" y="214" font-size="12" fill="#55697A" text-anchor="middle">verified listing</text>
+<rect x="589.62" y="291.8" width="105.76" height="15" fill="#FFFFFF" opacity="0.92"/>
+<text x="642.5" y="302" font-size="12" fill="#55697A" text-anchor="middle">pending listings</text>
+</svg>

@@ -30,7 +30,7 @@ import {
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 export default function LoginScreen() {
-  const { login } = useAuth();
+  const { login, loginWithFacebook, facebookLoginAvailable } = useAuth();
   const navigation = useNavigation<NavigationProp>();
   const t = useTheme();
 
@@ -38,6 +38,7 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isFacebookSubmitting, setIsFacebookSubmitting] = useState(false);
 
   // Per-field errors appear on blur; the form-level one appears after a failed
   // submit. Keeping them separate is what stops an old server error from
@@ -69,6 +70,19 @@ export default function LoginScreen() {
     } finally {
       // In a finally so a thrown error cannot leave the button dead.
       setIsSubmitting(false);
+    }
+  }
+
+  async function handleFacebookLogin() {
+    if (isFacebookSubmitting) return;
+    setIsFacebookSubmitting(true);
+    setFormError(null);
+    try {
+      await loginWithFacebook();
+    } catch (error) {
+      setFormError(describeAuthError(error));
+    } finally {
+      setIsFacebookSubmitting(false);
     }
   }
 
@@ -160,6 +174,18 @@ export default function LoginScreen() {
             onPress={handleLogin}
             style={{ marginTop: t.spacing.xxs }}
           />
+
+          {facebookLoginAvailable ? (
+            <Button
+              label="Continue with Facebook"
+              icon="logo-facebook"
+              variant="secondary"
+              size="lg"
+              fullWidth
+              loading={isFacebookSubmitting}
+              onPress={handleFacebookLogin}
+            />
+          ) : null}
 
           <Pressable
             accessibilityRole="link"

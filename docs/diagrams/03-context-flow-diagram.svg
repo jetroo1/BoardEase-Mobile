@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="952" height="502" viewBox="64 74 952 502" font-family="Arial, Helvetica, sans-serif">
+<rect x="64" y="74" width="952" height="502" fill="#FFFFFF"/>
+<defs><marker id="arrow-e-55697A" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="8" markerHeight="8" orient="auto"><path d="M1,1 L11,6 L1,11 z" fill="#55697A"/></marker></defs>
+<polyline points="280,120 365,120 365,325 450,325" fill="none" stroke="#55697A" stroke-width="1.4" marker-end="url(#arrow-e-55697A)"/>
+<polyline points="450,415 180,415 180,150" fill="none" stroke="#55697A" stroke-width="1.4" marker-end="url(#arrow-e-55697A)"/>
+<polyline points="800,120 715,120 715,325 630,325" fill="none" stroke="#55697A" stroke-width="1.4" marker-end="url(#arrow-e-55697A)"/>
+<polyline points="630,415 900,415 900,150" fill="none" stroke="#55697A" stroke-width="1.4" marker-end="url(#arrow-e-55697A)"/>
+<polyline points="280,530 365,530 365,415 450,415" fill="none" stroke="#55697A" stroke-width="1.4" marker-end="url(#arrow-e-55697A)"/>
+<polyline points="630,415 715,415 715,530 800,530" fill="none" stroke="#55697A" stroke-width="1.4" marker-end="url(#arrow-e-55697A)"/>
+<polyline points="850,500 850,480 540,480 540,460" fill="none" stroke="#55697A" stroke-width="1.4" marker-end="url(#arrow-e-55697A)"/>
+<ellipse cx="540" cy="370" rx="90" ry="90" fill="#EEF4F7" stroke="#0369A1" stroke-width="2"/>
+<text x="540" y="358.11999999999995" font-size="14" fill="#0369A1" text-anchor="middle">0</text>
+<text x="540" y="376.03999999999996" font-size="14" fill="#0D1B26" text-anchor="middle" font-weight="bold">BoardEase</text>
+<text x="540" y="393.96" font-size="12" fill="#55697A" text-anchor="middle">System</text>
+<rect x="80" y="90" width="200" height="60" rx="0" fill="#FFFFFF" stroke="#55697A" stroke-width="1"/>
+<text x="180" y="116.74" font-size="13" fill="#0D1B26" text-anchor="middle" font-weight="bold">Tenant-Seeker</text>
+<text x="180" y="133.38" font-size="12" fill="#55697A" text-anchor="middle">student / young professional</text>
+<rect x="800" y="90" width="200" height="60" rx="0" fill="#FFFFFF" stroke="#55697A" stroke-width="1"/>
+<text x="900" y="116.74" font-size="13" fill="#0D1B26" text-anchor="middle" font-weight="bold">Administrator</text>
+<text x="900" y="133.38" font-size="12" fill="#55697A" text-anchor="middle">listing curator</text>
+<rect x="80" y="500" width="200" height="60" rx="0" fill="#FFFFFF" stroke="#55697A" stroke-width="1"/>
+<text x="180" y="526.74" font-size="13" fill="#0D1B26" text-anchor="middle" font-weight="bold">GPS / Location Service</text>
+<text x="180" y="543.38" font-size="12" fill="#55697A" text-anchor="middle">device satellite fix</text>
+<rect x="800" y="500" width="200" height="60" rx="0" fill="#FFFFFF" stroke="#55697A" stroke-width="1"/>
+<text x="900" y="526.74" font-size="13" fill="#0D1B26" text-anchor="middle" font-weight="bold">Map &amp; Routing Service</text>
+<text x="900" y="543.38" font-size="12" fill="#55697A" text-anchor="middle">OpenStreetMap · OSRM</text>
+<rect x="223.07999999999998" y="216.62" width="283.84000000000003" height="15" fill="#FFFFFF" opacity="0.92"/>
+<text x="365" y="226.82" font-size="12" fill="#55697A" text-anchor="middle">search criteria, filters, ratings, favorites</text>
+<rect x="230.32" y="409.12" width="169.36" height="15" fill="#FFFFFF" opacity="0.92"/>
+<text x="315" y="419.32" font-size="12" fill="#55697A" text-anchor="middle">ranked results, directions</text>
+<rect x="620.78" y="216.62" width="188.44" height="15" fill="#FFFFFF" opacity="0.92"/>
+<text x="715" y="226.82" font-size="12" fill="#55697A" text-anchor="middle">new listing, approve / reject</text>
+<rect x="712.12" y="409.12" width="105.76" height="15" fill="#FFFFFF" opacity="0.92"/>
+<text x="765" y="419.32" font-size="12" fill="#55697A" text-anchor="middle">pending listings</text>
+<rect x="302.58" y="466.62" width="124.84" height="15" fill="#FFFFFF" opacity="0.92"/>
+<text x="365" y="476.82" font-size="12" fill="#55697A" text-anchor="middle">current coordinates</text>
+<rect x="671.66" y="466.62" width="86.68" height="15" fill="#FFFFFF" opacity="0.92"/>
+<text x="715" y="476.82" font-size="12" fill="#55697A" text-anchor="middle">route request</text>
+<rect x="536.4" y="474.12" width="131.2" height="15" fill="#FFFFFF" opacity="0.92"/>
+<text x="602" y="484.32" font-size="12" fill="#55697A" text-anchor="middle">map tiles, road path</text>
+</svg>

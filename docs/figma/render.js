@@ -65,7 +65,16 @@ global.figma = {
   // createNodeFromSvg and createImage back the real icons and photographs.
   // Stubbed so the checkers can run outside Figma; the icon becomes a plain
   // node of the right size, which is what the layout cares about.
-  createNodeFromSvg: () => { const n = makeNode('FRAME'); n.name='SvgIcon'; return n; },
+  // ICON STUB: a frame with one child, so icon()'s recolour pass has something
+  // to paint and the preview shows the glyph area rather than a hole.
+  createNodeFromSvg: () => {
+    const n = makeNode('FRAME');
+    n.name = 'SvgIcon';
+    const g = makeNode('VECTOR');
+    g.name = 'glyph';
+    n.appendChild(g);
+    return n;
+  },
   createImage: () => ({ hash: 'stub-image-hash' }),
   mixed: Symbol('mixed'),
   loadFontAsync: () => Promise.resolve(),
@@ -199,6 +208,21 @@ function paint(canvas, n, offX, offY) {
       canvas.fill(x, y + (l * lineH(n) + n.fontSize * 0.22) * SCALE, barW, n.fontSize * 0.68 * SCALE, rgb, 0.82);
     }
     return;
+  }
+
+  // Image fills have no colour of their own; draw a mid-tone so the photo area
+  // reads as a photograph in the preview.
+  if (n.fills && n.fills.length && n.fills[0].type === 'IMAGE') {
+    canvas.fill(x, y, w, h, [150, 162, 168], 1);
+    canvas.fill(x, y + h * 0.55, w, h * 0.45, [128, 140, 147], 1);
+    n.children.forEach((c2) => paint(canvas, c2, offX, offY));
+    return;
+  }
+
+  // An icon: paint the glyph child's colour across the icon box.
+  if (n.name.indexOf("Icon /") === 0 && n.children.length) {
+    const gc = rgbOf(n.children[0].fills);
+    if (gc) { canvas.fill(x + w * 0.15, y + h * 0.15, w * 0.7, h * 0.7, gc, 0.9); return; }
   }
 
   const rgb = rgbOf(n.fills);

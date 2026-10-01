@@ -1,0 +1,90 @@
+[
+  {
+    "file": "01-system-architecture.svg",
+    "source": "01-system-architecture.drawio",
+    "part": null,
+    "partsTotal": 1,
+    "widthPx": 1052,
+    "heightPx": 712,
+    "smallestPt": 7.1,
+    "bodyPt": 7.1,
+    "png": "01-system-architecture.png"
+  },
+  {
+    "file": "02-use-case-diagram.svg",
+    "source": "02-use-case-diagram.drawio",
+    "part": null,
+    "partsTotal": 1,
+    "widthPx": 1073,
+    "heightPx": 802,
+    "smallestPt": 6.3,
+    "bodyPt": 6.9,
+    "png": "02-use-case-diagram.png"
+  },
+  {
+    "file": "03-context-flow-diagram.svg",
+    "source": "03-context-flow-diagram.drawio",
+    "part": null,
+    "partsTotal": 1,
+    "widthPx": 952,
+    "heightPx": 502,
+    "smallestPt": 8.3,
+    "bodyPt": 8.3,
+    "png": "03-context-flow-diagram.png"
+  },
+  {
+    "file": "04-data-flow-diagram-level1.svg",
+    "source": "04-data-flow-diagram-level1.drawio",
+    "part": null,
+    "partsTotal": 1,
+    "widthPx": 1149,
+    "heightPx": 650,
+    "smallestPt": 6.9,
+    "bodyPt": 6.9,
+    "png": "04-data-flow-diagram-level1.png"
+  },
+  {
+    "file": "05-entity-relationship-diagram.svg",
+    "source": "05-entity-relationship-diagram.drawio",
+    "part": null,
+    "partsTotal": 1,
+    "widthPx": 1092,
+    "heightPx": 732,
+    "smallestPt": 6.9,
+    "bodyPt": 6.9,
+    "png": "05-entity-relationship-diagram.png"
+  },
+  {
+    "file": "06-system-flowchart-a.svg",
+    "source": "06-system-flowchart.drawio",
+    "part": 1,
+    "partsTotal": 3,
+    "widthPx": 882,
+    "heightPx": 658,
+    "smallestPt": 7.7,
+    "bodyPt": 7.7,
+    "png": "06-system-flowchart-a.png"
+  },
+  {
+    "file": "06-system-flowchart-b.svg",
+    "source": "06-system-flowchart.drawio",
+    "part": 2,
+    "partsTotal": 3,
+    "widthPx": 592,
+    "heightPx": 570,
+    "smallestPt": 8.9,
+    "bodyPt": 8.9,
+    "png": "06-system-flowchart-b.png"
+  },
+  {
+    "file": "06-system-flowchart-c.svg",
+    "source": "06-system-flowchart.drawio",
+    "part": 3,
+    "partsTotal": 3,
+    "widthPx": 582,
+    "heightPx": 440,
+    "smallestPt": 11.6,
+    "bodyPt": 11.6,
+    "png": "06-system-flowchart-c.png"
+  }
+]

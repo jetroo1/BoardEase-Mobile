@@ -14,9 +14,10 @@
 // render, but any Firebase call (login, fetching properties, etc.) will fail.
 
 import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+import { Auth, getAuth, initializeAuth, Persistence } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // PASTE YOUR REAL FIREBASE CONFIG HERE:
 const firebaseConfig = {
@@ -34,11 +35,40 @@ const app = initializeApp(firebaseConfig);
 // These are the three Firebase services this app uses as its whole backend.
 // Any screen that needs to talk to Firebase imports "auth", "db", or "storage"
 // from this file instead of setting up its own connection.
+
+// Staying signed in between launches.
 //
-// Note: with this basic setup, a logged-in user is remembered only while the
-// app is open (closing the app fully will require logging in again). That is
-// fine for this school project; making the login "stick" across app restarts
-// needs extra persistence setup that is not required here.
-export const auth = getAuth(app);
+// getAuth() on its own gives React Native memory persistence: close the app,
+// and you are logged out. Firebase says so on every start-up, in a warning
+// several paragraphs long. It is not only untidy -- it means the app forgets
+// you every time, which is not how any phone application behaves.
+//
+// getReactNativePersistence exists only in the React Native build of
+// firebase/auth, and the package's published types describe the web build, so
+// TypeScript does not know about it. Hence the require and the narrow type
+// rather than a blanket ts-ignore: the shape asserted here is exactly the one
+// used on the next line, and on web the property is simply absent.
+const rnAuth = require('firebase/auth') as {
+  getReactNativePersistence?: (storage: unknown) => Persistence;
+};
+
+function createAuth(): Auth {
+  // Web has its own persistence and needs none of this.
+  if (!rnAuth.getReactNativePersistence) {
+    return getAuth(app);
+  }
+  try {
+    return initializeAuth(app, {
+      persistence: rnAuth.getReactNativePersistence(AsyncStorage),
+    });
+  } catch {
+    // initializeAuth throws if auth has already been initialised for this
+    // app -- which happens when Fast Refresh re-runs this module. The
+    // instance that already exists is the configured one, so use it.
+    return getAuth(app);
+  }
+}
+
+export const auth = createAuth();
 export const db = getFirestore(app);
 export const storage = getStorage(app);

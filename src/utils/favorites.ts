@@ -9,12 +9,13 @@
 // DetailsScreen, which is why the Search screen could not save anything.
 
 import {
-  addDoc,
   collection,
   deleteDoc,
   doc,
+  getDoc,
   getDocs,
   query,
+  setDoc,
   where,
 } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
@@ -40,12 +41,15 @@ export async function loadFavoriteMap(userId: string): Promise<FavoriteMap> {
 }
 
 export async function addFavorite(userId: string, propertyId: string): Promise<string> {
-  const created = await addDoc(collection(db, 'favorites'), {
-    userId,
-    propertyId,
-    createdAt: Date.now(),
-  });
-  return created.id;
+  // The document ID is the unique pair. Firestore rules verify this exact
+  // shape, so even a modified client cannot create duplicate favourites.
+  const favoriteId = `${userId}_${propertyId}`;
+  const favoriteRef = doc(db, 'favorites', favoriteId);
+  const existing = await getDoc(favoriteRef);
+  if (!existing.exists()) {
+    await setDoc(favoriteRef, { userId, propertyId, createdAt: Date.now() });
+  }
+  return favoriteId;
 }
 
 export async function removeFavorite(favoriteDocId: string): Promise<void> {

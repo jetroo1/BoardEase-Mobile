@@ -1,0 +1,173 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1092" height="732" viewBox="44 64 1092 732" font-family="Arial, Helvetica, sans-serif">
+<rect x="44" y="64" width="1092" height="732" fill="#FFFFFF"/>
+<defs><marker id="ermany-e-55697A" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="8" markerHeight="8" orient="auto"><path d="M12,2 L2,6 M12,10 L2,6 M12,6 L2,6" fill="none" stroke="#55697A" stroke-width="1.4"/></marker><marker id="erone-s-55697A" viewBox="0 0 12 12" refX="1" refY="6" markerWidth="8" markerHeight="8" orient="auto"><g transform="rotate(180 6 6)"><path d="M9,1 L9,11" fill="none" stroke="#55697A" stroke-width="1.4"/></g></marker><marker id="erone-e-55697A" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="8" markerHeight="8" orient="auto"><path d="M9,1 L9,11" fill="none" stroke="#55697A" stroke-width="1.4"/></marker></defs>
+<polyline points="310,129 370,129 370,157 430,157" fill="none" stroke="#55697A" stroke-width="1.4" marker-end="url(#ermany-e-55697A)" marker-start="url(#erone-s-55697A)"/>
+<polyline points="680,129 745,129 745,157 810,157" fill="none" stroke="#55697A" stroke-width="1.4" marker-end="url(#ermany-e-55697A)" marker-start="url(#erone-s-55697A)"/>
+<polyline points="680,443 745,443 745,479 810,479" fill="none" stroke="#55697A" stroke-width="1.4" marker-end="url(#ermany-e-55697A)" marker-start="url(#erone-s-55697A)"/>
+<polyline points="185,322 185,620 1120,620 1120,204 1049.5238095238096,204 1049.5238095238096,196" fill="none" stroke="#55697A" stroke-width="1.4" marker-end="url(#ermany-e-55697A)" marker-start="url(#erone-s-55697A)"/>
+<polyline points="185,322 185,560 260,560 750,560 750,453 810,453" fill="none" stroke="#55697A" stroke-width="1.4" marker-end="url(#ermany-e-55697A)" marker-start="url(#erone-s-55697A)"/>
+<polyline points="60,740 150,740" fill="none" stroke="#55697A" stroke-width="1.4" marker-end="url(#erone-e-55697A)"/>
+<polyline points="250,740 340,740" fill="none" stroke="#55697A" stroke-width="1.4" marker-end="url(#ermany-e-55697A)"/>
+<rect x="60" y="80" width="250" height="220" rx="0" fill="#0D1B26" stroke="#0D1B26" stroke-width="1"/>
+<text x="185" y="101.76" font-size="14" fill="#FFFFFF" text-anchor="middle" font-weight="bold">users</text>
+<rect x="60" y="114" width="250" height="30" rx="0" fill="#FFFFFF" stroke="#0D1B26" stroke-width="1"/>
+<rect x="60" y="114" width="52" height="30" rx="0" fill="none" stroke="#0D1B26" stroke-width="1"/>
+<text x="86" y="133.08" font-size="12" fill="#0D1B26" text-anchor="middle" font-weight="bold">PK</text>
+<rect x="112" y="114" width="198" height="30" rx="0" fill="none" stroke="none" stroke-width="1"/>
+<text x="120" y="133.08" font-size="12" fill="#0D1B26" text-anchor="start">uid</text>
+<rect x="60" y="144" width="250" height="26" rx="0" fill="#FFFFFF" stroke="#D5E3EA" stroke-width="1"/>
+<rect x="60" y="144" width="52" height="26" rx="0" fill="none" stroke="#D5E3EA" stroke-width="1"/>
+<rect x="112" y="144" width="198" height="26" rx="0" fill="none" stroke="none" stroke-width="1"/>
+<text x="120" y="161.08" font-size="12" fill="#0D1B26" text-anchor="start">email</text>
+<rect x="60" y="170" width="250" height="26" rx="0" fill="#FFFFFF" stroke="#D5E3EA" stroke-width="1"/>
+<rect x="60" y="170" width="52" height="26" rx="0" fill="none" stroke="#D5E3EA" stroke-width="1"/>
+<rect x="112" y="170" width="198" height="26" rx="0" fill="none" stroke="none" stroke-width="1"/>
+<text x="120" y="187.08" font-size="12" fill="#0D1B26" text-anchor="start">role</text>
+<rect x="60" y="196" width="250" height="26" rx="0" fill="#FFFFFF" stroke="#D5E3EA" stroke-width="1"/>
+<rect x="60" y="196" width="52" height="26" rx="0" fill="none" stroke="#D5E3EA" stroke-width="1"/>
+<rect x="112" y="196" width="198" height="26" rx="0" fill="none" stroke="none" stroke-width="1"/>
+<text x="120" y="213.08" font-size="12" fill="#0D1B26" text-anchor="start">savedFilters</text>
+<rect x="60" y="222" width="250" height="26" rx="0" fill="#FFFFFF" stroke="#D5E3EA" stroke-width="1"/>
+<rect x="60" y="222" width="52" height="26" rx="0" fill="none" stroke="#D5E3EA" stroke-width="1"/>
+<rect x="112" y="222" width="198" height="26" rx="0" fill="none" stroke="none" stroke-width="1"/>
+<text x="120" y="239.08" font-size="12" fill="#0D1B26" text-anchor="start">alertsEnabled</text>
+<rect x="60" y="248" width="250" height="26" rx="0" fill="#FFFFFF" stroke="#D5E3EA" stroke-width="1"/>
+<rect x="60" y="248" width="52" height="26" rx="0" fill="none" stroke="#D5E3EA" stroke-width="1"/>
+<rect x="112" y="248" width="198" height="26" rx="0" fill="none" stroke="none" stroke-width="1"/>
+<text x="120" y="265.08" font-size="12" fill="#0D1B26" text-anchor="start">lastAlertCheck</text>
+<rect x="60" y="274" width="250" height="26" rx="0" fill="#FFFFFF" stroke="#D5E3EA" stroke-width="1"/>
+<rect x="60" y="274" width="52" height="26" rx="0" fill="none" stroke="#D5E3EA" stroke-width="1"/>
+<rect x="112" y="274" width="198" height="26" rx="0" fill="none" stroke="none" stroke-width="1"/>
+<text x="120" y="291.08" font-size="12" fill="#0D1B26" text-anchor="start">createdAt</text>
+<rect x="430" y="80" width="250" height="376" rx="0" fill="#0D1B26" stroke="#0D1B26" stroke-width="1"/>
+<text x="555" y="101.76" font-size="14" fill="#FFFFFF" text-anchor="middle" font-weight="bold">properties</text>
+<rect x="430" y="114" width="250" height="30" rx="0" fill="#FFFFFF" stroke="#0D1B26" stroke-width="1"/>
+<rect x="430" y="114" width="52" height="30" rx="0" fill="none" stroke="#0D1B26" stroke-width="1"/>
+<text x="456" y="133.08" font-size="12" fill="#0D1B26" text-anchor="middle" font-weight="bold">PK</text>
+<rect x="482" y="114" width="198" height="30" rx="0" fill="none" stroke="none" stroke-width="1"/>
+<text x="490" y="133.08" font-size="12" fill="#0D1B26" text-anchor="start">id</text>
+<rect x="430" y="144" width="250" height="26" rx="0" fill="#FFFFFF" stroke="#D5E3EA" stroke-width="1"/>
+<rect x="430" y="144" width="52" height="26" rx="0" fill="none" stroke="#D5E3EA" stroke-width="1"/>
+<text x="456" y="161.08" font-size="12" fill="#0369A1" text-anchor="middle" font-weight="bold">FK1</text>
+<rect x="482" y="144" width="198" height="26" rx="0" fill="none" stroke="none" stroke-width="1"/>
+<text x="490" y="161.08" font-size="12" fill="#0D1B26" text-anchor="start">ownerId</text>
+<rect x="430" y="170" width="250" height="26" rx="0" fill="#FFFFFF" stroke="#D5E3EA" stroke-width="1"/>
+<rect x="430" y="170" width="52" height="26" rx="0" fill="none" stroke="#D5E3EA" stroke-width="1"/>
+<rect x="482" y="170" width="198" height="26" rx="0" fill="none" stroke="none" stroke-width="1"/>
+<text x="490" y="187.08" font-size="12" fill="#0D1B26" text-anchor="start">title</text>
+<rect x="430" y="196" width="250" height="26" rx="0" fill="#FFFFFF" stroke="#D5E3EA" stroke-width="1"/>
+<rect x="430" y="196" width="52" height="26" rx="0" fill="none" stroke="#D5E3EA" stroke-width="1"/>
+<rect x="482" y="196" width="198" height="26" rx="0" fill="none" stroke="none" stroke-width="1"/>
+<text x="490" y="213.08" font-size="12" fill="#0D1B26" text-anchor="start">description</text>
+<rect x="430" y="222" width="250" height="26" rx="0" fill="#FFFFFF" stroke="#D5E3EA" stroke-width="1"/>
+<rect x="430" y="222" width="52" height="26" rx="0" fill="none" stroke="#D5E3EA" stroke-width="1"/>
+<rect x="482" y="222" width="198" height="26" rx="0" fill="none" stroke="none" stroke-width="1"/>
+<text x="490" y="239.08" font-size="12" fill="#0D1B26" text-anchor="start">address</text>
+<rect x="430" y="248" width="250" height="26" rx="0" fill="#FFFFFF" stroke="#D5E3EA" stroke-width="1"/>
+<rect x="430" y="248" width="52" height="26" rx="0" fill="none" stroke="#D5E3EA" stroke-width="1"/>
+<rect x="482" y="248" width="198" height="26" rx="0" fill="none" stroke="none" stroke-width="1"/>
+<text x="490" y="265.08" font-size="12" fill="#0D1B26" text-anchor="start">price</text>
+<rect x="430" y="274" width="250" height="26" rx="0" fill="#FFFFFF" stroke="#D5E3EA" stroke-width="1"/>
+<rect x="430" y="274" width="52" height="26" rx="0" fill="none" stroke="#D5E3EA" stroke-width="1"/>
+<rect x="482" y="274" width="198" height="26" rx="0" fill="none" stroke="none" stroke-width="1"/>
+<text x="490" y="291.08" font-size="12" fill="#0D1B26" text-anchor="start">roomType</text>
+<rect x="430" y="300" width="250" height="26" rx="0" fill="#FFFFFF" stroke="#D5E3EA" stroke-width="1"/>
+<rect x="430" y="300" width="52" height="26" rx="0" fill="none" stroke="#D5E3EA" stroke-width="1"/>
+<rect x="482" y="300" width="198" height="26" rx="0" fill="none" stroke="none" stroke-width="1"/>
+<text x="490" y="317.08" font-size="12" fill="#0D1B26" text-anchor="start">amenities</text>
+<rect x="430" y="326" width="250" height="26" rx="0" fill="#FFFFFF" stroke="#D5E3EA" stroke-width="1"/>
+<rect x="430" y="326" width="52" height="26" rx="0" fill="none" stroke="#D5E3EA" stroke-width="1"/>
+<rect x="482" y="326" width="198" height="26" rx="0" fill="none" stroke="none" stroke-width="1"/>
+<text x="490" y="343.08" font-size="12" fill="#0D1B26" text-anchor="start">latitude</text>
+<rect x="430" y="352" width="250" height="26" rx="0" fill="#FFFFFF" stroke="#D5E3EA" stroke-width="1"/>
+<rect x="430" y="352" width="52" height="26" rx="0" fill="none" stroke="#D5E3EA" stroke-width="1"/>
+<rect x="482" y="352" width="198" height="26" rx="0" fill="none" stroke="none" stroke-width="1"/>
+<text x="490" y="369.08" font-size="12" fill="#0D1B26" text-anchor="start">longitude</text>
+<rect x="430" y="378" width="250" height="26" rx="0" fill="#FFFFFF" stroke="#D5E3EA" stroke-width="1"/>
+<rect x="430" y="378" width="52" height="26" rx="0" fill="none" stroke="#D5E3EA" stroke-width="1"/>
+<rect x="482" y="378" width="198" height="26" rx="0" fill="none" stroke="none" stroke-width="1"/>
+<text x="490" y="395.08" font-size="12" fill="#0D1B26" text-anchor="start">imageUrl</text>
+<rect x="430" y="404" width="250" height="26" rx="0" fill="#FFFFFF" stroke="#D5E3EA" stroke-width="1"/>
+<rect x="430" y="404" width="52" height="26" rx="0" fill="none" stroke="#D5E3EA" stroke-width="1"/>
+<rect x="482" y="404" width="198" height="26" rx="0" fill="none" stroke="none" stroke-width="1"/>
+<text x="490" y="421.08" font-size="12" fill="#0D1B26" text-anchor="start">isApproved</text>
+<rect x="430" y="430" width="250" height="26" rx="0" fill="#FFFFFF" stroke="#D5E3EA" stroke-width="1"/>
+<rect x="430" y="430" width="52" height="26" rx="0" fill="none" stroke="#D5E3EA" stroke-width="1"/>
+<rect x="482" y="430" width="198" height="26" rx="0" fill="none" stroke="none" stroke-width="1"/>
+<text x="490" y="447.08" font-size="12" fill="#0D1B26" text-anchor="start">createdAt</text>
+<rect x="810" y="80" width="250" height="220" rx="0" fill="#0D1B26" stroke="#0D1B26" stroke-width="1"/>
+<text x="935" y="101.76" font-size="14" fill="#FFFFFF" text-anchor="middle" font-weight="bold">reviews</text>
+<rect x="810" y="114" width="250" height="30" rx="0" fill="#FFFFFF" stroke="#0D1B26" stroke-width="1"/>
+<rect x="810" y="114" width="52" height="30" rx="0" fill="none" stroke="#0D1B26" stroke-width="1"/>
+<text x="836" y="133.08" font-size="12" fill="#0D1B26" text-anchor="middle" font-weight="bold">PK</text>
+<rect x="862" y="114" width="198" height="30" rx="0" fill="none" stroke="none" stroke-width="1"/>
+<text x="870" y="133.08" font-size="12" fill="#0D1B26" text-anchor="start">id</text>
+<rect x="810" y="144" width="250" height="26" rx="0" fill="#FFFFFF" stroke="#D5E3EA" stroke-width="1"/>
+<rect x="810" y="144" width="52" height="26" rx="0" fill="none" stroke="#D5E3EA" stroke-width="1"/>
+<text x="836" y="161.08" font-size="12" fill="#0369A1" text-anchor="middle" font-weight="bold">FK1</text>
+<rect x="862" y="144" width="198" height="26" rx="0" fill="none" stroke="none" stroke-width="1"/>
+<text x="870" y="161.08" font-size="12" fill="#0D1B26" text-anchor="start">propertyId</text>
+<rect x="810" y="170" width="250" height="26" rx="0" fill="#FFFFFF" stroke="#D5E3EA" stroke-width="1"/>
+<rect x="810" y="170" width="52" height="26" rx="0" fill="none" stroke="#D5E3EA" stroke-width="1"/>
+<text x="836" y="187.08" font-size="12" fill="#0369A1" text-anchor="middle" font-weight="bold">FK2</text>
+<rect x="862" y="170" width="198" height="26" rx="0" fill="none" stroke="none" stroke-width="1"/>
+<text x="870" y="187.08" font-size="12" fill="#0D1B26" text-anchor="start">userId</text>
+<rect x="810" y="196" width="250" height="26" rx="0" fill="#FFFFFF" stroke="#D5E3EA" stroke-width="1"/>
+<rect x="810" y="196" width="52" height="26" rx="0" fill="none" stroke="#D5E3EA" stroke-width="1"/>
+<rect x="862" y="196" width="198" height="26" rx="0" fill="none" stroke="none" stroke-width="1"/>
+<text x="870" y="213.08" font-size="12" fill="#0D1B26" text-anchor="start">userName</text>
+<rect x="810" y="222" width="250" height="26" rx="0" fill="#FFFFFF" stroke="#D5E3EA" stroke-width="1"/>
+<rect x="810" y="222" width="52" height="26" rx="0" fill="none" stroke="#D5E3EA" stroke-width="1"/>
+<rect x="862" y="222" width="198" height="26" rx="0" fill="none" stroke="none" stroke-width="1"/>
+<text x="870" y="239.08" font-size="12" fill="#0D1B26" text-anchor="start">rating</text>
+<rect x="810" y="248" width="250" height="26" rx="0" fill="#FFFFFF" stroke="#D5E3EA" stroke-width="1"/>
+<rect x="810" y="248" width="52" height="26" rx="0" fill="none" stroke="#D5E3EA" stroke-width="1"/>
+<rect x="862" y="248" width="198" height="26" rx="0" fill="none" stroke="none" stroke-width="1"/>
+<text x="870" y="265.08" font-size="12" fill="#0D1B26" text-anchor="start">body</text>
+<rect x="810" y="274" width="250" height="26" rx="0" fill="#FFFFFF" stroke="#D5E3EA" stroke-width="1"/>
+<rect x="810" y="274" width="52" height="26" rx="0" fill="none" stroke="#D5E3EA" stroke-width="1"/>
+<rect x="862" y="274" width="198" height="26" rx="0" fill="none" stroke="none" stroke-width="1"/>
+<text x="870" y="291.08" font-size="12" fill="#0D1B26" text-anchor="start">createdAt</text>
+<rect x="810" y="376" width="250" height="142" rx="0" fill="#0D1B26" stroke="#0D1B26" stroke-width="1"/>
+<text x="935" y="397.76" font-size="14" fill="#FFFFFF" text-anchor="middle" font-weight="bold">favorites</text>
+<rect x="810" y="410" width="250" height="30" rx="0" fill="#FFFFFF" stroke="#0D1B26" stroke-width="1"/>
+<rect x="810" y="410" width="52" height="30" rx="0" fill="none" stroke="#0D1B26" stroke-width="1"/>
+<text x="836" y="429.08" font-size="12" fill="#0D1B26" text-anchor="middle" font-weight="bold">PK</text>
+<rect x="862" y="410" width="198" height="30" rx="0" fill="none" stroke="none" stroke-width="1"/>
+<text x="870" y="429.08" font-size="12" fill="#0D1B26" text-anchor="start">id</text>
+<rect x="810" y="440" width="250" height="26" rx="0" fill="#FFFFFF" stroke="#D5E3EA" stroke-width="1"/>
+<rect x="810" y="440" width="52" height="26" rx="0" fill="none" stroke="#D5E3EA" stroke-width="1"/>
+<text x="836" y="457.08" font-size="12" fill="#0369A1" text-anchor="middle" font-weight="bold">FK1</text>
+<rect x="862" y="440" width="198" height="26" rx="0" fill="none" stroke="none" stroke-width="1"/>
+<text x="870" y="457.08" font-size="12" fill="#0D1B26" text-anchor="start">userId</text>
+<rect x="810" y="466" width="250" height="26" rx="0" fill="#FFFFFF" stroke="#D5E3EA" stroke-width="1"/>
+<rect x="810" y="466" width="52" height="26" rx="0" fill="none" stroke="#D5E3EA" stroke-width="1"/>
+<text x="836" y="483.08" font-size="12" fill="#0369A1" text-anchor="middle" font-weight="bold">FK2</text>
+<rect x="862" y="466" width="198" height="26" rx="0" fill="none" stroke="none" stroke-width="1"/>
+<text x="870" y="483.08" font-size="12" fill="#0D1B26" text-anchor="start">propertyId</text>
+<rect x="810" y="492" width="250" height="26" rx="0" fill="#FFFFFF" stroke="#D5E3EA" stroke-width="1"/>
+<rect x="810" y="492" width="52" height="26" rx="0" fill="none" stroke="#D5E3EA" stroke-width="1"/>
+<rect x="862" y="492" width="198" height="26" rx="0" fill="none" stroke="none" stroke-width="1"/>
+<text x="870" y="509.08" font-size="12" fill="#0D1B26" text-anchor="start">createdAt</text>
+<text x="66" y="714.08" font-size="12" fill="#55697A" text-anchor="start" font-weight="bold">Crow's foot notation</text>
+<rect x="430" y="700" width="630" height="80" rx="8" fill="#EEF4F7" stroke="#D5E3EA" stroke-width="1"/>
+<text x="444" y="713.36" font-size="12" fill="#0D1B26" text-anchor="start" font-weight="bold">Note for the panel: this is NoSQL, not a relational database</text>
+<text x="444" y="728.72" font-size="12" fill="#55697A" text-anchor="start">Firestore stores collections of documents, so there are no foreign keys enforced by the</text>
+<text x="444" y="744.08" font-size="12" fill="#55697A" text-anchor="start">database. The PK/FK labels above describe how the app</text>
+<text x="444" y="759.44" font-size="12" fill="#55697A" text-anchor="start">treats these id fields; the joins happen in JavaScript. One rule is enforced in code rather</text>
+<text x="444" y="774.8000000000001" font-size="12" fill="#55697A" text-anchor="start">than by the database: one review per user per property.</text>
+<rect x="315.74" y="123.11999999999999" width="48.52" height="15" fill="#FFFFFF" opacity="0.92"/>
+<text x="340" y="133.32" font-size="12" fill="#55697A" text-anchor="middle">creates</text>
+<rect x="700.96" y="123.11999999999999" width="23.080000000000002" height="15" fill="#FFFFFF" opacity="0.92"/>
+<text x="712.5" y="133.32" font-size="12" fill="#55697A" text-anchor="middle">has</text>
+<rect x="685.06" y="437.12" width="54.88" height="15" fill="#FFFFFF" opacity="0.92"/>
+<text x="712.5" y="447.32" font-size="12" fill="#55697A" text-anchor="middle">saved in</text>
+<rect x="631.42" y="614.12" width="42.160000000000004" height="15" fill="#FFFFFF" opacity="0.92"/>
+<text x="652.5" y="624.32" font-size="12" fill="#55697A" text-anchor="middle">writes</text>
+<rect x="487.1" y="554.12" width="35.8" height="15" fill="#FFFFFF" opacity="0.92"/>
+<text x="505" y="564.32" font-size="12" fill="#55697A" text-anchor="middle">saves</text>
+<rect x="68.02" y="723.8" width="73.96000000000001" height="15" fill="#FFFFFF" opacity="0.92"/>
+<text x="105" y="734" font-size="12" fill="#55697A" text-anchor="middle">exactly one</text>
+<rect x="280.28" y="723.8" width="29.44" height="15" fill="#FFFFFF" opacity="0.92"/>
+<text x="295" y="734" font-size="12" fill="#55697A" text-anchor="middle">many</text>
+</svg>

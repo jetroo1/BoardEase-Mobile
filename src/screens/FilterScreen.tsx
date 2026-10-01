@@ -23,6 +23,7 @@ import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { loadAlertSettings, saveFilterAlerts, turnOffFilterAlerts } from '../utils/matchAlerts';
 import { Filters } from '../types';
+import { clearCallback, getCallback } from '../utils/navigationCallbacks';
 import { RootStackParamList } from '../navigation/types';
 import { GUTTER } from '../theme';
 import {
@@ -50,7 +51,7 @@ const PRICE_PRESETS = [1500, 2500, 3500, 5000];
 export default function FilterScreen() {
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<FilterRouteProp>();
-  const { currentFilters, onApply } = route.params;
+  const { currentFilters } = route.params;
   const { user } = useAuth();
   const t = useTheme();
   const insets = useSafeAreaInsets();
@@ -176,7 +177,8 @@ export default function FilterScreen() {
       }
     }
 
-    onApply(newFilters);
+    getCallback<Filters>('filter')?.(newFilters);
+    clearCallback('filter');
     navigation.goBack();
   }
 

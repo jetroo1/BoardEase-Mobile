@@ -29,15 +29,15 @@ export type RootStackParamList = {
   Landing: undefined;
   Login: undefined;
   Register: undefined;
+  VerifyEmail: undefined;
+  CompleteFacebookProfile: undefined;
   MainTabs: undefined;
   Details: { propertyId: string };
-  Filter: {
-    currentFilters: Filters;
-    // The Filter screen calls this function with the new filters when the
-    // user taps "Apply", so the Search screen (which passed this function
-    // in) can update its own list. Then the Filter screen goes back.
-    onApply: (filters: Filters) => void;
-  };
+  // The Filter screen hands the chosen filters back to whoever opened it. The
+  // function itself is left in src/utils/navigationCallbacks.ts rather than
+  // passed here -- params have to stay serializable, and React Navigation says
+  // so out loud, in Expo Go, on screen.
+  Filter: { currentFilters: Filters };
   // Map is not here: it became a bottom-tab screen (see MainTabParamList) and
   // loads its own listings, so there is no stack copy to collide with it.
   Notifications: undefined;
@@ -45,7 +45,19 @@ export type RootStackParamList = {
   Navigation: { property: Property };
   Reviews: { propertyId: string; propertyTitle: string };
   Admin: undefined;
-  AddListing: undefined;
+  // With a propertyId it edits that listing; without one it creates a new
+  // listing. Both are the same form, because "everything about a listing" is
+  // the same set of fields either way and keeping two copies of it guarantees
+  // they drift.
+  AddListing: { propertyId?: string } | undefined;
+  // Opens the map so a listing's position can be tapped rather than typed.
+  // The chosen point comes back the same way Filter's do, through the callback
+  // registry rather than through these params.
+  PickLocation: { initial?: { lat: number; lng: number } };
+  // Opens on the document named, but shows both behind a pair of tabs. It is
+  // reachable from Register (before an account exists) as well as from
+  // Profile, so it is registered in both halves of the root navigator.
+  Legal: { document?: 'terms' | 'privacy' } | undefined;
 };
 
 // A combined list of every screen name in the app (tabs + stack), used in

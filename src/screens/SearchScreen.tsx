@@ -36,6 +36,7 @@ import {
   loadFavoriteMap,
   removeFavorite,
 } from '../utils/favorites';
+import { setCallback } from '../utils/navigationCallbacks';
 import { GUTTER } from '../theme';
 import {
   Button,
@@ -202,11 +203,11 @@ export default function SearchScreen() {
     filters.amenities.length;
 
   function openFilterScreen() {
-    navigation.navigate('Filter', {
-      currentFilters: filters,
-      // The Filter screen will call this with the new choices, then go back.
-      onApply: (newFilters) => setFilters(newFilters),
-    });
+    // The Filter screen will call this with the new choices, then go back.
+    // It is left in the callback registry rather than put in the params: a
+    // function in the navigation state is a warning on screen in Expo Go.
+    setCallback<Filters>('filter', (newFilters) => setFilters(newFilters));
+    navigation.navigate('Filter', { currentFilters: filters });
   }
 
   // The heart. Updates the screen first and reverses itself if Firestore

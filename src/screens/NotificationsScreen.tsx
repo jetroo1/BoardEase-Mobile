@@ -23,6 +23,7 @@ import {
 } from '../utils/matchAlerts';
 import { AppNotification, EMPTY_FILTERS, Filters } from '../types';
 import { RootStackParamList } from '../navigation/types';
+import { setCallback } from '../utils/navigationCallbacks';
 import { GUTTER } from '../theme';
 import { useTheme } from '../context/ThemeContext';
 import {
@@ -144,13 +145,13 @@ export default function NotificationsScreen() {
   }
 
   function openFilterScreen() {
-    navigation.navigate('Filter', {
-      currentFilters: savedFilters,
-      // This screen has no list of search results of its own, so there is
-      // nothing for "Apply" to change here -- we send the user to the Filter
-      // screen only for the "Save these filters and alert me" switch.
-      onApply: () => {},
-    });
+    // This screen has no list of search results of its own, so there is
+    // nothing for "Apply" to change here -- we send the user to the Filter
+    // screen only for the "Save these filters and alert me" switch. The slot
+    // is still set, and to a no-op, so that a callback left behind by the
+    // Search screen cannot be run by this visit.
+    setCallback('filter', () => {});
+    navigation.navigate('Filter', { currentFilters: savedFilters });
   }
 
   const unreadCount = notifications.filter((item) => !item.read).length;

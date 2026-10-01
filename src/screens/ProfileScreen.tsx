@@ -372,6 +372,29 @@ export default function ProfileScreen() {
           </View>
         ) : null}
 
+        {/* --- Legal ------------------------------------------------------ */}
+        {/* The documents agreed to at sign-up, kept where somebody would look
+            for them afterwards. Consent that can only be read once, on the way
+            in, is not something a person can come back and check. */}
+        <View style={{ gap: t.spacing.sm }}>
+          <Text variant="heading">Legal</Text>
+          <Card level="low" style={{ borderRadius: t.radius.lg, gap: t.spacing.sm }}>
+            <Row
+              icon="document-text-outline"
+              title="Terms of Use"
+              subtitle="What BoardEase does, and what it does not do"
+              onPress={() => navigation.navigate('Legal', { document: 'terms' })}
+            />
+            <Divider />
+            <Row
+              icon="lock-closed-outline"
+              title="Privacy Notice"
+              subtitle="What is collected and your rights under the Data Privacy Act"
+              onPress={() => navigation.navigate('Legal', { document: 'privacy' })}
+            />
+          </Card>
+        </View>
+
         {/* --- About ------------------------------------------------------ */}
         <View style={{ gap: t.spacing.sm }}>
           <Text variant="heading">About</Text>

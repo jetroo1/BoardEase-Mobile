@@ -3,13 +3,19 @@
     "name": "BoardEase",
     "slug": "mobile",
     "version": "1.0.0",
+    "scheme": "boardease",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "ph.edu.umindanao.tagum.boardease",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
+      "package": "ph.edu.umindanao.tagum.boardease",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -24,13 +30,25 @@
     "plugins": [
       "expo-secure-store",
       [
-        "expo-image-picker",
+        "expo-location",
         {
-          "photosPermission": "BoardEase needs access to your photos so an admin can attach a listing picture.",
-          "cameraPermission": "BoardEase needs access to your camera so an admin can take a listing photo."
+          "locationWhenInUsePermission": "BoardEase uses your location to show how far each boarding house is and to draw walking directions."
         }
       ],
-      "expo-font"
+      "expo-font",
+      [
+        "react-native-fbsdk-next",
+        {
+          "appID": "1866735770860484",
+          "clientToken": "1b89513bcc5d4bea24a710a2666ec7fb",
+          "displayName": "BoardEase",
+          "scheme": "fb1866735770860484",
+          "advertiserIDCollectionEnabled": false,
+          "autoLogAppEventsEnabled": false,
+          "isAutoInitEnabled": true,
+          "iosUserTrackingPermission": false
+        }
+      ]
     ]
   }
 }

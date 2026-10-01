@@ -21,6 +21,14 @@ expo-env.d.ts
 # Metro
 .metro-health-check*
 
+# Throwaway web exports used to check a screen, then thrown away. Each one is
+# a full bundle of the whole app, so committing them adds hundreds of
+# generated files that say nothing about the source.
+.expo-*-check/
+.expo-*-web/
+.expo-*-qc/
+firebase-debug.log
+
 # debug
 npm-debug.*
 yarn-debug.*
@@ -46,3 +54,6 @@ CLAUDE.md
 
 # Generated preview (regenerate with: node docs/figma/render.js)
 docs/figma/preview.png
+
+# Chapter documents are submitted, not versioned here
+docs/report/*.docx

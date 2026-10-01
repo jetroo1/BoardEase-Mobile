@@ -1,9 +1,17 @@
 // Admin screen: the moderation dashboard from our proposal. It has two
 // tabs:
-//   - "Listings" lists every property that hasn't been approved yet and
-//     lets an admin approve or reject it.
+//   - "Listings" lists every property in the app and lets an admin edit one,
+//     hide it, publish it, or delete it outright.
 //   - "Reviews" lists every review left anywhere in the app and lets an
 //     admin remove one (for spam or offensive text).
+//
+// The Listings tab used to show only properties awaiting approval, which
+// sounds right and was in practice a tab that could never contain anything:
+// only an admin may create a listing, and AddListing marks an admin's own
+// listing approved as it writes it. So the queue was empty by construction,
+// and there was nowhere at all to manage the listings that did exist -- no way
+// to correct a price, move a pin or take a room down once it was taken. Hence
+// every listing, with its state shown on it.
 //
 // Only an admin should ever reach this screen -- ProfileScreen only shows
 // the button that opens it when role === 'admin', and we double-check the
@@ -20,16 +28,17 @@ import {
   doc,
   getDoc,
   getDocs,
-  query,
   updateDoc,
-  where,
 } from 'firebase/firestore';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { db } from '../firebaseConfig';
 import { useAuth } from '../context/AuthContext';
 import { Property, Review } from '../types';
+import { deleteListing } from '../utils/listings';
+import { photosOf } from '../utils/photos';
 import { RootStackParamList } from '../navigation/types';
+import { displayName } from '../utils/displayName';
 import { GUTTER, HIT_SLOP_MIN } from '../theme';
 import { useTheme } from '../context/ThemeContext';
 import {
@@ -64,7 +73,7 @@ export default function AdminScreen() {
   const { role } = useAuth();
 
   const [activeTab, setActiveTab] = useState<AdminTab>('listings');
-  const [pendingProperties, setPendingProperties] = useState<Property[]>([]);
+  const [properties, setProperties] = useState<Property[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [listingsError, setListingsError] = useState('');
   const [reviews, setReviews] = useState<ReviewWithProperty[]>([]);
@@ -72,25 +81,37 @@ export default function AdminScreen() {
   const [reviewsError, setReviewsError] = useState('');
   const [busyId, setBusyId] = useState<string | null>(null);
 
-  const loadPendingProperties = useCallback(async () => {
+  const loadProperties = useCallback(async () => {
     setIsLoading(true);
     setListingsError('');
     try {
-      const pendingQuery = query(
-        collection(db, 'properties'),
-        where('isApproved', '==', false)
-      );
-      const snapshot = await getDocs(pendingQuery);
-      setPendingProperties(
-        snapshot.docs.map((docSnap) => ({
-          id: docSnap.id,
-          ...(docSnap.data() as Omit<Property, 'id'>),
-        }))
-      );
+      // Every listing, not only the unapproved ones.
+      //
+      // This tab used to query isApproved == false, and was therefore always
+      // empty. Only an admin can create a listing, and AddListing marks an
+      // admin's own listing approved as it writes it -- so nothing could ever
+      // be pending, and the one screen for managing listings showed none of
+      // them. An admin needs to reach the listings that exist: to fix a price,
+      // move a pin, or take one down.
+      const snapshot = await getDocs(collection(db, 'properties'));
+      const loaded = snapshot.docs.map((docSnap) => ({
+        id: docSnap.id,
+        ...(docSnap.data() as Omit<Property, 'id'>),
+      }));
+      // Anything still awaiting approval first, then newest. Sorted here
+      // rather than in the query, which would need a composite index created
+      // by hand in the console -- something this project avoids.
+      loaded.sort((a, b) => {
+        if (a.isApproved !== b.isApproved) {
+          return a.isApproved ? 1 : -1;
+        }
+        return (b.createdAt ?? 0) - (a.createdAt ?? 0);
+      });
+      setProperties(loaded);
     } catch {
       // No catch existed here, so a dropped connection left the spinner
       // running with nothing to act on.
-      setListingsError('Could not load the approval queue.');
+      setListingsError('Could not load the listings.');
     } finally {
       setIsLoading(false);
     }
@@ -136,9 +157,11 @@ export default function AdminScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      loadPendingProperties();
+      // Reloaded every time the screen is returned to, which is what makes an
+      // edit or a new listing appear without a manual refresh.
+      loadProperties();
       loadReviews();
-    }, [loadPendingProperties, loadReviews])
+    }, [loadProperties, loadReviews])
   );
 
   async function handleApprove(property: Property) {
@@ -148,7 +171,9 @@ export default function AdminScreen() {
     setBusyId(property.id);
     try {
       await updateDoc(doc(db, 'properties', property.id), { isApproved: true });
-      setPendingProperties((current) => current.filter((item) => item.id !== property.id));
+      setProperties((current) =>
+        current.map((item) => (item.id === property.id ? { ...item, isApproved: true } : item))
+      );
     } catch {
       Alert.alert('Could not approve', 'Check your connection and try again.');
     } finally {
@@ -156,25 +181,58 @@ export default function AdminScreen() {
     }
   }
 
-  // Names the listing it is about to delete rather than asking "Continue?".
-  function handleReject(property: Property) {
+  // Takes a live listing back out of the app without deleting it. The way to
+  // deal with a listing that is wrong but not worthless -- the room is taken,
+  // the price is disputed -- since the alternative used to be destroying it
+  // and its reviews.
+  async function handleUnapprove(property: Property) {
+    if (busyId) {
+      return;
+    }
+    setBusyId(property.id);
+    try {
+      await updateDoc(doc(db, 'properties', property.id), { isApproved: false });
+      setProperties((current) =>
+        current.map((item) => (item.id === property.id ? { ...item, isApproved: false } : item))
+      );
+    } catch {
+      Alert.alert('Could not hide it', 'Check your connection and try again.');
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  // Names the listing it is about to delete rather than asking "Continue?",
+  // and says what else goes with it.
+  function handleDelete(property: Property) {
     Alert.alert(
-      'Reject this listing?',
-      `"${property.title}" will be permanently deleted. This cannot be undone.`,
+      'Delete this listing?',
+      `"${property.title}" will be permanently deleted, along with its reviews `
+      + 'and photographs. This cannot be undone.',
       [
         { text: 'Keep it', style: 'cancel' },
         {
-          text: 'Reject',
+          text: 'Delete',
           style: 'destructive',
           onPress: async () => {
             setBusyId(property.id);
             try {
-              await deleteDoc(doc(db, 'properties', property.id));
-              setPendingProperties((current) =>
-                current.filter((item) => item.id !== property.id)
+              const result = await deleteListing(property);
+              setProperties((current) => current.filter((item) => item.id !== property.id));
+              // Its reviews are gone from the database, so drop them from the
+              // other tab too rather than leaving rows that refer to nothing.
+              setReviews((current) =>
+                current.filter((review) => review.propertyId !== property.id)
               );
+              if (result.reviewsDeleted > 0 || result.photosDeleted > 0) {
+                Alert.alert(
+                  'Listing deleted',
+                  `Also removed ${result.reviewsDeleted} review(s) and `
+                  + `${result.photosDeleted} photo(s).`
+                );
+              }
             } catch {
-              Alert.alert('Could not reject', 'Check your connection and try again.');
+              Alert.alert('Could not delete', 'Check your connection and try again.');
             } finally {
               setBusyId(null);
             }
@@ -187,7 +245,7 @@ export default function AdminScreen() {
   function handleRemoveReview(review: ReviewWithProperty) {
     Alert.alert(
       'Remove this review?',
-      `${review.userName}'s review of "${review.propertyTitle}" will be permanently deleted.`,
+      `${displayName(review.userName)}'s review of "${review.propertyTitle}" will be permanently deleted.`,
       [
         { text: 'Keep it', style: 'cancel' },
         {
@@ -245,7 +303,7 @@ export default function AdminScreen() {
       >
         {(['listings', 'reviews'] as AdminTab[]).map((tab) => {
           const active = activeTab === tab;
-          const count = tab === 'listings' ? pendingProperties.length : reviews.length;
+          const count = tab === 'listings' ? properties.length : reviews.length;
           return (
             <Pressable
               key={tab}
@@ -268,7 +326,7 @@ export default function AdminScreen() {
               }}
             >
               <Text variant="captionStrong" tone={active ? 'brand' : 'faint'}>
-                {tab === 'listings' ? 'Pending' : 'Reviews'}
+                {tab === 'listings' ? 'Listings' : 'Reviews'}
               </Text>
               <Text variant="micro" tone={active ? 'brand' : 'faint'}>
                 {count}
@@ -282,10 +340,10 @@ export default function AdminScreen() {
         isLoading ? (
           <LoadingList />
         ) : listingsError ? (
-          <ErrorState message={listingsError} onRetry={loadPendingProperties} />
+          <ErrorState message={listingsError} onRetry={loadProperties} />
         ) : (
           <FlatList
-            data={pendingProperties}
+            data={properties}
             keyExtractor={(item) => item.id}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{
@@ -305,59 +363,105 @@ export default function AdminScreen() {
             }
             ListEmptyComponent={
               <EmptyState
-                icon="checkmark-done-outline"
-                title="Queue is clear"
-                message="Every listing has been reviewed. New submissions will appear here."
+                icon="home-outline"
+                title="No listings yet"
+                message="Add the first boarding house and it will appear here."
               />
             }
-            renderItem={({ item }) => (
-              <Card level="low" style={{ borderRadius: t.radius.lg, gap: t.spacing.sm }}>
-                <View style={{ flexDirection: 'row', gap: t.spacing.sm }}>
-                  <PropertyPhoto
-                    uri={item.imageUrl}
-                    title={item.title}
-                    roomType={item.roomType}
-                    height={60}
-                    radius={t.radius.sm}
-                    style={{ width: 60 }}
-                  />
-                  <View style={{ flex: 1, gap: 2 }}>
-                    <Text variant="captionStrong" numberOfLines={1}>
-                      {item.title}
-                    </Text>
-                    <Text variant="caption" tone="faint" numberOfLines={1}>
-                      {item.address}
-                    </Text>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: t.spacing.xxs }}>
-                      <Text variant="captionStrong" tone="brand">
-                        {formatPeso(item.price)}
+            renderItem={({ item }) => {
+              const photos = photosOf(item);
+              return (
+                <Card level="low" style={{ borderRadius: t.radius.lg, gap: t.spacing.sm }}>
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={`Open ${item.title}`}
+                    onPress={() => navigation.navigate('Details', { propertyId: item.id })}
+                    style={{ flexDirection: 'row', gap: t.spacing.sm }}
+                  >
+                    <PropertyPhoto
+                      uri={photos[0]}
+                      title={item.title}
+                      roomType={item.roomType}
+                      height={60}
+                      radius={t.radius.sm}
+                      style={{ width: 60 }}
+                    />
+                    <View style={{ flex: 1, gap: 2 }}>
+                      <Text variant="captionStrong" numberOfLines={1}>
+                        {item.title}
                       </Text>
-                      <Pill label={item.roomType} tone="neutral" />
+                      <Text variant="caption" tone="faint" numberOfLines={1}>
+                        {item.address}
+                      </Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: t.spacing.xxs }}>
+                        <Text variant="captionStrong" tone="brand">
+                          {formatPeso(item.price)}
+                        </Text>
+                        <Pill label={item.roomType} tone="neutral" />
+                        {/* The two things an admin cannot see from the listing
+                            itself: whether it is live, and whether it has
+                            enough photographs to be worth looking at. */}
+                        {item.isApproved ? null : <Pill label="Hidden" tone="warning" />}
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+                          <Ionicons
+                            name="image-outline"
+                            size={12}
+                            color={photos.length === 0 ? t.colors.danger : t.colors.inkFaint}
+                          />
+                          <Text
+                            variant="micro"
+                            tone={photos.length === 0 ? 'danger' : 'faint'}
+                          >
+                            {photos.length}
+                          </Text>
+                        </View>
+                      </View>
                     </View>
-                  </View>
-                </View>
+                  </Pressable>
 
-                <View style={{ flexDirection: 'row', gap: t.spacing.xs }}>
-                  <Button
-                    label="Approve"
-                    icon="checkmark"
-                    size="sm"
-                    loading={busyId === item.id}
-                    onPress={() => handleApprove(item)}
-                    style={{ flex: 1 }}
-                  />
-                  <Button
-                    label="Reject"
-                    icon="close"
-                    variant="danger"
-                    size="sm"
-                    disabled={busyId === item.id}
-                    onPress={() => handleReject(item)}
-                    style={{ flex: 1 }}
-                  />
-                </View>
-              </Card>
-            )}
+                  <View style={{ flexDirection: 'row', gap: t.spacing.xs }}>
+                    <Button
+                      label="Edit"
+                      icon="create-outline"
+                      variant="secondary"
+                      size="sm"
+                      disabled={busyId === item.id}
+                      onPress={() => navigation.navigate('AddListing', { propertyId: item.id })}
+                      style={{ flex: 1 }}
+                    />
+                    {item.isApproved ? (
+                      <Button
+                        label="Hide"
+                        icon="eye-off-outline"
+                        variant="secondary"
+                        size="sm"
+                        loading={busyId === item.id}
+                        onPress={() => handleUnapprove(item)}
+                        style={{ flex: 1 }}
+                      />
+                    ) : (
+                      <Button
+                        label="Approve"
+                        icon="checkmark"
+                        size="sm"
+                        loading={busyId === item.id}
+                        onPress={() => handleApprove(item)}
+                        style={{ flex: 1 }}
+                      />
+                    )}
+                    <Button
+                      label="Delete"
+                      icon="trash-outline"
+                      variant="danger"
+                      size="sm"
+                      disabled={busyId === item.id}
+                      onPress={() => handleDelete(item)}
+                      style={{ flex: 1 }}
+                    />
+                  </View>
+                </Card>
+              );
+            }}
           />
         )
       ) : isLoadingReviews ? (
@@ -387,7 +491,7 @@ export default function AdminScreen() {
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: t.spacing.xs }}>
                 <View style={{ flex: 1, gap: 1 }}>
                   <Text variant="captionStrong" numberOfLines={1}>
-                    {item.userName}
+                    {displayName(item.userName)}
                   </Text>
                   <Text variant="micro" tone="faint" numberOfLines={1}>
                     on {item.propertyTitle}

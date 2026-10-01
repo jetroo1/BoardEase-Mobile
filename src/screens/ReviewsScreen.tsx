@@ -9,12 +9,13 @@
 import React, { useCallback, useState } from 'react';
 import { Alert, FlatList, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { addDoc, collection, getDocs, query, where } from 'firebase/firestore';
+import { collection, doc, getDocs, query, setDoc, where } from 'firebase/firestore';
 import { useFocusEffect, useRoute, RouteProp } from '@react-navigation/native';
 import { db } from '../firebaseConfig';
 import { useAuth } from '../context/AuthContext';
 import { Review } from '../types';
 import { RootStackParamList } from '../navigation/types';
+import { displayName } from '../utils/displayName';
 import { GUTTER } from '../theme';
 import { useTheme } from '../context/ThemeContext';
 import {
@@ -31,13 +32,6 @@ import {
 } from '../components/ui';
 
 type ReviewsRouteProp = RouteProp<RootStackParamList, 'Reviews'>;
-
-// Firebase gives us the email as the display name. Showing the whole thing
-// puts a stranger's address on screen, so only the part before the @ is used.
-function displayName(raw: string): string {
-  const local = raw.split('@')[0] ?? raw;
-  return local.charAt(0).toUpperCase() + local.slice(1);
-}
 
 function timeAgo(timestamp: number): string {
   const minutes = Math.floor((Date.now() - timestamp) / 60000);
@@ -125,10 +119,14 @@ export default function ReviewsScreen() {
 
     setIsSubmitting(true);
     try {
-      await addDoc(collection(db, 'reviews'), {
+      // One deterministic document per user and listing lets Firestore rules
+      // enforce the one-review policy even if a client is modified.
+      await setDoc(doc(db, 'reviews', `${propertyId}_${user.uid}`), {
         propertyId,
         userId: user.uid,
-        userName: user.email || 'Anonymous',
+        // The masked name, not the address. Storing the address and hiding it
+        // on screen would publish it to every signed-in user regardless.
+        userName: displayName(user.email ?? ''),
         rating,
         body: body.trim(),
         createdAt: Date.now(),

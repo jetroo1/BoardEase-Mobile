@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1052" height="712" viewBox="24 24 1052 712" font-family="Arial, Helvetica, sans-serif">
+<rect x="24" y="24" width="1052" height="712" fill="#FFFFFF"/>
+<defs><marker id="arrow-e-55697A" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="8" markerHeight="8" orient="auto"><path d="M1,1 L11,6 L1,11 z" fill="#55697A"/></marker></defs>
+<polyline points="244,200 244,225 285,225 285,250" fill="none" stroke="#55697A" stroke-width="1.4" marker-end="url(#arrow-e-55697A)"/>
+<polyline points="856,200 856,225 815,225 815,250" fill="none" stroke="#55697A" stroke-width="1.4" marker-end="url(#arrow-e-55697A)"/>
+<polyline points="211.5,390 211.5,415 340,415 340,440" fill="none" stroke="#55697A" stroke-width="1.4" marker-end="url(#arrow-e-55697A)"/>
+<polyline points="888.5,390 888.5,415 870,415 870,440" fill="none" stroke="#55697A" stroke-width="1.4" marker-end="url(#arrow-e-55697A)"/>
+<rect x="40" y="40" width="1020" height="160" rx="8" fill="none" stroke="#D5E3EA" stroke-width="1" stroke-dasharray="6 4"/>
+<text x="54" y="56" font-size="12" fill="#55697A" text-anchor="start">PRESENTATION — React Native (Expo), TypeScript</text>
+<rect x="40" y="250" width="490" height="140" rx="8" fill="none" stroke="#D5E3EA" stroke-width="1" stroke-dasharray="6 4"/>
+<text x="54" y="266" font-size="12" fill="#55697A" text-anchor="start">DEVICE CAPABILITIES</text>
+<rect x="570" y="250" width="490" height="140" rx="8" fill="none" stroke="#D5E3EA" stroke-width="1" stroke-dasharray="6 4"/>
+<text x="584" y="266" font-size="12" fill="#55697A" text-anchor="start">EMBEDDED WEB LAYER</text>
+<rect x="40" y="440" width="600" height="160" rx="8" fill="none" stroke="#D5E3EA" stroke-width="1" stroke-dasharray="6 4"/>
+<text x="54" y="456" font-size="12" fill="#55697A" text-anchor="start">BACKEND — Firebase (no custom server)</text>
+<rect x="680" y="440" width="380" height="160" rx="8" fill="none" stroke="#D5E3EA" stroke-width="1" stroke-dasharray="6 4"/>
+<text x="694" y="456" font-size="12" fill="#55697A" text-anchor="start">EXTERNAL SERVICES — free, no API key</text>
+<rect x="60" y="80" width="180" height="40" rx="8" fill="#EEF4F7" stroke="#D5E3EA" stroke-width="1"/>
+<text x="150" y="104.42" font-size="13" fill="#0D1B26" text-anchor="middle">Landing / Auth</text>
+<rect x="260" y="80" width="180" height="40" rx="8" fill="#EEF4F7" stroke="#D5E3EA" stroke-width="1"/>
+<text x="350" y="104.42" font-size="13" fill="#0D1B26" text-anchor="middle">Search &amp; Filter</text>
+<rect x="460" y="80" width="180" height="40" rx="8" fill="#EEF4F7" stroke="#D5E3EA" stroke-width="1"/>
+<text x="550" y="104.42" font-size="13" fill="#0D1B26" text-anchor="middle">Map &amp; Route</text>
+<rect x="660" y="80" width="180" height="40" rx="8" fill="#EEF4F7" stroke="#D5E3EA" stroke-width="1"/>
+<text x="750" y="104.42" font-size="13" fill="#0D1B26" text-anchor="middle">Compare</text>
+<rect x="860" y="80" width="180" height="40" rx="8" fill="#EEF4F7" stroke="#D5E3EA" stroke-width="1"/>
+<text x="950" y="104.42" font-size="13" fill="#0D1B26" text-anchor="middle">Admin</text>
+<rect x="60" y="140" width="300" height="40" rx="8" fill="#EEF4F7" stroke="#D5E3EA" stroke-width="1"/>
+<text x="210" y="164.08" font-size="12" fill="#55697A" text-anchor="middle">AuthContext — who is logged in</text>
+<rect x="380" y="140" width="300" height="40" rx="8" fill="#EEF4F7" stroke="#D5E3EA" stroke-width="1"/>
+<text x="530" y="164.08" font-size="12" fill="#55697A" text-anchor="middle">CompareContext — selected listings</text>
+<rect x="700" y="140" width="340" height="40" rx="8" fill="#EEF4F7" stroke="#D5E3EA" stroke-width="1"/>
+<text x="870" y="164.08" font-size="12" fill="#55697A" text-anchor="middle">Helpers — distance (Haversine) · match scoring</text>
+<rect x="60" y="290" width="140" height="70" rx="8" fill="#EEF4F7" stroke="#D5E3EA" stroke-width="1"/>
+<text x="130" y="321.74" font-size="13" fill="#0D1B26" text-anchor="middle" font-weight="bold">GPS</text>
+<text x="130" y="338.38" font-size="12" fill="#55697A" text-anchor="middle">expo-location</text>
+<rect x="215" y="290" width="140" height="70" rx="8" fill="#EEF4F7" stroke="#D5E3EA" stroke-width="1"/>
+<text x="285" y="321.74" font-size="13" fill="#0D1B26" text-anchor="middle" font-weight="bold">Camera</text>
+<text x="285" y="338.38" font-size="12" fill="#55697A" text-anchor="middle">expo-image-picker</text>
+<rect x="370" y="290" width="140" height="70" rx="8" fill="#EEF4F7" stroke="#D5E3EA" stroke-width="1"/>
+<text x="440" y="321.74" font-size="13" fill="#0D1B26" text-anchor="middle" font-weight="bold">Local store</text>
+<text x="440" y="338.38" font-size="12" fill="#55697A" text-anchor="middle">AsyncStorage</text>
+<rect x="590" y="290" width="215" height="70" rx="8" fill="#EEF4F7" stroke="#D5E3EA" stroke-width="1"/>
+<text x="697.5" y="321.74" font-size="13" fill="#0D1B26" text-anchor="middle" font-weight="bold">WebView</text>
+<text x="697.5" y="338.38" font-size="12" fill="#55697A" text-anchor="middle">react-native-webview</text>
+<rect x="825" y="290" width="215" height="70" rx="8" fill="#EEF4F7" stroke="#D5E3EA" stroke-width="1"/>
+<text x="932.5" y="321.74" font-size="13" fill="#0D1B26" text-anchor="middle" font-weight="bold">Leaflet.js</text>
+<text x="932.5" y="338.38" font-size="12" fill="#55697A" text-anchor="middle">draws the map + pins</text>
+<rect x="60" y="480" width="170" height="80" rx="8" fill="#EEF4F7" stroke="#0369A1" stroke-width="1"/>
+<text x="145" y="516.74" font-size="13" fill="#0D1B26" text-anchor="middle" font-weight="bold">Authentication</text>
+<text x="145" y="533.38" font-size="12" fill="#55697A" text-anchor="middle">email + password</text>
+<rect x="255" y="480" width="170" height="80" rx="8" fill="#EEF4F7" stroke="#0369A1" stroke-width="1"/>
+<text x="340" y="516.74" font-size="13" fill="#0D1B26" text-anchor="middle" font-weight="bold">Cloud Firestore</text>
+<text x="340" y="533.38" font-size="12" fill="#55697A" text-anchor="middle">4 collections</text>
+<rect x="450" y="480" width="170" height="80" rx="8" fill="#EEF4F7" stroke="#0369A1" stroke-width="1"/>
+<text x="535" y="516.74" font-size="13" fill="#0D1B26" text-anchor="middle" font-weight="bold">Cloud Storage</text>
+<text x="535" y="533.38" font-size="12" fill="#55697A" text-anchor="middle">listing photos</text>
+<rect x="700" y="480" width="160" height="80" rx="0" fill="#FFFFFF" stroke="#55697A" stroke-width="1"/>
+<text x="780" y="516.74" font-size="13" fill="#0D1B26" text-anchor="middle" font-weight="bold">OpenStreetMap</text>
+<text x="780" y="533.38" font-size="12" fill="#55697A" text-anchor="middle">map tiles</text>
+<rect x="880" y="480" width="160" height="80" rx="0" fill="#FFFFFF" stroke="#55697A" stroke-width="1"/>
+<text x="960" y="516.74" font-size="13" fill="#0D1B26" text-anchor="middle" font-weight="bold">OSRM</text>
+<text x="960" y="533.38" font-size="12" fill="#55697A" text-anchor="middle">walking routes</text>
+<rect x="40" y="630" width="1020" height="90" rx="8" fill="#EEF4F7" stroke="#D5E3EA" stroke-width="1"/>
+<text x="56" y="664.4" font-size="14" fill="#0D1B26" text-anchor="start" font-weight="bold">Why a WebView for the map?</text>
+<text x="56" y="682.3199999999999" font-size="12" fill="#55697A" text-anchor="start">Leaflet is a library written for web browsers. React Native has no browser, so the app embeds a tiny one,</text>
+<text x="56" y="697.68" font-size="12" fill="#55697A" text-anchor="start">loads Leaflet inside it, and passes markers in and marker taps back out as small messages.</text>
+<rect x="217.98" y="219.12" width="93.04" height="15" fill="#FFFFFF" opacity="0.92"/>
+<text x="264.5" y="229.32" font-size="12" fill="#55697A" text-anchor="middle">GPS fix, photo</text>
+<rect x="769.9" y="219.12" width="131.2" height="15" fill="#FFFFFF" opacity="0.92"/>
+<text x="835.5" y="229.32" font-size="12" fill="#55697A" text-anchor="middle">markers in, taps out</text>
+<rect x="219.69" y="409.12" width="112.12" height="15" fill="#FFFFFF" opacity="0.92"/>
+<text x="275.75" y="419.32" font-size="12" fill="#55697A" text-anchor="middle">read / write data</text>
+<rect x="819.72" y="396.62" width="137.56" height="15" fill="#FFFFFF" opacity="0.92"/>
+<text x="888.5" y="406.82" font-size="12" fill="#55697A" text-anchor="middle">tiles, route requests</text>
+</svg>

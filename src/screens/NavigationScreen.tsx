@@ -15,6 +15,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
+import { requestLocation, ensureLocationPermission, ensureLocationServices } from '../utils/locationAccess';
 import { useRoute, RouteProp } from '@react-navigation/native';
 import LeafletMap from '../components/LeafletMap';
 import { fetchWalkingRoute, formatMeters, formatMinutes, WalkingRoute } from '../utils/routing';
@@ -91,15 +92,16 @@ export default function NavigationScreen() {
 
     (async () => {
       try {
-        const { status } = await Location.requestForegroundPermissionsAsync();
-        if (status !== 'granted') {
-          setErrorMessage('Location permission is needed to show the route.');
+        // Explained before the system dialog appears, and offering a way back
+        // through Settings if it was refused before.
+        if (!(await ensureLocationPermission('directions'))) {
+          setErrorMessage('Walking directions need your location. Allow it to see the route.');
           setIsLoading(false);
           return;
         }
 
-        if (!(await Location.hasServicesEnabledAsync())) {
-          setErrorMessage('Location services are switched off on this phone.');
+        if (!(await ensureLocationServices())) {
+          setErrorMessage('Location is switched off on this phone, so the route cannot be drawn.');
           setIsLoading(false);
           return;
         }

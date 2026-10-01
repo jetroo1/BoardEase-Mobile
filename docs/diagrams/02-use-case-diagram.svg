@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1073" height="802" viewBox="-5.040000000000006 44 1073.04 802" font-family="Arial, Helvetica, sans-serif">
+<rect x="-5.040000000000006" y="44" width="1073.04" height="802" fill="#FFFFFF"/>
+<defs></defs>
+<polyline points="120,420 300,155" fill="none" stroke="#55697A" stroke-width="1.4"/>
+<polyline points="120,420 300,220" fill="none" stroke="#55697A" stroke-width="1.4"/>
+<polyline points="120,420 300,285" fill="none" stroke="#55697A" stroke-width="1.4"/>
+<polyline points="120,420 300,350" fill="none" stroke="#55697A" stroke-width="1.4"/>
+<polyline points="120,420 300,415" fill="none" stroke="#55697A" stroke-width="1.4"/>
+<polyline points="120,420 300,480" fill="none" stroke="#55697A" stroke-width="1.4"/>
+<polyline points="120,420 300,545" fill="none" stroke="#55697A" stroke-width="1.4"/>
+<polyline points="120,420 300,610" fill="none" stroke="#55697A" stroke-width="1.4"/>
+<polyline points="120,420 300,675" fill="none" stroke="#55697A" stroke-width="1.4"/>
+<polyline points="120,420 300,740" fill="none" stroke="#55697A" stroke-width="1.4"/>
+<polyline points="120,420 300,805" fill="none" stroke="#55697A" stroke-width="1.4"/>
+<polyline points="955,190 540,155" fill="none" stroke="#55697A" stroke-width="1.4"/>
+<polyline points="955,190 860,285" fill="none" stroke="#55697A" stroke-width="1.4"/>
+<polyline points="955,190 860,350" fill="none" stroke="#55697A" stroke-width="1.4"/>
+<polyline points="955,190 860,415" fill="none" stroke="#55697A" stroke-width="1.4"/>
+<polyline points="955,190 860,480" fill="none" stroke="#55697A" stroke-width="1.4"/>
+<rect x="270" y="60" width="630" height="680" rx="8" fill="none" stroke="#D5E3EA" stroke-width="1" stroke-dasharray="6 4"/>
+<text x="585" y="80" font-size="14" fill="#0D1B26" text-anchor="middle" font-weight="bold">BoardEase</text>
+<text x="420" y="112.08" font-size="12" fill="#55697A" text-anchor="middle">TENANT-SEEKER</text>
+<text x="760" y="229.08" font-size="12" fill="#55697A" text-anchor="middle">ADMINISTRATOR</text>
+<circle cx="100" cy="392.8" r="6.800000000000001" fill="none" stroke="#0369A1" stroke-width="2"/>
+<path d="M100,404 L100,429.6 M88,413.6 L112,413.6 M100,429.6 L89.6,453.6 M100,429.6 L110.4,453.6" fill="none" stroke="#0369A1" stroke-width="2"/>
+<text x="100" y="477" font-size="13" fill="#0D1B26" text-anchor="middle" font-weight="bold">Tenant-Seeker</text>
+<text x="100" y="493.64" font-size="12" fill="#55697A" text-anchor="middle">student / young professional</text>
+<circle cx="975" cy="162.8" r="6.800000000000001" fill="none" stroke="#0F766E" stroke-width="2"/>
+<path d="M975,174 L975,199.6 M963,183.6 L987,183.6 M975,199.6 L964.6,223.60000000000002 M975,199.6 L985.4,223.60000000000002" fill="none" stroke="#0F766E" stroke-width="2"/>
+<text x="975" y="247" font-size="13" fill="#0D1B26" text-anchor="middle" font-weight="bold">Administrator</text>
+<text x="975" y="263.64" font-size="12" fill="#55697A" text-anchor="middle">verifies listings</text>
+<ellipse cx="420" cy="155" rx="120" ry="25" fill="#EEF4F7" stroke="#D5E3EA" stroke-width="1"/>
+<text x="420" y="159.42" font-size="13" fill="#0D1B26" text-anchor="middle">Register / Log In</text>
+<ellipse cx="420" cy="220" rx="120" ry="25" fill="#EEF4F7" stroke="#D5E3EA" stroke-width="1"/>
+<text x="420" y="224.42" font-size="13" fill="#0D1B26" text-anchor="middle">Search Nearby Listings</text>
+<ellipse cx="420" cy="285" rx="120" ry="25" fill="#EEF4F7" stroke="#D5E3EA" stroke-width="1"/>
+<text x="420" y="289.42" font-size="13" fill="#0D1B26" text-anchor="middle">Filter &amp; Get Ranked</text>
+<ellipse cx="420" cy="350" rx="120" ry="25" fill="#EEF4F7" stroke="#D5E3EA" stroke-width="1"/>
+<text x="420" y="354.42" font-size="13" fill="#0D1B26" text-anchor="middle">View Listing Details</text>
+<ellipse cx="420" cy="415" rx="120" ry="25" fill="#EEF4F7" stroke="#D5E3EA" stroke-width="1"/>
+<text x="420" y="419.42" font-size="13" fill="#0D1B26" text-anchor="middle">Compare Listings</text>
+<ellipse cx="420" cy="480" rx="120" ry="25" fill="#EEF4F7" stroke="#D5E3EA" stroke-width="1"/>
+<text x="420" y="484.42" font-size="13" fill="#0D1B26" text-anchor="middle">Get Walking Directions</text>
+<ellipse cx="420" cy="545" rx="120" ry="25" fill="#EEF4F7" stroke="#D5E3EA" stroke-width="1"/>
+<text x="420" y="549.42" font-size="13" fill="#0D1B26" text-anchor="middle">Rate &amp; Review</text>
+<ellipse cx="420" cy="610" rx="120" ry="25" fill="#EEF4F7" stroke="#D5E3EA" stroke-width="1"/>
+<text x="420" y="614.42" font-size="13" fill="#0D1B26" text-anchor="middle">Save to Favorites</text>
+<ellipse cx="420" cy="675" rx="120" ry="25" fill="#EEF4F7" stroke="#D5E3EA" stroke-width="1"/>
+<text x="420" y="679.42" font-size="13" fill="#0D1B26" text-anchor="middle">Browse Map of Listings</text>
+<ellipse cx="420" cy="740" rx="120" ry="25" fill="#EEF4F7" stroke="#D5E3EA" stroke-width="1"/>
+<text x="420" y="744.42" font-size="13" fill="#0D1B26" text-anchor="middle">Receive Match Alerts</text>
+<ellipse cx="420" cy="805" rx="120" ry="25" fill="#EEF4F7" stroke="#D5E3EA" stroke-width="1"/>
+<text x="420" y="809.42" font-size="13" fill="#0D1B26" text-anchor="middle">Manage Profile</text>
+<ellipse cx="760" cy="285" rx="100" ry="25" fill="#EEF4F7" stroke="#D5E3EA" stroke-width="1"/>
+<text x="760" y="289.42" font-size="13" fill="#0D1B26" text-anchor="middle">Add Listing</text>
+<ellipse cx="760" cy="350" rx="100" ry="25" fill="#EEF4F7" stroke="#D5E3EA" stroke-width="1"/>
+<text x="760" y="354.42" font-size="13" fill="#0D1B26" text-anchor="middle">Verify Listing</text>
+<ellipse cx="760" cy="415" rx="100" ry="25" fill="#EEF4F7" stroke="#D5E3EA" stroke-width="1"/>
+<text x="760" y="419.42" font-size="13" fill="#0D1B26" text-anchor="middle">Reject Listing</text>
+<ellipse cx="760" cy="480" rx="100" ry="25" fill="#EEF4F7" stroke="#B45309" stroke-width="1" stroke-dasharray="6 4"/>
+<text x="760" y="484.42" font-size="13" fill="#0D1B26" text-anchor="middle">Moderate Reviews</text>
+<rect x="850" y="756" width="14" height="14" rx="0" fill="#EEF4F7" stroke="#B45309" stroke-width="1" stroke-dasharray="6 4"/>
+<text x="878" y="767.08" font-size="12" fill="#B45309" text-anchor="start">dashed = not yet built</text>
+</svg>

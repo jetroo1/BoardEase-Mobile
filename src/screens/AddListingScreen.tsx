@@ -1,9 +1,16 @@
-// Add Listing screen: the form an admin uses to create a brand-new boarding
-// house listing straight from the phone. It collects the listing details,
-// lets the admin pin the location (either by using the phone's GPS or by
-// typing the coordinates by hand), lets them attach a photo taken with the
-// camera or picked from the gallery, and finally saves everything as one new
-// document in the Firestore "properties" collection.
+// The listing form: one screen that both creates a boarding house listing and
+// edits an existing one, straight from the phone. It collects the details,
+// lets the admin place the location (drop a pin on the map, take the phone's
+// GPS, or type the coordinates), lets them attach up to six public photograph
+// links, and writes the result to the Firestore
+// "properties" collection -- adding a document, or updating one.
+//
+// Create and edit are the same screen because they are the same fields. Two
+// screens would be two copies of this form, and the copies would drift: a
+// field added to one, a validation rule fixed in the other.
+//
+// Which one it is comes from route.params.propertyId, and nothing else
+// branches on it beyond loading, the button label and add-versus-update.
 //
 // Only an admin should reach this screen (the button that opens it lives on
 // the Admin screen), but we double-check the role here as well, exactly like
@@ -15,49 +22,71 @@
 //
 // The header comes from RootNavigator (detailHeader('Add listing')).
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Alert, Image, ScrollView, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import * as Location from 'expo-location';
-import * as ImagePicker from 'expo-image-picker';
-import { addDoc, collection } from 'firebase/firestore';
-import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
-import { useNavigation } from '@react-navigation/native';
+import { requestLocation } from '../utils/locationAccess';
+import { addDoc, collection, doc, getDoc, updateDoc } from 'firebase/firestore';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { db, storage } from '../firebaseConfig';
+import { db } from '../firebaseConfig';
 import { useAuth } from '../context/AuthContext';
+import { Property } from '../types';
 import { RootStackParamList } from '../navigation/types';
+import { photosOf } from '../utils/photos';
+import { setCallback } from '../utils/navigationCallbacks';
 import { GUTTER } from '../theme';
 import { useTheme } from '../context/ThemeContext';
 import {
   Button,
   Card,
   EmptyState,
+  ErrorState,
   IconButton,
   Input,
   Pressable,
   Screen,
+  Skeleton,
   Text,
 } from '../components/ui';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
+type AddListingRouteProp = RouteProp<RootStackParamList, 'AddListing'>;
 
 // The same option lists the Filter screen uses, so what an admin can create
 // always matches what a tenant can search for.
 const ROOM_TYPE_OPTIONS = ['Single', 'Shared', 'Studio'];
 const AMENITY_OPTIONS = ['WiFi', 'CR', 'Parking', 'Aircon', 'Kitchen', 'Laundry'];
 
+// How many photographs one listing can carry.
+//
+// Six is enough for the room, the CR, the kitchen, the frontage and a few
+// angles besides, without making a listing gallery slow to scan.
+const MAX_PHOTOS = 6;
+
+// Not enforced -- a listing with one photo still publishes. It is a nudge
+// shown while the count is below it, because the difference between one
+// photograph and five is most of what makes a listing useful.
+const SUGGESTED_PHOTOS = 5;
+
 interface FieldErrors {
   title?: string;
   address?: string;
   price?: string;
   coordinates?: string;
+  photoUrl?: string;
 }
 
 export default function AddListingScreen() {
   const t = useTheme();
   const navigation = useNavigation<NavigationProp>();
+  const route = useRoute<AddListingRouteProp>();
   const { user, role } = useAuth();
+
+  // Editing an existing listing, or creating a new one. Everything below
+  // branches on this one value rather than on a second screen.
+  const propertyId = route.params?.propertyId;
+  const isEditing = !!propertyId;
 
   // One piece of state per form field. Numbers (price, latitude, longitude)
   // are kept as text while typing, and only turned into real numbers when we
@@ -70,11 +99,74 @@ export default function AddListingScreen() {
   const [amenities, setAmenities] = useState<string[]>([]);
   const [latitudeText, setLatitudeText] = useState('');
   const [longitudeText, setLongitudeText] = useState('');
-  const [photoUri, setPhotoUri] = useState(''); // the photo on THIS phone, not uploaded yet
+  // Public HTTPS image URLs. The first link is the cover on cards and the map.
+  const [photoUris, setPhotoUris] = useState<string[]>([]);
+  const [photoUrl, setPhotoUrl] = useState('');
+
+  // The coordinates as a point, when the two fields currently hold a usable
+  // pair. The map picker opens on it so reopening the map returns you to the
+  // pin you already placed instead of starting over. Half-typed or nonsense
+  // input simply reads as "nothing chosen yet".
+  const latitude = Number(latitudeText);
+  const longitude = Number(longitudeText);
+  const pickedPoint =
+    latitudeText.trim() !== ''
+    && longitudeText.trim() !== ''
+    && Number.isFinite(latitude)
+    && Number.isFinite(longitude)
+      ? { lat: latitude, lng: longitude }
+      : undefined;
+
+  // Loading the listing being edited. A brand-new listing has nothing to load,
+  // so it starts ready.
+  const [isLoadingExisting, setIsLoadingExisting] = useState(isEditing);
+  const [loadError, setLoadError] = useState('');
+
+  useEffect(() => {
+    if (!propertyId) {
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      setIsLoadingExisting(true);
+      setLoadError('');
+      try {
+        const snapshot = await getDoc(doc(db, 'properties', propertyId));
+        if (cancelled) {
+          return;
+        }
+        if (!snapshot.exists()) {
+          setLoadError('That listing no longer exists.');
+          return;
+        }
+        const existing = { id: snapshot.id, ...(snapshot.data() as Omit<Property, 'id'>) };
+        setTitle(existing.title ?? '');
+        setDescription(existing.description ?? '');
+        setAddress(existing.address ?? '');
+        setPriceText(existing.price != null ? String(existing.price) : '');
+        setRoomType(existing.roomType || 'Single');
+        setAmenities(existing.amenities ?? []);
+        setLatitudeText(existing.latitude != null ? String(existing.latitude) : '');
+        setLongitudeText(existing.longitude != null ? String(existing.longitude) : '');
+        // Existing gallery URLs stay in their saved order, with the first one
+        // continuing to be the cover image.
+        setPhotoUris(photosOf(existing));
+      } catch {
+        if (!cancelled) {
+          setLoadError('Could not load that listing. Check your connection.');
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoadingExisting(false);
+        }
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [propertyId]);
 
   const [errors, setErrors] = useState<FieldErrors>({});
   const [isLocating, setIsLocating] = useState(false); // true while the GPS is working
-  const [isSaving, setIsSaving] = useState(false); // true while uploading / saving
+  const [isSaving, setIsSaving] = useState(false);
 
   function toggleAmenity(amenity: string) {
     if (amenities.includes(amenity)) {
@@ -89,18 +181,21 @@ export default function AddListingScreen() {
   async function handleUseCurrentLocation() {
     setIsLocating(true);
     try {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert(
-          'Location permission needed',
-          'Please allow location access, or type the latitude and longitude by hand.'
-        );
+      // The explanation and the Settings route are handled in one place; this
+      // screen only has to say what to do instead when there is no position.
+      const located = await requestLocation('pin');
+      if (!located.ok) {
+        if (located.reason !== 'declined') {
+          Alert.alert(
+            'Could not read your position',
+            'Type the latitude and longitude by hand instead.'
+          );
+        }
         return;
       }
 
-      const position = await Location.getCurrentPositionAsync({});
-      setLatitudeText(String(position.coords.latitude));
-      setLongitudeText(String(position.coords.longitude));
+      setLatitudeText(String(located.coords.lat));
+      setLongitudeText(String(located.coords.lng));
       setErrors((current) => ({ ...current, coordinates: undefined }));
     } catch {
       Alert.alert('Could not get location', 'Please type the coordinates instead.');
@@ -109,48 +204,52 @@ export default function AddListingScreen() {
     }
   }
 
-  // Take a new photo with the camera.
-  async function handleTakePhoto() {
-    const permission = await ImagePicker.requestCameraPermissionsAsync();
-    if (!permission.granted) {
-      Alert.alert(
-        'Camera permission needed',
-        'Please allow camera access in your phone settings to take a listing photo.'
-      );
+  function handleAddPhotoLink() {
+    if (photoUris.length >= MAX_PHOTOS) {
+      Alert.alert('That is enough photos', `A listing can hold ${MAX_PHOTOS}.`);
       return;
     }
 
-    const result = await ImagePicker.launchCameraAsync({
-      allowsEditing: true,
-      quality: 0.5, // smaller file so the upload is quick
-    });
-
-    // result.canceled is true when the user backs out without taking a photo.
-    if (!result.canceled) {
-      setPhotoUri(result.assets[0].uri);
+    const candidate = photoUrl.trim();
+    try {
+      const parsed = new URL(candidate);
+      if (parsed.protocol !== 'https:' || !parsed.hostname || parsed.username || parsed.password) {
+        throw new Error('invalid');
+      }
+    } catch {
+      setErrors((current) => ({
+        ...current,
+        photoUrl: 'Enter a public HTTPS image link.',
+      }));
+      return;
     }
+
+    if (photoUris.includes(candidate)) {
+      setErrors((current) => ({ ...current, photoUrl: 'This photo link is already added.' }));
+      return;
+    }
+
+    setPhotoUris((current) => [...current, candidate]);
+    setPhotoUrl('');
+    setErrors((current) => ({ ...current, photoUrl: undefined }));
   }
 
-  // Pick an existing photo from the phone's gallery.
-  async function handleChooseFromGallery() {
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permission.granted) {
-      Alert.alert(
-        'Gallery permission needed',
-        'Please allow photo access in your phone settings to choose a listing photo.'
-      );
-      return;
-    }
+  function removePhoto(index: number) {
+    setPhotoUris((current) => current.filter((_, i) => i !== index));
+  }
 
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'], // photos only, no videos
-      allowsEditing: true,
-      quality: 0.5,
+  // Promotes a photo to the front, which is what makes it the cover. Simpler
+  // than drag-to-reorder and covers the only reordering anybody actually wants
+  // here: "no, use THAT one on the card".
+  function makeCover(index: number) {
+    setPhotoUris((current) => {
+      if (index <= 0 || index >= current.length) {
+        return current;
+      }
+      const next = [...current];
+      const [chosen] = next.splice(index, 1);
+      return [chosen, ...next];
     });
-
-    if (!result.canceled) {
-      setPhotoUri(result.assets[0].uri);
-    }
   }
 
   // Collects EVERY problem at once rather than stopping at the first, so the
@@ -187,31 +286,18 @@ export default function AddListingScreen() {
     return next;
   }
 
-  // Sends the picked photo to Firebase Storage and returns the public URL we
-  // can save on the property. This can fail (for example if Storage has not
-  // been turned on in the Firebase console), so the caller wraps it.
-  async function uploadPhotoToStorage(localUri: string): Promise<string> {
-    // The picker gives us a file path on this phone. fetch() + .blob() turns
-    // that file into raw data that Firebase Storage knows how to accept.
-    const response = await fetch(localUri);
-    const fileBlob = await response.blob();
-
-    // Timestamp + random number keeps every uploaded file name unique.
-    const fileName = `${Date.now()}-${Math.floor(Math.random() * 100000)}.jpg`;
-    const storageRef = ref(storage, `property-images/${fileName}`);
-
-    await uploadBytes(storageRef, fileBlob);
-    return await getDownloadURL(storageRef);
-  }
-
-  // Writes the actual document into Firestore. Called once the form is valid
-  // and we know what to put in imageUrl (either a real URL or an empty string).
-  async function saveListing(imageUrl: string) {
+  // Writes public image URLs directly into the listing document. Image files
+  // remain with the host that supplied each URL, so this needs no Storage bucket.
+  async function saveListing(images: string[]) {
     if (!user) return;
 
     setIsSaving(true);
     try {
-      await addDoc(collection(db, 'properties'), {
+      // The fields the form owns. Everything else on the document -- who
+      // created it, when, whether it is approved -- belongs to the listing's
+      // history and is deliberately not in here, so editing cannot silently
+      // reset it.
+      const fields = {
         title: title.trim(),
         description: description.trim(),
         address: address.trim(),
@@ -220,7 +306,26 @@ export default function AddListingScreen() {
         amenities,
         latitude: Number(latitudeText),
         longitude: Number(longitudeText),
-        imageUrl,
+        images,
+        imageUrl: images[0] ?? '',
+      };
+
+      if (propertyId) {
+        await updateDoc(doc(db, 'properties', propertyId), fields);
+        Alert.alert('Listing updated', 'Your changes are live in the app.', [
+          { text: 'OK', onPress: () => navigation.goBack() },
+        ]);
+        return;
+      }
+
+      // images and imageUrl are both written, on purpose. images is the
+      // gallery; imageUrl repeats its first entry because every card, marker
+      // popup and offline cache in the app already reads imageUrl, and the
+      // listings seeded before galleries existed have nothing else. Writing
+      // only images would leave new listings blank everywhere except the
+      // details screen.
+      await addDoc(collection(db, 'properties'), {
+        ...fields,
         ownerId: user.uid,
         // An admin is the one adding this listing, and admins are exactly the
         // people who approve listings -- so it is already verified and can go
@@ -248,34 +353,7 @@ export default function AddListingScreen() {
       return;
     }
 
-    // No photo picked? Then there is nothing to upload -- save right away
-    // with an empty imageUrl.
-    if (photoUri === '') {
-      await saveListing('');
-      return;
-    }
-
-    setIsSaving(true);
-    let imageUrl = '';
-    try {
-      imageUrl = await uploadPhotoToStorage(photoUri);
-    } catch {
-      // The upload failed. We deliberately do NOT clear the form here, so the
-      // admin keeps everything they typed and can either fix Storage and try
-      // again, or save the listing without a photo for now.
-      setIsSaving(false);
-      Alert.alert(
-        'Photo upload failed',
-        'The photo could not be uploaded. Firebase Storage may not be enabled for this project yet -- in the Firebase console go to Build > Storage > Get started, then try again.\n\nYou can also save this listing now without a photo.',
-        [
-          { text: 'Back to form', style: 'cancel' },
-          { text: 'Save without photo', onPress: () => saveListing('') },
-        ]
-      );
-      return;
-    }
-
-    await saveListing(imageUrl);
+    await saveListing(photoUris);
   }
 
   if (role !== 'admin') {
@@ -289,6 +367,30 @@ export default function AddListingScreen() {
           actionLabel="Go back"
           onAction={() => navigation.goBack()}
         />
+      </Screen>
+    );
+  }
+
+  // Editing, and the listing has not arrived yet. Showing the empty form first
+  // and filling it in a moment later would look like the fields were clearing
+  // themselves.
+  if (isLoadingExisting) {
+    return (
+      <Screen edges={false}>
+        <View style={{ paddingHorizontal: GUTTER, gap: t.spacing.sm }}>
+          <Skeleton height={56} radius={t.radius.md} />
+          <Skeleton height={56} radius={t.radius.md} />
+          <Skeleton height={120} radius={t.radius.md} />
+          <Skeleton height={180} radius={t.radius.md} />
+        </View>
+      </Screen>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <Screen edges={false}>
+        <ErrorState message={loadError} onRetry={() => navigation.goBack()} />
       </Screen>
     );
   }
@@ -397,6 +499,24 @@ export default function AddListingScreen() {
             use, so they matter more than the written address.
           </Text>
 
+          {/* Two ways in, because there are two situations. Standing at the
+              gate, the GPS is the accurate one. Anywhere else -- adding a
+              house you visited last week, or fixing one that was put in the
+              wrong street -- you need to look at the map and point at it. */}
+          <Button
+            label="Drop a pin on the map"
+            icon="map-outline"
+            fullWidth
+            onPress={() => {
+              setCallback<{ lat: number; lng: number }>('pickLocation', (point) => {
+                setLatitudeText(String(point.lat));
+                setLongitudeText(String(point.lng));
+                setErrors((c) => ({ ...c, coordinates: undefined }));
+              });
+              navigation.navigate('PickLocation', { initial: pickedPoint });
+            }}
+          />
+
           <Button
             label={isLocating ? 'Reading GPS…' : 'Use my current location'}
             icon="locate-outline"
@@ -435,30 +555,106 @@ export default function AddListingScreen() {
           ) : null}
         </View>
 
-        {/* --- Photo ------------------------------------------------------- */}
+        {/* --- Photos ------------------------------------------------------ */}
         <View style={{ gap: t.spacing.sm }}>
-          <Text variant="heading">Photo</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: t.spacing.xs }}>
+            <Text variant="heading" style={{ flex: 1 }}>Photos</Text>
+            <Text variant="caption" tone="faint">{photoUris.length} of {MAX_PHOTOS}</Text>
+          </View>
+          <Text variant="caption" tone="faint">
+            The first photo is shown on the listing card and map.
+          </Text>
 
-          {photoUri ? (
-            <View>
-              <Image
-                source={{ uri: photoUri }}
-                accessibilityLabel="Selected listing photo"
-                style={{
-                  width: '100%',
-                  height: 180,
-                  borderRadius: t.radius.md,
-                  backgroundColor: t.colors.canvasAlt,
-                }}
-              />
-              <IconButton
-                icon="close"
-                label="Remove photo"
-                tone="onPhoto"
-                onPress={() => setPhotoUri('')}
-                style={{ position: 'absolute', top: t.spacing.xs, right: t.spacing.xs }}
-              />
-            </View>
+          {photoUris.length > 0 ? (
+            <>
+              {/* The cover, big, because it is the one that does the work. */}
+              <View>
+                <Image
+                  source={{ uri: photoUris[0] }}
+                  accessibilityLabel="Cover photo for this listing"
+                  style={{
+                    width: '100%',
+                    height: 180,
+                    borderRadius: t.radius.md,
+                    backgroundColor: t.colors.canvasAlt,
+                  }}
+                />
+                <View
+                  style={{
+                    position: 'absolute',
+                    left: t.spacing.xs,
+                    top: t.spacing.xs,
+                    backgroundColor: 'rgba(0,0,0,0.55)',
+                    borderRadius: t.radius.pill,
+                    paddingHorizontal: t.spacing.sm,
+                    paddingVertical: 4,
+                  }}
+                >
+                  <Text variant="micro" uppercase style={{ color: '#FFFFFF' }}>Cover</Text>
+                </View>
+                <IconButton
+                  icon="close"
+                  label="Remove the cover photo"
+                  tone="onPhoto"
+                  onPress={() => removePhoto(0)}
+                  style={{ position: 'absolute', top: t.spacing.xs, right: t.spacing.xs }}
+                />
+              </View>
+
+              {/* The rest stay in a compact row so the Publish button remains
+                  reachable even with a full gallery. */}
+              {photoUris.length > 1 ? (
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{ gap: t.spacing.sm, paddingVertical: 2 }}
+                >
+                  {photoUris.slice(1).map((uri, index) => (
+                    <View key={`${uri}-${index}`}>
+                      <Pressable
+                        accessibilityRole="button"
+                        accessibilityLabel={`Make photo ${index + 2} the cover`}
+                        onPress={() => makeCover(index + 1)}
+                      >
+                        <Image
+                          source={{ uri }}
+                          accessibilityLabel={`Listing photo ${index + 2}`}
+                          style={{
+                            width: 96,
+                            height: 96,
+                            borderRadius: t.radius.sm,
+                            backgroundColor: t.colors.canvasAlt,
+                          }}
+                        />
+                      </Pressable>
+                      <IconButton
+                        icon="close"
+                        label={`Remove photo ${index + 2}`}
+                        tone="onPhoto"
+                        size={14}
+                        onPress={() => removePhoto(index + 1)}
+                        style={{ position: 'absolute', top: 4, right: 4 }}
+                      />
+                    </View>
+                  ))}
+                </ScrollView>
+              ) : null}
+
+              {photoUris.length > 1 ? (
+                <Text variant="micro" tone="faint">
+                  Tap any of the smaller photos to make it the cover.
+                </Text>
+              ) : null}
+
+              {photoUris.length < SUGGESTED_PHOTOS ? (
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: t.spacing.xxs }}>
+                  <Ionicons name="information-circle-outline" size={13} color={t.colors.inkFaint} />
+                  <Text variant="caption" tone="faint" style={{ flex: 1 }}>
+                    {SUGGESTED_PHOTOS} or more gives people enough to judge the place.
+                  </Text>
+                </View>
+              ) : null}
+            </>
           ) : (
             <Card
               level="flat"
@@ -472,32 +668,39 @@ export default function AddListingScreen() {
             >
               <Ionicons name="image-outline" size={24} color={t.colors.inkFaint} />
               <Text variant="caption" tone="faint" center>
-                No photo yet. Listings without one show a placeholder.
+                No photos yet. Listings without one show a placeholder.
               </Text>
             </Card>
           )}
 
-          <View style={{ flexDirection: 'row', gap: t.spacing.sm }}>
-            <Button
-              label="Take photo"
-              icon="camera-outline"
-              variant="secondary"
-              onPress={handleTakePhoto}
-              style={{ flex: 1 }}
+          <View style={{ flexDirection: 'row', gap: t.spacing.sm, alignItems: 'flex-end' }}>
+            <Input
+              label="Public photo link"
+              placeholder="https://example.com/boarding-house.jpg"
+              autoCapitalize="none"
+              autoCorrect={false}
+              keyboardType="url"
+              value={photoUrl}
+              onChangeText={(value) => {
+                setPhotoUrl(value);
+                setErrors((current) => ({ ...current, photoUrl: undefined }));
+              }}
+              error={errors.photoUrl}
+              containerStyle={{ flex: 1 }}
             />
             <Button
-              label="Choose photo"
-              icon="images-outline"
+              label="Add link"
+              icon="link-outline"
               variant="secondary"
-              onPress={handleChooseFromGallery}
-              style={{ flex: 1 }}
+              disabled={photoUris.length >= MAX_PHOTOS}
+              onPress={handleAddPhotoLink}
             />
           </View>
         </View>
 
         <View style={{ gap: t.spacing.sm }}>
           <Button
-            label="Publish listing"
+            label={isEditing ? 'Save changes' : 'Publish listing'}
             icon="checkmark-circle-outline"
             size="lg"
             fullWidth

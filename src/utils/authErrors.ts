@@ -34,6 +34,10 @@ export function describeAuthError(error: unknown): string {
       return 'Too many attempts. Wait a minute before trying again.';
     case 'auth/network-request-failed':
       return 'Could not reach the server. Check your internet connection.';
+    case 'auth/popup-closed-by-user':
+      return 'Facebook sign-in was cancelled.';
+    case 'auth/operation-not-supported-in-this-environment':
+      return 'Facebook login needs the BoardEase development build on this device.';
     default:
       return 'Something went wrong. Please try again.';
   }

@@ -1,9 +1,7 @@
-# Chapter 1
+# CHAPTER 1
 
-## THE PROBLEM AND ITS SETTING
-
-**BoardEase: A Mobile Application Guide for Finding, Comparing, and Navigating
-to Boarding Houses**
+**BoardEase — A Mobile Application Guide for Finding, Comparing, and
+Navigating to Boarding Houses**
 
 CCE106/L · Bachelor of Science in Information Technology
 University of Mindanao Tagum College
@@ -14,315 +12,317 @@ Submitted to: Princess Anne Dadul
 
 ---
 
-> **Before you submit this:** every place marked **`[CITE]`** needs a real
-> source — a journal article, a government statistic, or your own survey data.
-> Do not leave them in, and do not invent references to fill them. Your adviser
-> will check. See the note at the end of this file for what each one needs.
-
----
-
 ## Introduction
 
-Every academic year, students who enrol at institutions away from their home
-municipality face the same problem before classes even begin: they need
-somewhere to live, and they need it close enough to campus to reach on foot or
-by a single tricycle ride. In Tagum City, students attending University of
-Mindanao Tagum College come from across Davao del Norte and the surrounding
-provinces, and most of them arrive knowing very little about the boarding
-houses available around the campus. **`[CITE — enrolment figures for UM Tagum,
-or DavNor student migration data]`**
+### Purpose of the Document
 
-The way these students currently find accommodation is informal. Listings are
-passed on by word of mouth, posted on tarpaulins nailed to fences along the
-road, or shared in unmoderated social media groups where posts are rarely
-removed once a room is taken. A prospective tenant has no reliable way to know
-what a boarding house costs, what it offers, or how far it actually is from
-campus without physically travelling to it. Comparing three options means
-three separate trips, three separate conversations, and holding the details of
-each one in memory.
+This document is the technical documentation for BoardEase. It records what
+the application does, how it is built, how it was tested, and how it is
+deployed and maintained, so that the system can be understood, evaluated, and
+continued by someone who did not write it.
 
-This informal system has three consequences. First, it wastes time and
-transport money on visits to places that turn out to be unsuitable — too
-expensive, too far, or missing an amenity the student needs. Second, it hides
-options: a student only learns about the boarding houses someone happened to
-tell them about, so genuinely suitable places a few streets away go
-undiscovered. Third, it makes comparison almost impossible, because the
-information needed to compare — price, distance, amenities, and the experience
-of previous tenants — is never gathered in one place.
+It covers the mobile application in full: the screens a user sees, the data
+stored behind them, the services the application depends on, and the decisions
+taken during development along with the reasons for them. Where a feature named
+in the original project proposal was not built, this document says so and
+explains why, rather than leaving the reader to discover the gap.
 
-Mobile technology is well suited to closing this gap. Smartphone ownership
-among Filipino students is high **`[CITE — smartphone penetration statistic,
-e.g. DICT or Statista Philippines]`**, and the Global Positioning System (GPS)
-built into every modern handset can establish a user's position precisely
-enough to calculate walking distance to a destination. Mapping and routing
-services can then draw a route along real roads rather than a straight line.
-What has been missing is an application that applies these capabilities
-specifically to the boarding house search in a local setting.
+It does **not** cover the separate Laravel web application from which this
+project was split, the administration of the Firebase project beyond what the
+application requires, or any commercial arrangement between a tenant and a
+boarding house owner. Those are outside the system's boundary.
 
-**BoardEase** is proposed as that application. It is a mobile guide that lets a
-student find boarding houses near their current location, rank them by how well
-each one fits a stated budget and list of required amenities, place two or
-three side by side for direct comparison, read ratings left by previous
-tenants, and follow turn-by-turn walking directions to the door. It is
-deliberately a *discovery and navigation* tool: it helps a student decide which
-boarding houses are worth visiting and gets them there, after which the
-arrangement is made directly with the owner as it always has been.
+### Audience
 
----
-
-## Statement of the Problem
-
-This study seeks to develop a mobile application that assists students and
-young professionals in locating, comparing, and navigating to boarding houses
-within the vicinity of University of Mindanao Tagum College.
-
-Specifically, it seeks to answer the following questions:
-
-1. **What difficulties do students encounter** when searching for boarding
-   house accommodation near the campus under the current informal system?
-   **`[CITE — support this with your own survey, or cite a comparable study]`**
-
-2. **How may a mobile application be designed and developed** that allows a
-   user to:
-   1. locate boarding houses near their current position using the device's
-      GPS;
-   2. rank the results according to price, distance, and available amenities;
-   3. compare two or three listings side by side;
-   4. view aggregated ratings and reviews submitted by previous tenants; and
-   5. receive map-based walking directions to a selected boarding house?
-
-3. **What is the level of acceptability** of the developed application in terms
-   of functionality, usability, reliability, and efficiency, as evaluated by
-   its intended users? **`[CITE — name the evaluation instrument you will use,
-   e.g. ISO/IEC 25010 or a Likert-scale instrument adapted from a named study]`**
-
----
-
-## Objectives of the Study
-
-### General Objective
-
-To design and develop **BoardEase**, a mobile application that serves as a
-guide for finding, comparing, and navigating to boarding houses in the vicinity
-of University of Mindanao Tagum College.
-
-### Specific Objectives
-
-1. **To develop a location-based search function** that uses the device's GPS
-   to determine the user's current position and returns boarding house listings
-   ordered by their distance from that position.
-
-2. **To develop a comparison and recommendation feature** that automatically
-   ranks listings according to price, distance, and amenities, and allows the
-   user to place selected listings side by side for direct comparison.
-
-3. **To integrate map-based navigation guidance** that displays the route from
-   the user's current location to a selected boarding house along actual roads,
-   with turn-by-turn walking directions.
-
-4. **To implement a rating and review aggregation system** that allows tenants
-   to submit ratings and written feedback, and displays the resulting average
-   rating for each listing.
-
-5. **To evaluate the acceptability of the developed application** using a
-   standardised evaluation instrument administered to the intended users.
-   **`[CITE — the instrument]`**
-
----
-
-## Conceptual Framework
-
-The study follows the **Input–Process–Output (IPO)** model, in which the data
-supplied to the system is transformed through defined processes into the
-outputs presented to the user.
-
-```
-┌─────────────────────────┐   ┌─────────────────────────┐   ┌─────────────────────────┐
-│         INPUT           │   │        PROCESS          │   │        OUTPUT           │
-├─────────────────────────┤   ├─────────────────────────┤   ├─────────────────────────┤
-│ • User's GPS coordinates│   │ • Distance computation  │   │ • Ranked list of nearby │
-│ • Boarding house records│──▶│   (Haversine formula)   │──▶│   boarding houses       │
-│   (name, address, price,│   │ • Match scoring:        │   │ • Side-by-side          │
-│   room type, amenities, │   │   distance 40 pts,      │   │   comparison table      │
-│   coordinates, photo)   │   │   budget fit 30 pts,    │   │ • Average rating per    │
-│ • User's filter criteria│   │   amenities 30 pts      │   │   listing               │
-│   (budget, room type,   │   │ • Filtering by criteria │   │ • Walking route drawn   │
-│   required amenities)   │   │ • Route generation via  │   │   on a map, with        │
-│ • Tenant ratings and    │   │   road-following        │   │   turn-by-turn steps    │
-│   written reviews       │   │   routing service       │   │ • Notifications of new  │
-│                         │   │ • Rating aggregation    │   │   matching listings     │
-└─────────────────────────┘   └─────────────────────────┘   └─────────────────────────┘
-                                          │
-                                          ▼
-                                  ┌───────────────┐
-                                  │   FEEDBACK    │
-                                  │ User testing  │
-                                  │ and evaluation│
-                                  │ refine the    │
-                                  │ system        │
-                                  └───────────────┘
-```
-
-The **match score** referred to in the Process stage is computed out of 100
-points and is the mechanism by which the system ranks rather than merely
-filters. Proximity contributes up to 40 points and decreases linearly to zero
-at a cut-off of three kilometres, which reflects the walking radius of the
-study area. Budget fit contributes 30 points when a listing falls at or below
-the user's stated maximum. Amenity match contributes up to 30 points in
-proportion to how many of the user's required amenities a listing provides.
-
----
-
-## Scope and Delimitation
-
-### Scope
-
-The study covers the design, development, and evaluation of a mobile
-application with the following capabilities:
-
-- **Account management.** Registration and login using an email address and
-  password, with two levels of access: tenant-seeker and administrator.
-- **Location-based search.** Retrieval of approved listings and ordering by
-  distance computed from the device's GPS position.
-- **Filtering and ranking.** Narrowing results by maximum price, room type, and
-  required amenities, with automatic ranking by match score.
-- **Comparison.** Displaying two to three selected listings side by side across
-  price, room type, distance, average rating, and amenities.
-- **Map-based navigation.** Displaying a walking route along real roads from
-  the user's position to a selected listing, with turn-by-turn instructions and
-  live position tracking as the user moves.
-- **Ratings and reviews.** Submission of a star rating and written review by a
-  tenant, limited to one review per user per listing, with the average rating
-  displayed on the listing.
-- **Saved listings and match alerts.** Saving listings to a shortlist, and
-  notifying the user when a newly approved listing matches their saved filters.
-- **Offline access.** Saved listings and recently viewed listings remain
-  readable on the device without an internet connection.
-- **Administration.** Review, approval, or rejection of submitted listings, and
-  removal of inappropriate reviews.
-
-The application is developed for Android and iOS devices using a single
-cross-platform codebase, and the study area is the vicinity of University of
-Mindanao Tagum College, Tagum City, Davao del Norte.
-
-### Delimitation
-
-The study does **not** cover the following, and these are stated here so that
-the boundaries of the system are unambiguous:
-
-1. **Booking, reservation, and payment.** The application does not process
-   reservations or handle any financial transaction. Arrangements and payment
-   are made directly between the tenant and the owner. The application is a
-   guide to which boarding houses are worth visiting, not a booking platform.
-
-2. **In-application messaging.** There is no chat or messaging feature between
-   tenants and owners.
-
-3. **A separate owner role.** The original proposal described three user roles
-   — tenant-seeker, owner, and administrator. The developed system implements
-   two: tenant-seeker and administrator. Listings are submitted and published
-   through the administrator account rather than by owners registering
-   independently. This was descoped to keep the verification of listings under
-   a single moderated account within the project timeframe.
-
-4. **QR-based listing lookup.** The proposal included retrieval of a listing by
-   scanning a QR code displayed at a property. This feature was not implemented
-   and is declared descoped.
-
-5. **Verification of listing accuracy.** The system relies on the
-   administrator's review of submitted information. It does not independently
-   verify that a boarding house exists, that its stated price is current, or
-   that its amenities are as described.
-
-6. **Geographic coverage.** Listings are limited to the Tagum City area. The
-   application will function elsewhere, but no listings exist outside the study
-   area.
-
-7. **Internet dependency.** Searching, routing, and map tiles require an
-   internet connection. Only saved and recently viewed listings are available
-   offline.
-
----
-
-## Significance of the Study
-
-**To students and young professionals.** The primary beneficiaries. The
-application reduces the time, transport cost, and uncertainty involved in
-finding accommodation near the campus, and allows a decision to be made from
-information gathered in one place rather than from several separate visits.
-
-**To boarding house owners.** Listings reach an audience beyond those who
-happen to pass a tarpaulin or belong to a particular social media group, at no
-cost to the owner.
-
-**To the University of Mindanao Tagum College community.** Incoming students,
-particularly those from outside Tagum City, are given a clearer picture of the
-accommodation available near the campus before they arrive.
-
-**To future researchers and developers.** The study documents a working
-application of GPS-based proximity search, weighted multi-criteria ranking, and
-road-following route generation applied to a local accommodation problem. The
-scoring model and its rationale are documented and may be adapted, extended, or
-challenged by later work.
-
-**To the researchers.** The study applies the mobile development, database
-design, and user interface principles taught in the programme to a problem the
-researchers have personally encountered as students.
-
----
-
-## Definition of Terms
-
-The following terms are defined as they are used operationally in this study.
-
-**Amenity.** A facility or service provided by a boarding house, such as
-internet access, air conditioning, a private comfort room, kitchen access,
-laundry facilities, parking, or a study area.
-
-**Boarding house.** A residential property offering rooms for rent to
-individuals, typically on a monthly basis, commonly occupied by students and
-young workers living away from their family home.
-
-**Haversine formula.** A mathematical formula that calculates the
-great-circle distance between two points on a sphere given their latitude and
-longitude. In this study it is used to compute the distance between the user's
-position and a boarding house.
-
-**Location-based service.** A software capability that uses the geographic
-position of a device to provide information relevant to that position. In this
-study, it is the basis of the proximity search.
-
-**Match score.** A value out of 100 computed by the system for each listing,
-combining proximity to the user (40 points), fit with the user's stated budget
-(30 points), and the proportion of required amenities present (30 points). It
-is the basis on which listings are ranked.
-
-**Room type.** The classification of accommodation offered, defined in this
-study as *Single* (occupied by one tenant), *Shared* (occupied by more than one
-tenant), or *Studio* (a self-contained unit).
-
-**Tenant-seeker.** A registered user searching for accommodation. The primary
-user role of the application.
-
-**Turn-by-turn directions.** A sequence of written navigation instructions
-generated for a route, each describing a single manoeuvre, such as a turn onto
-a named road.
-
----
-
-## What the `[CITE]` markers need
-
-Nothing in this chapter is invented as a fact, but five statements need
-external support before submission. Each one is a real claim that a reader may
-reasonably ask you to prove:
-
-| Location | What it needs |
+| Reader | What they need from this document |
 |---|---|
-| Introduction, ¶1 | Enrolment figures for UM Tagum College, or data on student migration within Davao del Norte. The Registrar's Office is the most direct source. |
-| Introduction, ¶4 | A statistic on smartphone ownership among Filipino students or young adults. DICT, PSA, or a published survey. |
-| Statement of the Problem, Q1 | Evidence that the difficulty is real. **Your own survey of UM Tagum students is the strongest option here** and is worth conducting — the chapter is considerably weaker without it. |
-| Statement of the Problem, Q3 | The name of the evaluation instrument you will use. |
-| Specific Objective 5 | The same instrument, cited consistently. |
+| **Course adviser and panel** | Evidence that the application meets the objectives set out in the proposal, and an honest account of what was and was not delivered |
+| **Developers** | Enough architectural and data detail to modify or extend the application without reading every file first |
+| **Future student groups** | A working reference for a React Native and Firebase application, including the parts that proved difficult |
+| **Administrators of the system** | How listings are approved, how reviews are moderated, and what happens to user data |
 
-If your adviser requires a Review of Related Literature, that belongs in
-Chapter 2 and is not included here.
+The document assumes the reader is familiar with general programming concepts
+but not with React Native, Expo, or Firebase specifically. Technologies are
+named and explained where first used.
+
+### Overview of the Application
+
+BoardEase is a mobile application that helps students and young professionals
+find a boarding house near their school or workplace. It was developed for the
+area around University of Mindanao Tagum College, where students arriving from
+outside Tagum City must arrange accommodation with little reliable information
+about what is available, what it costs, or how far it is from campus.
+
+The application addresses this in four steps:
+
+1. **Find.** It reads the device's GPS position and lists approved boarding
+   houses ordered by how far they are from the user.
+2. **Rank.** Each listing is scored out of 100 against the user's stated budget
+   and required amenities, so results are ranked by suitability rather than
+   merely filtered.
+3. **Compare.** Two or three listings can be placed side by side across price,
+   room type, distance, average rating, and amenities.
+4. **Navigate.** A walking route is drawn along real roads from the user's
+   position to the chosen listing, with turn-by-turn directions and live
+   position tracking as the user walks.
+
+**Goals**
+
+- Reduce the time and transport cost spent visiting unsuitable boarding houses
+- Make options visible that a student would not otherwise hear about
+- Allow a genuine comparison from information gathered in one place
+- Get the user physically to the door of the place they choose
+
+**Objectives**
+
+- Implement location-based search using the device GPS
+- Implement automatic ranking by price, distance, and amenities
+- Implement side-by-side comparison of selected listings
+- Implement map-based navigation with turn-by-turn walking directions
+- Implement rating and review aggregation per listing
+- Provide administrative approval of listings and moderation of reviews
+
+BoardEase is deliberately a **discovery and navigation guide**. It does not
+process reservations or payments and provides no messaging between tenants and
+owners. Those arrangements are made directly with the owner, as they are today.
+This boundary is stated in the Requirements section below and is not an
+oversight.
+
+---
+
+## Project Overview
+
+### Project Name
+
+**BoardEase** — internal package name `mobile`, Expo slug `mobile`, bundled
+display name *BoardEase*.
+
+### Version
+
+**1.0.0**, as declared in both `package.json` and `app.json`.
+
+The project uses a single version number for the application as a whole. There
+is no separate build number, because the application is distributed through
+Expo Go for the purposes of this course rather than through an app store.
+
+### Release Date
+
+**September 2026** — the date of academic submission and defence.
+
+This is the date on which the application is delivered and demonstrated for
+CCE106/L. It is not a public app store release; BoardEase is run through Expo
+Go on a development server and has not been submitted to Google Play or the
+Apple App Store.
+
+### Stakeholders
+
+| Stakeholder | Role and interest |
+|---|---|
+| **Martin, Jetroy S.** | Developer. Repository owner. |
+| **Lulu, John Rex P.** | Developer. |
+| **Galagar, Ailyn May V.** | Developer. |
+| **Lisbo, Vince Josua C.** | Developer. |
+| **Princess Anne Dadul** | Course adviser. Evaluates the application against the proposal and approves the documentation. |
+| **CCE106/L panel** | Examines the system at defence. |
+| **University of Mindanao Tagum College** | Institutional context. Incoming students are the intended users, and the campus is the centre of the study area. |
+| **Tenant-seekers** | Primary end users: students and young professionals searching for accommodation. |
+| **Boarding house owners** | Indirect beneficiaries. Their properties are listed, though in this version they do not hold accounts (see Requirements). |
+| **System administrator** | Reviews and approves submitted listings, removes inappropriate reviews, and publishes listings on behalf of owners. |
+
+---
+
+## Requirements
+
+### Functional Requirements
+
+Requirements are grouped by the user role that exercises them. Each is written
+as a capability the system must provide, and the screen that provides it is
+named so the requirement can be traced to the build.
+
+#### FR-1 — Account management
+
+| ID | Requirement | Where |
+|---|---|---|
+| FR-1.1 | A visitor can create an account with an email address and password. | `RegisterScreen` |
+| FR-1.2 | A registered user can log in with those credentials. | `LoginScreen` |
+| FR-1.3 | A user can request a password reset link by email. | `ProfileScreen` |
+| FR-1.4 | A user can log out, which clears any cached data held on the device. | `ProfileScreen` |
+| FR-1.5 | Each account carries a role of either *tenant* or *administrator*, which determines what is shown. | `AuthContext` |
+
+Validation is applied in the interface before submission and reported next to
+the field concerned. Authentication failures are translated into wording the
+user can act on rather than shown as raw error codes.
+
+#### FR-2 — Location-based search
+
+| ID | Requirement | Where |
+|---|---|---|
+| FR-2.1 | The system requests permission to read the device's location. | `SearchScreen` |
+| FR-2.2 | The system retrieves all listings marked approved. | `SearchScreen` |
+| FR-2.3 | The system computes the distance from the user to each listing using the Haversine formula. | `utils/distance.ts` |
+| FR-2.4 | Results are ordered nearest first. | `SearchScreen` |
+| FR-2.5 | If location is unavailable or refused, the full catalogue is still browsable, with distance-dependent features disabled and the reason stated. | `SearchScreen` |
+
+#### FR-3 — Filtering and ranking
+
+| ID | Requirement | Where |
+|---|---|---|
+| FR-3.1 | A user can set a maximum monthly rent. | `FilterScreen` |
+| FR-3.2 | A user can restrict results to a room type: Single, Shared, or Studio. | `FilterScreen` |
+| FR-3.3 | A user can require one or more amenities; a listing must provide all of them to qualify. | `FilterScreen` |
+| FR-3.4 | Each listing receives a match score out of 100: proximity up to 40 points, budget fit 30 points, amenity coverage up to 30 points. | `utils/scoring.ts` |
+| FR-3.5 | Results can be ordered by match score (*Recommended*) or by distance (*Nearest*). | `SearchScreen` |
+| FR-3.6 | Applied filters are shown as removable chips so the user can see why results were excluded. | `SearchScreen` |
+
+Proximity scores linearly from 40 points at zero distance to 0 points at a
+three-kilometre cut-off. The cut-off reflects the walking radius of the study
+area; a larger one would score a 300-metre listing and a 1.5-kilometre listing
+almost identically, which would defeat the purpose of ranking by distance.
+
+#### FR-4 — Comparison
+
+| ID | Requirement | Where |
+|---|---|---|
+| FR-4.1 | A user can add a listing to a comparison set from a listing card or its detail page. | `SearchScreen`, `DetailsScreen` |
+| FR-4.2 | The comparison set holds between two and three listings. | `CompareContext` |
+| FR-4.3 | Selected listings are displayed side by side across price, room type, distance, average rating, and each amenity. | `CompareScreen` |
+| FR-4.4 | An amenity is shown as present or absent for every listing, never as a blank cell. | `CompareScreen` |
+| FR-4.5 | A listing can be opened from the comparison, and the whole set can be cleared with confirmation. | `CompareScreen` |
+
+#### FR-5 — Map and navigation
+
+| ID | Requirement | Where |
+|---|---|---|
+| FR-5.1 | Listings are displayed as markers on a map, each labelled with its monthly rent. | `MapScreen`, `LeafletMap` |
+| FR-5.2 | Selecting a marker shows that listing's summary card, and selecting a card highlights its marker. | `MapScreen` |
+| FR-5.3 | The map can be searched and re-centred on the user's position. | `MapScreen` |
+| FR-5.4 | A walking route is generated along real roads from the user to a chosen listing. | `utils/routing.ts` |
+| FR-5.5 | Turn-by-turn instructions are listed beneath the route. | `NavigationScreen` |
+| FR-5.6 | The user's position updates as they move, remaining distance counts down, and the route is recalculated if they leave it by more than 45 metres. | `NavigationScreen` |
+| FR-5.7 | Arrival is declared within 25 metres of the destination. | `NavigationScreen` |
+
+#### FR-6 — Ratings and reviews
+
+| ID | Requirement | Where |
+|---|---|---|
+| FR-6.1 | A tenant can submit a star rating from one to five with written feedback. | `ReviewsScreen` |
+| FR-6.2 | A user may submit at most one review per listing. | `ReviewsScreen` |
+| FR-6.3 | The average rating and review count are displayed on the listing. | `DetailsScreen`, `PropertyCard` |
+| FR-6.4 | Averages are displayed to one decimal place, with half stars where the fraction warrants. | `Rating` |
+
+#### FR-7 — Saved listings and alerts
+
+| ID | Requirement | Where |
+|---|---|---|
+| FR-7.1 | A user can save a listing to a shortlist from a card or its detail page. | `SearchScreen`, `DetailsScreen` |
+| FR-7.2 | Saved listings are listed on a dedicated screen. | `FavoritesScreen` |
+| FR-7.3 | A user can save a set of filters and be alerted when a newly approved listing matches them. | `FilterScreen`, `utils/matchAlerts.ts` |
+| FR-7.4 | Alerts are listed, marked read when opened, and can be cleared. | `NotificationsScreen` |
+
+#### FR-8 — Offline access
+
+| ID | Requirement | Where |
+|---|---|---|
+| FR-8.1 | Saved listings are cached on the device and remain readable without a connection. | `utils/offlineCache.ts` |
+| FR-8.2 | Recently viewed listings are recorded on the device and shown on the home screen. | `utils/offlineCache.ts` |
+| FR-8.3 | When cached data is shown instead of live data, the interface says so. | `FavoritesScreen` |
+| FR-8.4 | The cache is cleared on logout so two accounts sharing a device cannot see each other's data. | `AuthContext` |
+
+#### FR-9 — Administration
+
+| ID | Requirement | Where |
+|---|---|---|
+| FR-9.1 | An administrator sees a queue of listings awaiting approval. | `AdminScreen` |
+| FR-9.2 | An administrator can approve a listing, publishing it to search results. | `AdminScreen` |
+| FR-9.3 | An administrator can reject a listing, which deletes it after confirmation naming the listing. | `AdminScreen` |
+| FR-9.4 | An administrator can remove any review. | `AdminScreen` |
+| FR-9.5 | An administrator can create a listing, including attaching a photograph from the camera or gallery and pinning its coordinates by GPS or by hand. | `AddListingScreen` |
+| FR-9.6 | Administrative screens refuse access to non-administrator accounts. | `AdminScreen`, `AddListingScreen` |
+
+#### Out of scope
+
+The following were named in the project proposal and are **not** implemented in
+version 1.0.0. They are recorded here so the boundary is explicit.
+
+| Item | Status and reason |
+|---|---|
+| **Owner role** | The proposal defined three roles — tenant, owner, administrator. Two are implemented. Listings are submitted through the administrator account rather than by owners registering independently, keeping verification under a single moderated account within the project timeframe. |
+| **QR-based listing lookup** | Retrieving a listing by scanning a QR code at a property is not built. No scanner dependency is installed. |
+| **Booking, reservation, payment** | Never in scope. The application is a guide, not a booking platform. |
+| **Messaging** | Never in scope. No chat between tenants and owners. |
+| **Verification of listing accuracy** | The system relies on administrator review. It does not independently confirm that a property exists or that its stated price is current. |
+
+### Non-Functional Requirements
+
+#### NFR-1 — Performance
+
+| ID | Requirement | Measure |
+|---|---|---|
+| NFR-1.1 | Filtering and ranking are performed in memory on the retrieved set, not by repeated queries. | No Firestore composite index is required. |
+| NFR-1.2 | Each screen shows a loading state within 100 ms of a fetch beginning. | Skeleton placeholders shaped like the content that follows. |
+| NFR-1.3 | Route recalculation is suppressed while a request is already in flight. | At most one outstanding request to the routing service. |
+| NFR-1.4 | Location tracking updates at roughly five-metre intervals during navigation. | `Accuracy.High`, `distanceInterval` 5 m — chosen over continuous tracking to limit battery drain. |
+| NFR-1.5 | Location tracking stops when the navigation screen is left. | Subscription removed on unmount. |
+
+#### NFR-2 — Security
+
+| ID | Requirement | Measure |
+|---|---|---|
+| NFR-2.1 | Authentication is handled by Firebase Authentication; the application never stores a password. | Email and password provider. |
+| NFR-2.2 | Access to stored data is governed by server-side rules, not by the client. | `firestore.rules` covers `properties`, `reviews`, `favorites`, `users`. |
+| NFR-2.3 | Only administrators may approve listings or delete reviews. | Role checked in the rules and again in the interface. |
+| NFR-2.4 | Failed sign-in does not reveal whether the email exists. | A single message covers wrong email and wrong password. |
+| NFR-2.5 | Listing text supplied by users is escaped before being placed in the map's HTML. | Prevents a crafted listing title from injecting script into the map view. |
+| NFR-2.6 | No payment or financial data is collected or stored. | Out of scope by design. |
+
+#### NFR-3 — Usability
+
+| ID | Requirement | Measure |
+|---|---|---|
+| NFR-3.1 | Every screen that loads data provides four states: content, loading, empty, and error. | Empty states distinguish "nothing exists yet" from "nothing matched". |
+| NFR-3.2 | Every interactive element responds visibly to being pressed. | Press animation and disabled state on every control. |
+| NFR-3.3 | Destructive actions confirm and name what will be destroyed. | "Reject this listing? *Sunrise Boarding House* will be permanently deleted." |
+| NFR-3.4 | Form errors appear beside the field concerned and state how to correct it. | Validation on blur; all problems reported at once on submit. |
+| NFR-3.5 | Touch targets are at least 44 points. | Enforced through the shared component kit. |
+| NFR-3.6 | Meaning is never carried by colour alone. | Status uses an icon or text alongside colour. |
+| NFR-3.7 | Every icon-only control carries an accessible name. | For screen reader users. |
+| NFR-3.8 | The interface is available in light and dark themes, following the device setting or a manual choice. | Persisted between sessions. |
+
+#### NFR-4 — Reliability
+
+| ID | Requirement | Measure |
+|---|---|---|
+| NFR-4.1 | Loss of connectivity degrades the application rather than breaking it. | Saved and recently viewed listings remain readable. |
+| NFR-4.2 | Every network operation handles its own failure and offers a retry. | No unhandled promise rejections. |
+| NFR-4.3 | A failed write is reverted in the interface and reported. | A save that fails silently would leave the user believing it succeeded. |
+| NFR-4.4 | Repeated activation of a control cannot create duplicate records. | Guarded on favourites, reviews, and listing approval. |
+| NFR-4.5 | Unavailable GPS does not prevent use of the application. | The catalogue remains browsable without distance. |
+
+#### NFR-5 — Portability and maintainability
+
+| ID | Requirement | Measure |
+|---|---|---|
+| NFR-5.1 | One codebase runs on both Android and iOS. | React Native 0.86 with Expo SDK 57. |
+| NFR-5.2 | The application runs without a native build. | Distributed through Expo Go for this course. |
+| NFR-5.3 | Every colour, size, spacing value, and radius comes from one definition. | `src/theme.ts`; no raw font size or weight remains in application code. |
+| NFR-5.4 | The codebase is statically type-checked. | TypeScript in strict mode; `tsc --noEmit` passes with no errors. |
+| NFR-5.5 | Shared behaviour lives in one place rather than being repeated per screen. | Saving a listing, for example, is defined once and used by three screens. |
+
+#### NFR-6 — External dependencies
+
+The application depends on services outside its control. Each is listed with
+the consequence of its being unavailable.
+
+| Dependency | Used for | If unavailable |
+|---|---|---|
+| Firebase Authentication | Sign-in and registration | No new sessions; existing session continues until closed |
+| Cloud Firestore | Listings, reviews, favourites, user records | Cached saved and recently viewed listings remain readable |
+| Firebase Storage | Listing photographs | Listings display a placeholder rather than an image |
+| OpenStreetMap tiles | Map background | The map shows no imagery; markers and route still compute |
+| OSRM routing service | Walking routes | Directions cannot be generated; the listing remains viewable |
+| Expo Go | Running the application | The application cannot be started on the device |
+
+---
+
+*Chapter 2 covers architecture, design, and the development process.
+Chapter 3 covers testing, deployment, and maintenance.*

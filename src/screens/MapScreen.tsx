@@ -25,7 +25,6 @@ import {
   View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import * as Location from 'expo-location';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -36,6 +35,7 @@ import { AppParamList } from '../navigation/types';
 import { useTheme } from '../context/ThemeContext';
 import { GUTTER } from '../theme';
 import { getDistanceInKm, formatDistance } from '../utils/distance';
+import { requestLocation, describeLocationOutcome } from '../utils/locationAccess';
 import { Property, PropertyWithDistance } from '../types';
 import {
   Card,
@@ -63,6 +63,8 @@ export default function MapScreen() {
   const [properties, setProperties] = useState<PropertyWithDistance[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
+  // Why there is no blue dot, when there is no blue dot.
+  const [locationNotice, setLocationNotice] = useState('');
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -75,15 +77,15 @@ export default function MapScreen() {
     setIsLoading(true);
     setErrorMessage('');
 
+    // Explain before the system asks, and say so when there is no position
+    // instead of quietly dropping the distances.
     let currentLocation: { lat: number; lng: number } | null = null;
-    try {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status === 'granted' && (await Location.hasServicesEnabledAsync())) {
-        const position = await Location.getCurrentPositionAsync({});
-        currentLocation = { lat: position.coords.latitude, lng: position.coords.longitude };
-      }
-    } catch {
-      // GPS being unavailable must never stop the map from drawing.
+    const located = await requestLocation('nearby');
+    if (located.ok) {
+      currentLocation = located.coords;
+      setLocationNotice('');
+    } else {
+      setLocationNotice(describeLocationOutcome(located.reason));
     }
     setUserLocation(currentLocation);
 
@@ -188,13 +190,13 @@ export default function MapScreen() {
 
   async function recentreOnUser() {
     try {
-    const { status } = await Location.requestForegroundPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('Location unavailable', 'Enable location access in your phone settings to centre the map on you.');
+    const located = await requestLocation('nearby');
+    if (!located.ok) {
+      setLocationNotice(describeLocationOutcome(located.reason));
       return;
     }
-    const position = await Location.getCurrentPositionAsync({});
-    setUserLocation({ lat: position.coords.latitude, lng: position.coords.longitude });
+    setLocationNotice('');
+    setUserLocation(located.coords);
     // Deliberately does NOT clear selectedId. It used to, so the map would
     // refit to everything -- but the guard effect below immediately reselects
     // the first listing and yanks the carousel back to card one, so the only
@@ -312,6 +314,29 @@ export default function MapScreen() {
             onPress={recentreOnUser}
           />
         </View>
+
+        {/* When there is no position, say which case it is and let the row be
+            tapped to ask again. Without this the distances simply vanish. */}
+        {locationNotice ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={locationNotice}
+            onPress={recentreOnUser}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: t.spacing.xs,
+              backgroundColor: t.colors.warningSoft ?? t.colors.surface,
+              paddingHorizontal: t.spacing.sm,
+              paddingVertical: t.spacing.xs,
+              borderRadius: t.radius.md,
+              ...t.elevation.low,
+            }}
+          >
+            <Ionicons name="location-outline" size={16} color={t.colors.ink} />
+            <Text variant="caption" style={{ flex: 1 }}>{locationNotice}</Text>
+          </Pressable>
+        ) : null}
 
         {/* Result count doubles as the "no matches" message, so the map is
             never silently empty with no explanation. */}

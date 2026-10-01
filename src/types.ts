@@ -12,7 +12,15 @@ export interface Property {
   amenities: string[]; // e.g. ["WiFi", "CR", "Parking"]
   latitude: number;
   longitude: number;
+  // The cover photo -- the one on the card, the map marker's popup and the top
+  // of the details screen.
   imageUrl: string;
+  // Every photo of the place, cover first: the room, the CR, the kitchen, the
+  // frontage. Optional because every listing created before galleries existed
+  // has only imageUrl, and those must keep working rather than showing an
+  // empty gallery. Read it through photosOf() in src/utils/photos.ts, which
+  // falls back to imageUrl, instead of touching this field directly.
+  images?: string[];
   ownerId: string;
   isApproved: boolean;
   createdAt: number; // stored as a timestamp (milliseconds)

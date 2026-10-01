@@ -16,6 +16,7 @@ import { GUTTER } from '../theme';
 import { describeAuthError, validateEmail, validatePassword } from '../utils/authErrors';
 import {
   Button,
+  Checkbox,
   IconButton,
   Input,
   Pressable,
@@ -37,9 +38,19 @@ export default function RegisterScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Consent to the Terms of Use and the Privacy Notice.
+  //
+  // Unticked to start with and never pre-ticked. The Data Privacy Act of 2012
+  // requires consent to be freely given, specific and informed; a box already
+  // ticked when the screen opens is none of those, because the person never
+  // did anything. So it starts empty, and the account cannot be created until
+  // they tick it themselves.
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+
   const [emailError, setEmailError] = useState<string | null>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [confirmError, setConfirmError] = useState<string | null>(null);
+  const [consentError, setConsentError] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
 
   function checkConfirm(value: string): string | null {
@@ -57,13 +68,17 @@ export default function RegisterScreen() {
     const nextEmailError = validateEmail(email);
     const nextPasswordError = validatePassword(password);
     const nextConfirmError = checkConfirm(confirmPassword);
+    const nextConsentError = acceptedTerms
+      ? null
+      : 'Please read and accept the Terms of Use and Privacy Notice to continue.';
 
     setEmailError(nextEmailError);
     setPasswordError(nextPasswordError);
     setConfirmError(nextConfirmError);
+    setConsentError(nextConsentError);
     setFormError(null);
 
-    if (nextEmailError || nextPasswordError || nextConfirmError) {
+    if (nextEmailError || nextPasswordError || nextConfirmError || nextConsentError) {
       return;
     }
 
@@ -165,11 +180,51 @@ export default function RegisterScreen() {
             />
           </View>
 
+          {/* The consent, immediately above the button it gates -- not buried
+              under it as fine print, where it would be something people are
+              told about after the fact rather than something they agree to. */}
+          <Checkbox
+            checked={acceptedTerms}
+            onChange={(next) => {
+              setAcceptedTerms(next);
+              if (next) setConsentError(null);
+            }}
+            accessibilityLabel="I accept the Terms of Use and the Privacy Notice"
+            error={consentError}
+          >
+            <Text variant="caption" tone="soft">
+              I have read and accept the{' '}
+              <Text
+                variant="captionStrong"
+                tone="brand"
+                accessibilityRole="link"
+                onPress={() => navigation.navigate('Legal', { document: 'terms' })}
+              >
+                Terms of Use
+              </Text>
+              {' '}and the{' '}
+              <Text
+                variant="captionStrong"
+                tone="brand"
+                accessibilityRole="link"
+                onPress={() => navigation.navigate('Legal', { document: 'privacy' })}
+              >
+                Privacy Notice
+              </Text>
+              , and I consent to BoardEase collecting and processing my personal
+              information as described there, under the Data Privacy Act of 2012.
+            </Text>
+          </Checkbox>
+
           <Button
             label="Create account"
             size="lg"
             fullWidth
             loading={isSubmitting}
+            // Deliberately not disabled while the box is unticked. A dead
+            // button explains nothing; pressing this one puts a message under
+            // the checkbox saying what is missing, which is the difference
+            // between being stopped and being told why.
             onPress={handleRegister}
             style={{ marginTop: t.spacing.xxs }}
           />

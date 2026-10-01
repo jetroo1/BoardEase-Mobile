@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="882" height="658" viewBox="44 24 882 658" font-family="Arial, Helvetica, sans-serif">
+<rect x="44" y="24" width="882" height="658" fill="#FFFFFF"/>
+<defs><marker id="arrow-e-55697A" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="8" markerHeight="8" orient="auto"><path d="M1,1 L11,6 L1,11 z" fill="#55697A"/></marker></defs>
+<polyline points="460,86 460,130" fill="none" stroke="#55697A" stroke-width="1.4" marker-end="url(#arrow-e-55697A)"/>
+<polyline points="460,176 460,216" fill="none" stroke="#55697A" stroke-width="1.4" marker-end="url(#arrow-e-55697A)"/>
+<polyline points="550,261 700,261" fill="none" stroke="#55697A" stroke-width="1.4" marker-end="url(#arrow-e-55697A)"/>
+<polyline points="800,289 800,395 550,395" fill="none" stroke="#55697A" stroke-width="1.4" marker-end="url(#arrow-e-55697A)"/>
+<polyline points="460,306 460,350" fill="none" stroke="#55697A" stroke-width="1.4" marker-end="url(#arrow-e-55697A)"/>
+<polyline points="549.4812680115274,395.2593659942363 700,395.2593659942363 700,395.69565217391306" fill="none" stroke="#55697A" stroke-width="1.4" marker-end="url(#arrow-e-55697A)"/>
+<polyline points="460,440 460,484" fill="none" stroke="#55697A" stroke-width="1.4" marker-end="url(#arrow-e-55697A)"/>
+<polyline points="460,530 460,570" fill="none" stroke="#55697A" stroke-width="1.4" marker-end="url(#arrow-e-55697A)"/>
+<polyline points="550,618 700,618" fill="none" stroke="#55697A" stroke-width="1.4" marker-end="url(#arrow-e-55697A)"/>
+<rect x="380" y="40" width="160" height="46" rx="8" fill="#0D1B26" stroke="#0D1B26" stroke-width="1"/>
+<text x="460" y="67.42" font-size="13" fill="#FFFFFF" text-anchor="middle" font-weight="bold">START</text>
+<rect x="370" y="130" width="180" height="46" rx="0" fill="#FFFFFF" stroke="#55697A" stroke-width="1"/>
+<text x="460" y="157.08" font-size="12" fill="#0D1B26" text-anchor="middle">Open BoardEase app</text>
+<polygon points="460,216 550,261 460,306 370,261" fill="#EEF4F7" stroke="#0369A1" stroke-width="1"/>
+<text x="460" y="257.4" font-size="12" fill="#0D1B26" text-anchor="middle">Already</text>
+<text x="460" y="272.76" font-size="12" fill="#0D1B26" text-anchor="middle">logged in?</text>
+<rect x="700" y="233" width="200" height="56" rx="0" fill="#FFFFFF" stroke="#55697A" stroke-width="1"/>
+<text x="800" y="249.72000000000003" font-size="12" fill="#0D1B26" text-anchor="middle">Show landing page</text>
+<text x="800" y="265.08000000000004" font-size="12" fill="#0D1B26" text-anchor="middle">Register or log in</text>
+<text x="800" y="280.44000000000005" font-size="12" fill="#55697A" text-anchor="middle">Firebase Authentication</text>
+<polygon points="460,350 550,395 460,440 370,395" fill="#EEF4F7" stroke="#0369A1" stroke-width="1"/>
+<text x="460" y="391.4" font-size="12" fill="#0D1B26" text-anchor="middle">Role is</text>
+<text x="460" y="406.76" font-size="12" fill="#0D1B26" text-anchor="middle">administrator?</text>
+<rect x="700" y="355" width="210" height="82" rx="0" fill="#FFFFFF" stroke="#55697A" stroke-width="1"/>
+<text x="805" y="377.03999999999996" font-size="12" fill="#0D1B26" text-anchor="middle">Admin panel</text>
+<text x="805" y="392.4" font-size="12" fill="#55697A" text-anchor="middle">add listing · verify or reject</text>
+<text x="805" y="407.76" font-size="12" fill="#55697A" text-anchor="middle">pending listings · moderate</text>
+<text x="805" y="423.12" font-size="12" fill="#55697A" text-anchor="middle">reviews</text>
+<rect x="370" y="484" width="180" height="46" rx="0" fill="#FFFFFF" stroke="#55697A" stroke-width="1"/>
+<text x="460" y="503.4" font-size="12" fill="#0D1B26" text-anchor="middle">Tap "Browse boarding</text>
+<text x="460" y="518.76" font-size="12" fill="#0D1B26" text-anchor="middle">houses"</text>
+<polygon points="460,570 550,618 460,666 370,618" fill="#EEF4F7" stroke="#0369A1" stroke-width="1"/>
+<text x="460" y="614.4" font-size="12" fill="#0D1B26" text-anchor="middle">Location</text>
+<text x="460" y="629.76" font-size="12" fill="#0D1B26" text-anchor="middle">available?</text>
+<rect x="700" y="590" width="200" height="56" rx="0" fill="#FFFFFF" stroke="#B45309" stroke-width="1"/>
+<text x="800" y="606.72" font-size="12" fill="#0D1B26" text-anchor="middle">Show message:</text>
+<text x="800" y="622.08" font-size="12" fill="#0D1B26" text-anchor="middle">"Location is needed to find</text>
+<text x="800" y="637.44" font-size="12" fill="#0D1B26" text-anchor="middle">nearby boarding houses"</text>
+<rect x="60" y="120" width="230" height="290" rx="8" fill="none" stroke="#D5E3EA" stroke-width="1" stroke-dasharray="6 4"/>
+<text x="84" y="146.08" font-size="12" fill="#0D1B26" text-anchor="start" font-weight="bold">Symbols</text>
+<rect x="80" y="164" width="110" height="32" rx="8" fill="#0D1B26" stroke="#0D1B26" stroke-width="1"/>
+<text x="135" y="184.08" font-size="12" fill="#FFFFFF" text-anchor="middle">Start / End</text>
+<rect x="80" y="208" width="110" height="32" rx="0" fill="#FFFFFF" stroke="#55697A" stroke-width="1"/>
+<text x="135" y="228.08" font-size="12" fill="#0D1B26" text-anchor="middle">Process</text>
+<polygon points="135,252 190,274 135,296 80,274" fill="#EEF4F7" stroke="#0369A1" stroke-width="1"/>
+<text x="135" y="278.08" font-size="12" fill="#0D1B26" text-anchor="middle">Decision</text>
+<polygon points="97.6,308 190,308 172.4,340 80,340" fill="#FFFFFF" stroke="#0F766E" stroke-width="1"/>
+<text x="135" y="328.08" font-size="12" fill="#0D1B26" text-anchor="middle">Input / Output</text>
+<rect x="80" y="360" width="110" height="28" fill="#EEF4F7" stroke="#0F766E" stroke-width="1"/>
+<ellipse cx="135" cy="360" rx="55" ry="8" fill="#EEF4F7" stroke="#0F766E" stroke-width="1"/>
+<ellipse cx="135" cy="388" rx="55" ry="8" fill="#EEF4F7" stroke="#0F766E" stroke-width="1"/>
+<text x="135" y="378.08" font-size="12" fill="#0D1B26" text-anchor="middle">Database</text>
+<rect x="616.64" y="255.12" width="16.72" height="15" fill="#FFFFFF" opacity="0.92"/>
+<text x="625" y="265.32" font-size="12" fill="#55697A" text-anchor="middle">No</text>
+<rect x="448.46" y="322.12" width="23.080000000000002" height="15" fill="#FFFFFF" opacity="0.92"/>
+<text x="460" y="332.32" font-size="12" fill="#55697A" text-anchor="middle">Yes</text>
+<rect x="613.2006340057637" y="389.3793659942363" width="23.080000000000002" height="15" fill="#FFFFFF" opacity="0.92"/>
+<text x="624.7406340057637" y="399.5793659942363" font-size="12" fill="#55697A" text-anchor="middle">Yes</text>
+<rect x="451.64" y="456.12" width="16.72" height="15" fill="#FFFFFF" opacity="0.92"/>
+<text x="460" y="466.32" font-size="12" fill="#55697A" text-anchor="middle">No</text>
+<rect x="616.64" y="612.12" width="16.72" height="15" fill="#FFFFFF" opacity="0.92"/>
+<text x="625" y="622.32" font-size="12" fill="#55697A" text-anchor="middle">No</text>
+</svg>

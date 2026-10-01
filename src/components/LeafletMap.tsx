@@ -50,6 +50,12 @@ interface LeafletMapProps {
   routeLine?: [number, number][] | null;
   // Called with the marker's id when the user taps a pin.
   onMarkerPress?: (id: string) => void;
+  // Called with the coordinates of a tap anywhere on the map. Set only by the
+  // location picker, where the whole point is to choose a spot that has no
+  // marker on it yet. Leaving it unset keeps every other map inert to taps on
+  // open ground, which is what you want when a stray tap would otherwise move
+  // a listing.
+  onMapPress?: (point: { lat: number; lng: number }) => void;
   // The marker currently highlighted, kept in step with the card carousel on
   // the Map screen.
   selectedId?: string | null;
@@ -389,6 +395,21 @@ function buildLeafletHtml(isDark: boolean, palette: Palette) {
         tiles.on('tileerror', function () {
           sendToReactNative({ type: 'tileError' });
         });
+
+        // Every tap on open ground is reported. React Native decides whether
+        // it means anything: only the picker listens, so on the other maps
+        // this message arrives and is dropped.
+        //
+        // Leaflet fires 'click' for a tap on the map itself but not for one on
+        // a marker, so choosing a spot cannot accidentally be read as picking
+        // an existing listing.
+        map.on('click', function (event) {
+          sendToReactNative({
+            type: 'mapPress',
+            lat: event.latlng.lat,
+            lng: event.latlng.lng,
+          });
+        });
         // Only the FIRST successful tile is reported. Firing on every tile
         // sent dozens of bridge messages per pan or zoom, and paired with
         // tileerror it made the offline banner flicker on and off as tiles
@@ -416,6 +437,7 @@ export default function LeafletMap({
   userLocation,
   routeLine,
   onMarkerPress,
+  onMapPress,
   selectedId = null,
   bottomInset = 40,
 }: LeafletMapProps) {
@@ -487,21 +509,40 @@ export default function LeafletMap({
 
   // Called whenever the HTML page sends a message back to us.
   function handleWebViewMessage(event: WebViewMessageEvent) {
-    const message = JSON.parse(event.nativeEvent.data);
+    let message: { type?: string; message?: string; id?: string; lat?: number; lng?: number };
+    try {
+      message = JSON.parse(event.nativeEvent.data);
+    } catch {
+      // A malformed bridge message must not take down the entire map screen.
+      return;
+    }
+
+    if (!message || typeof message.type !== 'string') {
+      return;
+    }
 
     if (message.type === 'ready') {
       setIsReady(true);
       // Draw the current data immediately now that the map exists.
       webViewRef.current?.injectJavaScript(buildUpdateScript());
       lastSentRef.current = dataKey;
-    } else if (message.type === 'error') {
+    } else if (message.type === 'error' && typeof message.message === 'string') {
       setErrorMessage(message.message);
     } else if (message.type === 'tileError') {
       setTileError(true);
     } else if (message.type === 'tileLoaded') {
       setTileError(false);
-    } else if (message.type === 'markerPress' && onMarkerPress) {
+    } else if (message.type === 'markerPress' && onMarkerPress && typeof message.id === 'string') {
       onMarkerPress(message.id);
+    } else if (
+      message.type === 'mapPress'
+      && onMapPress
+      && typeof message.lat === 'number'
+      && Number.isFinite(message.lat)
+      && typeof message.lng === 'number'
+      && Number.isFinite(message.lng)
+    ) {
+      onMapPress({ lat: message.lat, lng: message.lng });
     }
   }
 

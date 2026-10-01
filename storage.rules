@@ -1,0 +1,47 @@
+rules_version = '2';
+
+// Security rules for Cloud Storage -- the listing photographs.
+//
+// Firestore had rules from the start; Storage did not, which meant whatever
+// the Firebase console last generated was in force and nobody could say what
+// it allowed. These are the intended rules, written down and deployable.
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // Reads the signed-in user's role out of Firestore, the same users/{uid}
+    // document firestore.rules checks. Storage rules can query Firestore, so
+    // "admins only" means the same thing on both sides instead of being
+    // enforced in one place and assumed in the other.
+    function isAdmin() {
+      return request.auth != null
+             && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // ── listing photographs ────────────────────────────────────────────────
+    match /property-images/{fileName} {
+
+      // Readable by anyone. These are pictures of rooms being advertised, and
+      // the download URLs the app stores carry an access token anyway --
+      // tightening this would not hide them, it would only break the images
+      // for anyone browsing before they sign in.
+      allow read: if true;
+
+      // Only an admin may upload, because only an admin can create a listing.
+      //
+      // The two extra conditions are not decoration. Without the size limit a
+      // single upload can fill the free tier; without the content-type check
+      // this becomes a public file host that happens to sit behind an image
+      // picker. 8 MB is generous for a phone photo at quality 0.5.
+      allow write: if isAdmin()
+                   && request.resource.size < 8 * 1024 * 1024
+                   && request.resource.contentType.matches('image/.*');
+    }
+
+    // Everything else is closed. A bucket with one open path is a bucket with
+    // one open path; a bucket with a permissive default is a file host.
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

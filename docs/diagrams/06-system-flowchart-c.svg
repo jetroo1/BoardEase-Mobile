@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="582" height="440" viewBox="344 1272 582 440" font-family="Arial, Helvetica, sans-serif">
+<rect x="344" y="1272" width="582" height="440" fill="#FFFFFF"/>
+<defs><marker id="arrow-e-55697A" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="8" markerHeight="8" orient="auto"><path d="M1,1 L11,6 L1,11 z" fill="#55697A"/></marker></defs>
+<polyline points="460,1378 460,1422" fill="none" stroke="#55697A" stroke-width="1.4" marker-end="url(#arrow-e-55697A)"/>
+<polyline points="460,1482 460,1520" fill="none" stroke="#55697A" stroke-width="1.4" marker-end="url(#arrow-e-55697A)"/>
+<polyline points="550,1565 640,1565 640,1495 700,1495" fill="none" stroke="#55697A" stroke-width="1.4" marker-end="url(#arrow-e-55697A)"/>
+<polyline points="800,1520 800,1560" fill="none" stroke="#55697A" stroke-width="1.4" marker-end="url(#arrow-e-55697A)"/>
+<polyline points="690,1585 620,1585 620,1673 540,1673" fill="none" stroke="#55697A" stroke-width="1.4" marker-end="url(#arrow-e-55697A)"/>
+<polyline points="460,1610 460,1650" fill="none" stroke="#55697A" stroke-width="1.4" marker-end="url(#arrow-e-55697A)"/>
+<polygon points="460,1288 550,1333 460,1378 370,1333" fill="#EEF4F7" stroke="#0369A1" stroke-width="1"/>
+<text x="460" y="1329.4" font-size="12" fill="#0D1B26" text-anchor="middle">Opens a</text>
+<text x="460" y="1344.76" font-size="12" fill="#0D1B26" text-anchor="middle">listing?</text>
+<rect x="360" y="1422" width="200" height="60" rx="0" fill="#FFFFFF" stroke="#55697A" stroke-width="1"/>
+<text x="460" y="1433.04" font-size="12" fill="#0D1B26" text-anchor="middle">Show listing details</text>
+<text x="460" y="1448.3999999999999" font-size="12" fill="#55697A" text-anchor="middle">photos · price · amenities ·</text>
+<text x="460" y="1463.7599999999998" font-size="12" fill="#55697A" text-anchor="middle">reviews</text>
+<text x="460" y="1479.1199999999997" font-size="12" fill="#55697A" text-anchor="middle">favorite · compare</text>
+<polygon points="460,1520 550,1565 460,1610 370,1565" fill="#EEF4F7" stroke="#0369A1" stroke-width="1"/>
+<text x="460" y="1561.4" font-size="12" fill="#0D1B26" text-anchor="middle">Wants</text>
+<text x="460" y="1576.76" font-size="12" fill="#0D1B26" text-anchor="middle">directions?</text>
+<rect x="700" y="1470" width="200" height="50" rx="0" fill="#FFFFFF" stroke="#55697A" stroke-width="1"/>
+<text x="800" y="1491.4" font-size="12" fill="#0D1B26" text-anchor="middle">Request walking route</text>
+<text x="800" y="1506.76" font-size="12" fill="#55697A" text-anchor="middle">OSRM routing service</text>
+<polygon points="725.2,1560 910,1560 874.8,1610 690,1610" fill="#FFFFFF" stroke="#0F766E" stroke-width="1"/>
+<text x="800" y="1581.4" font-size="12" fill="#0D1B26" text-anchor="middle">Draw route on map and</text>
+<text x="800" y="1596.76" font-size="12" fill="#0D1B26" text-anchor="middle">list turn-by-turn steps</text>
+<rect x="380" y="1650" width="160" height="46" rx="8" fill="#0D1B26" stroke="#0D1B26" stroke-width="1"/>
+<text x="460" y="1677.42" font-size="13" fill="#FFFFFF" text-anchor="middle" font-weight="bold">END</text>
+<rect x="448.46" y="1394.12" width="23.080000000000002" height="15" fill="#FFFFFF" opacity="0.92"/>
+<text x="460" y="1404.32" font-size="12" fill="#55697A" text-anchor="middle">Yes</text>
+<rect x="583.46" y="1559.12" width="23.080000000000002" height="15" fill="#FFFFFF" opacity="0.92"/>
+<text x="595" y="1569.32" font-size="12" fill="#55697A" text-anchor="middle">Yes</text>
+<rect x="451.64" y="1624.12" width="16.72" height="15" fill="#FFFFFF" opacity="0.92"/>
+<text x="460" y="1634.32" font-size="12" fill="#55697A" text-anchor="middle">No</text>
+</svg>

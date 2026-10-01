@@ -33,6 +33,8 @@ import { Property, Review } from '../types';
 import { RootStackParamList } from '../navigation/types';
 import { recordRecentlyViewed } from '../utils/offlineCache';
 import { addFavorite, removeFavorite } from '../utils/favorites';
+import { photosOf } from '../utils/photos';
+import { displayName } from '../utils/displayName';
 import { GUTTER } from '../theme';
 import {
   Button,
@@ -42,7 +44,7 @@ import {
   IconButton,
   Pill,
   Pressable,
-  PropertyPhoto,
+  PhotoGallery,
   Rating,
   Skeleton,
   Text,
@@ -245,12 +247,11 @@ export default function DetailsScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: t.spacing.xxl + t.spacing.xl }}
       >
-        <PropertyPhoto
-          uri={property.imageUrl}
+        <PhotoGallery
+          photos={photosOf(property)}
           title={property.title}
           roomType={property.roomType}
           height={HERO_HEIGHT}
-          scrim
         />
 
         {/* Controls float on the photo. They use the onPhoto tone because the
@@ -431,7 +432,7 @@ export default function DetailsScreen() {
                     }}
                   >
                     <Text variant="captionStrong" numberOfLines={1} style={{ flex: 1 }}>
-                      {review.userName}
+                      {displayName(review.userName)}
                     </Text>
                     <Rating value={review.rating} size={12} />
                   </View>
