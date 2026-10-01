@@ -164,7 +164,26 @@ service cloud.firestore {
     // ── favorites ────────────────────────────────────────────────────────
     // Completely private: you can only see and change your own saved list.
     match /favorites/{favoriteId} {
-      allow read, delete: if isVerifiedAccount() && resource.data.userId == request.auth.uid;
+      // Split out from `read`, because a get and a list fail differently here.
+      //
+      // addFavorite() looks the document up before writing it, and the whole
+      // point of that lookup is the case where it does not exist yet. On a
+      // missing document `resource` is null, so `resource.data.userId` is an
+      // error rather than a comparison, and the read was denied -- which the
+      // app reported as a connection problem. Tapping the heart on a listing
+      // you had never saved could therefore never work.
+      //
+      // Allowing a get on a document that does not exist gives nothing away:
+      // the id is uid_propertyId, so a user can only ask about their own rows,
+      // and the answer is "there is nothing here".
+      allow get: if isVerifiedAccount()
+                 && (resource == null || resource.data.userId == request.auth.uid);
+
+      // A query, where every matching document really does exist and must
+      // belong to whoever is asking.
+      allow list: if isVerifiedAccount() && resource.data.userId == request.auth.uid;
+
+      allow delete: if isVerifiedAccount() && resource.data.userId == request.auth.uid;
       allow create: if isVerifiedAccount()
                     && request.resource.data.keys().hasOnly(['userId', 'propertyId', 'createdAt'])
                     && request.resource.data.keys().hasAll(['userId', 'propertyId', 'createdAt'])

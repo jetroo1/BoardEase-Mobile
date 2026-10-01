@@ -37,6 +37,8 @@ import {
   removeFavorite,
 } from '../utils/favorites';
 import { setCallback } from '../utils/navigationCallbacks';
+import { describeFirestoreError } from '../utils/firestoreErrors';
+import { searchListings } from '../utils/search';
 import { GUTTER } from '../theme';
 import {
   Button,
@@ -48,6 +50,7 @@ import {
   PropertyCardSkeleton,
   Screen,
   ScreenHeader,
+  SearchField,
   Text,
 } from '../components/ui';
 
@@ -83,6 +86,8 @@ export default function SearchScreen() {
   // "nearest" = plain distance sort. Recommended is the default, matching
   // the proposal's "Smart Filter & Recommendation" feature.
   const [sortMode, setSortMode] = useState<SortMode>('recommended');
+  // What was typed in the search field. Narrows the list live.
+  const [searchTerm, setSearchTerm] = useState('');
 
   // Loads the user's location, then loads and sorts nearby properties.
   const loadNearbyProperties = useCallback(async (isRefresh = false) => {
@@ -170,7 +175,12 @@ export default function SearchScreen() {
 
   // Step 5: apply the currently selected filters as plain JS array filters
   // (no Firestore compound queries -- keeps things simple to read).
-  const filteredProperties = allProperties.filter((property) => {
+  //
+  // The typed term narrows the list before the filters do. It uses the same
+  // ranking as the search box on Home, so tapping "See all results" there and
+  // typing the same thing here cannot disagree.
+  const searchedProperties = searchListings(allProperties, searchTerm);
+  const filteredProperties = searchedProperties.filter((property) => {
     if (filters.maxPrice !== null && property.price > filters.maxPrice) {
       return false;
     }
@@ -232,7 +242,7 @@ export default function SearchScreen() {
         const newDocId = await addFavorite(user.uid, property.id);
         setFavorites((current) => ({ ...current, [property.id]: newDocId }));
       }
-    } catch {
+    } catch (error) {
       // Put it back the way it was and say so.
       setFavorites((current) => {
         const next = { ...current };
@@ -243,7 +253,7 @@ export default function SearchScreen() {
         }
         return next;
       });
-      Alert.alert('Could not save', 'Check your internet connection and try again.');
+      Alert.alert('Could not save', describeFirestoreError(error));
     } finally {
       savingRef.current.delete(property.id);
     }
@@ -368,6 +378,14 @@ export default function SearchScreen() {
           </Pressable>
         }
       />
+
+      {/* Typed search, above the sort and filter controls because it narrows
+          the list more sharply than either of them. This screen had filters
+          and no way to type a name at all, so finding one known boarding
+          house meant scrolling. */}
+      <View style={{ paddingHorizontal: GUTTER, paddingBottom: t.spacing.sm }}>
+        <SearchField value={searchTerm} onChange={setSearchTerm} />
+      </View>
 
       {/* Controls row: sort on the left as a segmented control, filter on the
           right with its active count. A segmented control shows both options

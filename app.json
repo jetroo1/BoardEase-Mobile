@@ -33,6 +33,7 @@
         "expo-image-picker",
         {
           "photosPermission": "BoardEase lets administrators choose boarding house photos for listings.",
+          "cameraPermission": "BoardEase lets administrators photograph a boarding house while adding its listing.",
           "microphonePermission": false
         }
       ],

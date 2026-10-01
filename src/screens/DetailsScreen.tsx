@@ -33,6 +33,9 @@ import { Property, Review } from '../types';
 import { RootStackParamList } from '../navigation/types';
 import { recordRecentlyViewed } from '../utils/offlineCache';
 import { addFavorite, removeFavorite } from '../utils/favorites';
+import { describeFirestoreError } from '../utils/firestoreErrors';
+import * as Location from 'expo-location';
+import { getDistanceInKm, formatDistance } from '../utils/distance';
 import { photosOf } from '../utils/photos';
 import { displayName } from '../utils/displayName';
 import { GUTTER } from '../theme';
@@ -85,6 +88,48 @@ export default function DetailsScreen() {
   const [errorMessage, setErrorMessage] = useState('');
   const [favoriteDocId, setFavoriteDocId] = useState<string | null>(null);
   const [isSavingFavorite, setIsSavingFavorite] = useState(false);
+  // How far this place is from the person reading about it -- the one fact
+  // the whole application is built around, and the one this screen never
+  // showed. Null until we know, and null for ever if we are not allowed to.
+  const [distanceKm, setDistanceKm] = useState<number | null>(null);
+
+  // Reads the distance only if location was already allowed, and never asks.
+  //
+  // Opening a listing is not the moment to interrupt somebody with a
+  // permission dialog -- the map and the route guide ask, in their own time,
+  // where the answer is the point of the screen. getLastKnownPositionAsync
+  // returns the fix the phone already has rather than waking the GPS, so this
+  // costs nothing and resolves immediately or not at all.
+  useEffect(() => {
+    if (!property) {
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const permission = await Location.getForegroundPermissionsAsync();
+        if (cancelled || !permission.granted) {
+          return;
+        }
+        const position = await Location.getLastKnownPositionAsync({});
+        if (cancelled || !position) {
+          return;
+        }
+        setDistanceKm(
+          getDistanceInKm(
+            position.coords.latitude,
+            position.coords.longitude,
+            property.latitude,
+            property.longitude
+          )
+        );
+      } catch {
+        // No distance shown. The rest of the screen is unaffected, which is
+        // why this is silent rather than an error state.
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [property?.id, property?.latitude, property?.longitude]);
 
   const loadDetails = useCallback(async () => {
     setIsLoading(true);
@@ -182,13 +227,13 @@ export default function DetailsScreen() {
         // Not favorited yet -- add it.
         setFavoriteDocId(await addFavorite(user.uid, property.id));
       }
-    } catch {
+    } catch (error) {
       // Put the heart back AND say so. Reverting silently looks like the tap
       // simply missed, and the user walks away believing the listing is on
       // their shortlist when it is not. Search says this too -- both places
       // have to behave the same way or the control is untrustworthy.
       setFavoriteDocId(previous);
-      Alert.alert('Could not save', 'Check your internet connection and try again.');
+      Alert.alert('Could not save', describeFirestoreError(error));
     } finally {
       setIsSavingFavorite(false);
     }
@@ -335,6 +380,41 @@ export default function DetailsScreen() {
             </Pressable>
           </View>
 
+          {/* The three facts somebody decides on, side by side, before any
+              prose. Distance only appears once it is known -- an empty slot
+              reading "—" would be worse than one fewer column. */}
+          <View
+            style={{
+              flexDirection: 'row',
+              backgroundColor: t.colors.canvasAlt,
+              borderRadius: t.radius.lg,
+              borderWidth: 1,
+              borderColor: t.colors.line,
+              paddingVertical: t.spacing.sm,
+            }}
+          >
+            {distanceKm !== null ? (
+              <Fact
+                icon="walk-outline"
+                value={formatDistance(distanceKm)}
+                label="from you"
+                divider={false}
+              />
+            ) : null}
+            <Fact
+              icon="bed-outline"
+              value={property.roomType}
+              label="room type"
+              divider={distanceKm !== null}
+            />
+            <Fact
+              icon="star-outline"
+              value={reviewCount > 0 ? averageRating.toFixed(1) : '—'}
+              label={reviewCount === 1 ? '1 review' : `${reviewCount} reviews`}
+              divider
+            />
+          </View>
+
           {/* Primary action. One per screen: getting there is what this app
               is for, so Navigate is it, and everything else is quieter. */}
           <View style={{ flexDirection: 'row', gap: t.spacing.xs }}>
@@ -450,6 +530,38 @@ export default function DetailsScreen() {
           and Favorites. So adding a listing from here put it in the tray with
           no visible route to the tray itself. */}
       <CompareBar />
+    </View>
+  );
+}
+
+// One column of the facts strip. Its own component so the three stay
+// identical: a divider drawn per-column rather than between them is how these
+// rows end up subtly uneven.
+function Fact({
+  icon,
+  value,
+  label,
+  divider,
+}: {
+  icon: React.ComponentProps<typeof Ionicons>['name'];
+  value: string;
+  label: string;
+  divider: boolean;
+}) {
+  const t = useTheme();
+  return (
+    <View
+      style={{
+        flex: 1,
+        alignItems: 'center',
+        gap: 2,
+        borderLeftWidth: divider ? 1 : 0,
+        borderLeftColor: t.colors.line,
+      }}
+    >
+      <Ionicons name={icon} size={16} color={t.colors.brand} />
+      <Text variant="captionStrong" numberOfLines={1}>{value}</Text>
+      <Text variant="micro" tone="faint" numberOfLines={1}>{label}</Text>
     </View>
   );
 }

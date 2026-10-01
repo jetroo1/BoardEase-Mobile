@@ -39,3 +39,4 @@ export { default as PropertyPhoto } from './PropertyPhoto';
 export { default as PhotoGallery } from './PhotoGallery';
 
 export { default as PropertyCard, formatPeso } from './PropertyCard';
+export { default as ListingSearchBar, SearchField } from './ListingSearchBar';

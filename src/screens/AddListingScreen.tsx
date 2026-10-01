@@ -169,6 +169,9 @@ export default function AddListingScreen() {
   const [errors, setErrors] = useState<FieldErrors>({});
   const [isLocating, setIsLocating] = useState(false); // true while the GPS is working
   const [isUploadingPhotos, setIsUploadingPhotos] = useState(false);
+  // Which photo of how many is going up, so picking five does not look like a
+  // frozen button while they upload one at a time.
+  const [uploadProgress, setUploadProgress] = useState<{ done: number; total: number } | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
   function toggleAmenity(amenity: string) {
@@ -237,6 +240,64 @@ export default function AddListingScreen() {
     setErrors((current) => ({ ...current, photoUrl: undefined }));
   }
 
+  // Uploads what was just picked or taken, and puts the resulting links on the
+  // listing. Shared by the camera and the gallery because the only difference
+  // between them is where the file came from.
+  //
+  // Whatever uploaded before a failure is kept. Losing four good photographs
+  // because the fifth timed out would mean starting the whole set again.
+  async function uploadAndAppend(assets: { uri: string; mimeType?: string | null }[]) {
+    setIsUploadingPhotos(true);
+    const uploaded: string[] = [];
+    try {
+      for (const asset of assets) {
+        setUploadProgress({ done: uploaded.length, total: assets.length });
+        uploaded.push(await uploadListingPhoto(asset.uri, asset.mimeType ?? undefined));
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Please try again.';
+      Alert.alert('Could not upload photo', message);
+    } finally {
+      if (uploaded.length > 0) {
+        setPhotoUris((current) => [...current, ...uploaded].slice(0, MAX_PHOTOS));
+      }
+      setUploadProgress(null);
+      setIsUploadingPhotos(false);
+    }
+  }
+
+  // Photograph the place while standing in front of it. The reason an admin
+  // has a phone in their hand at all.
+  async function handleTakePhoto() {
+    if (photoUris.length >= MAX_PHOTOS) {
+      Alert.alert('That is enough photos', `A listing can hold ${MAX_PHOTOS}.`);
+      return;
+    }
+
+    const permission = await ImagePicker.requestCameraPermissionsAsync();
+    if (!permission.granted) {
+      Alert.alert(
+        'Camera access needed',
+        'Allow camera access to photograph a boarding house from this phone.'
+      );
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      // Base64 inflates a photo by about a third on the wire, and percent-
+      // encoding it inflates it again, so a 12-megapixel phone photo at 0.8
+      // can approach the free tier's per-image ceiling. 0.6 is still well
+      // beyond what a listing card or a phone gallery can show.
+      quality: 0.6,
+    });
+
+    if (result.canceled || result.assets.length === 0) {
+      return;
+    }
+    await uploadAndAppend(result.assets);
+  }
+
   async function handleChoosePhotos() {
     const availableSlots = MAX_PHOTOS - photoUris.length;
     if (availableSlots <= 0) {
@@ -257,28 +318,17 @@ export default function AddListingScreen() {
       mediaTypes: ['images'],
       allowsMultipleSelection: true,
       selectionLimit: availableSlots,
-      quality: 0.8,
+      // Base64 inflates a photo by about a third on the wire, and percent-
+      // encoding it inflates it again, so a 12-megapixel phone photo at 0.8
+      // can approach the free tier's per-image ceiling. 0.6 is still well
+      // beyond what a listing card or a phone gallery can show.
+      quality: 0.6,
     });
 
     if (result.canceled || result.assets.length === 0) {
       return;
     }
-
-    setIsUploadingPhotos(true);
-    const uploaded: string[] = [];
-    try {
-      for (const asset of result.assets.slice(0, availableSlots)) {
-        uploaded.push(await uploadListingPhoto(asset.uri, asset.mimeType ?? undefined));
-      }
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Please try again.';
-      Alert.alert('Could not upload photo', message);
-    } finally {
-      if (uploaded.length > 0) {
-        setPhotoUris((current) => [...current, ...uploaded].slice(0, MAX_PHOTOS));
-      }
-      setIsUploadingPhotos(false);
-    }
+    await uploadAndAppend(result.assets.slice(0, availableSlots));
   }
 
   function removePhoto(index: number) {
@@ -720,15 +770,33 @@ export default function AddListingScreen() {
             </Card>
           )}
 
-          <Button
-            label={isUploadingPhotos ? 'Uploading photos...' : 'Choose photos'}
-            icon="images-outline"
-            variant="secondary"
-            fullWidth
-            loading={isUploadingPhotos}
-            disabled={isUploadingPhotos || photoUris.length >= MAX_PHOTOS}
-            onPress={handleChoosePhotos}
-          />
+          {/* Two sources, because there are two situations: standing at the
+              gate with the place in front of you, and sorting out photographs
+              you already took. */}
+          <View style={{ flexDirection: 'row', gap: t.spacing.sm }}>
+            <Button
+              label="Take photo"
+              icon="camera-outline"
+              variant="secondary"
+              loading={isUploadingPhotos}
+              disabled={isUploadingPhotos || photoUris.length >= MAX_PHOTOS}
+              onPress={handleTakePhoto}
+              style={{ flex: 1 }}
+            />
+            <Button
+              label={
+                uploadProgress
+                  ? `Uploading ${uploadProgress.done + 1} of ${uploadProgress.total}…`
+                  : 'Choose photos'
+              }
+              icon="images-outline"
+              variant="secondary"
+              loading={isUploadingPhotos}
+              disabled={isUploadingPhotos || photoUris.length >= MAX_PHOTOS}
+              onPress={handleChoosePhotos}
+              style={{ flex: 1 }}
+            />
+          </View>
 
           <View style={{ flexDirection: 'row', gap: t.spacing.sm, alignItems: 'flex-end' }}>
             <Input

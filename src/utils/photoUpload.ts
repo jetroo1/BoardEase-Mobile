@@ -39,24 +39,35 @@ export async function uploadListingPhoto(localUri: string, mimeType = 'image/jpe
     throw new Error('That photo appears to be empty.');
   }
 
-  // Posted as a file descriptor, not as a Blob.
+  // Sent as a base64 data URI in an ordinary form-encoded body.
   //
-  // fetch(uri).blob() is the obvious way and it does not work on a phone:
-  // React Native's Blob holds a reference to native data rather than the data
-  // itself, so what gets posted is empty. That is what broke the Firebase
-  // upload, and the same trap is here. React Native's FormData understands
-  // { uri, name, type } and streams the file itself.
-  const form = new FormData();
-  // React Native's FormData takes a file descriptor rather than a Blob, and
-  // this shape -- uri, name, type -- is what it understands.
-  form.append('file', {
-    uri: localUri,
-    name: `listing-${Date.now()}.${mimeType.split('/')[1] || 'jpg'}`,
-    type: mimeType,
-  } as unknown as Blob);
-  form.append('upload_preset', UPLOAD_PRESET);
+  // Two other ways were tried and neither survives React Native:
+  //
+  //   fetch(uri).blob() -- React Native's Blob holds a reference to native
+  //   data rather than the data itself, so the request body comes out empty.
+  //   That is what broke the Firebase upload.
+  //
+  //   FormData.append('file', { uri, name, type }) -- the long-standing React
+  //   Native idiom, and as of 0.86 its fetch rejects it outright with
+  //   "Unsupported FormDataPart implementation". The descriptor form is gone.
+  //
+  // Base64 avoids both: it is a plain string, so nothing has to understand a
+  // file handle, and Cloudinary documents `file` as accepting a data URI. It
+  // costs about a third more bytes on the wire than a binary upload, which on
+  // a photo already compressed to quality 0.8 is a fair trade for an upload
+  // path that cannot break on the next React Native release.
+  const base64 = await file.base64();
 
-  const response = await fetch(ENDPOINT, { method: 'POST', body: form });
+  const body = new URLSearchParams({
+    file: `data:${mimeType};base64,${base64}`,
+    upload_preset: UPLOAD_PRESET,
+  });
+
+  const response = await fetch(ENDPOINT, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: body.toString(),
+  });
   const result = await response.json().catch(() => null);
 
   if (!response.ok || !result?.secure_url) {

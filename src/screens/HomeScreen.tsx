@@ -18,6 +18,7 @@ import { runAlertCheck } from '../utils/matchAlerts';
 import { loadRecentlyViewed } from '../utils/offlineCache';
 import { Property } from '../types';
 import { AppParamList } from '../navigation/types';
+import { coverOf } from '../utils/photos';
 import { GUTTER } from '../theme';
 import {
   Button,
@@ -28,6 +29,7 @@ import {
   PropertyPhoto,
   Screen,
   ScreenHeader,
+  ListingSearchBar,
   SectionHeader,
   Skeleton,
   Text,
@@ -63,6 +65,14 @@ export default function HomeScreen() {
   // still fills in with no connection.
   const [recentlyViewed, setRecentlyViewed] = useState<Property[]>([]);
 
+  // Every approved listing, held here so the search box can answer as the
+  // person types instead of asking Firestore on each keystroke. There are a
+  // few dozen boarding houses in a city, not a few million -- loading them
+  // once is cheaper than a query per letter, and it means suggestions appear
+  // instantly rather than after a round trip.
+  const [allListings, setAllListings] = useState<Property[]>([]);
+  const [isLoadingListings, setIsLoadingListings] = useState(true);
+
   // Run the saved-filter match check once, when the app opens on this
   // screen. Any brand-new listing that fits the user's saved filters lands
   // on the Notifications tab -- see src/utils/matchAlerts.ts. We don't need
@@ -92,6 +102,38 @@ export default function HomeScreen() {
     }, [user, role])
   );
 
+  // Reloaded on focus too, so a listing an admin just added is searchable
+  // here without restarting the app.
+  useFocusEffect(
+    useCallback(() => {
+      if (!user || role !== 'tenant') {
+        return;
+      }
+      let cancelled = false;
+      (async () => {
+        try {
+          const snapshot = await getDocs(
+            query(collection(db, 'properties'), where('isApproved', '==', true))
+          );
+          if (cancelled) return;
+          setAllListings(
+            snapshot.docs.map((docSnap) => ({
+              id: docSnap.id,
+              ...(docSnap.data() as Omit<Property, 'id'>),
+            }))
+          );
+        } catch {
+          // The search box simply finds nothing; the rest of the screen, which
+          // reads from the phone, still works offline. An error banner here
+          // would be shouting about a feature the person has not used yet.
+        } finally {
+          if (!cancelled) setIsLoadingListings(false);
+        }
+      })();
+      return () => { cancelled = true; };
+    }, [user, role])
+  );
+
   if (role === 'admin') {
     return <AdminHome navigation={navigation} />;
   }
@@ -110,41 +152,25 @@ export default function HomeScreen() {
         contentContainerStyle={{ paddingBottom: t.spacing.xl }}
       >
         <View style={{ paddingHorizontal: GUTTER, gap: t.spacing.sm }}>
-          {/* The search entry is styled as a field rather than a button
-              because that is what people expect to tap on a home screen --
-              it navigates to Search, where the real work happens. */}
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Find nearby boarding houses"
-            onPress={() => navigation.navigate('Search')}
-          >
-            <Card
-              level="medium"
-              style={{ flexDirection: 'row', alignItems: 'center', gap: t.spacing.sm }}
-            >
-              <View
-                style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: t.radius.pill,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backgroundColor: t.colors.brandSoft,
-                }}
-              >
-                <Ionicons name="search" size={19} color={t.colors.brand} />
-              </View>
-              <View style={{ flex: 1, gap: 1 }}>
-                <Text variant="bodyStrong">Browse boarding houses</Text>
-                <Text variant="caption" tone="faint">
-                  Tagum City
-                </Text>
-              </View>
-              <Ionicons name="chevron-forward" size={18} color={t.colors.inkFaint} />
-            </Card>
-          </Pressable>
+          {/* A real search field, not a button dressed as one. The previous
+              version navigated to Search and made you type there, so the
+              first result was two taps and a screen change away. */}
+          <ListingSearchBar
+            listings={allListings}
+            placeholder={
+              isLoadingListings ? 'Loading boarding houses…' : 'Search boarding houses'
+            }
+            onSelect={(property) => navigation.navigate('Details', { propertyId: property.id })}
+            onSubmit={() => navigation.navigate('Search')}
+          />
 
           <View style={{ flexDirection: 'row', gap: t.spacing.sm }}>
+            <QuickLink
+              icon="map-outline"
+              label="Map"
+              hint="See them all"
+              onPress={() => navigation.navigate('Map')}
+            />
             <QuickLink
               icon="heart-outline"
               label="Saved"
@@ -159,6 +185,57 @@ export default function HomeScreen() {
             />
           </View>
         </View>
+
+        {/* --- Nearby ---------------------------------------------------- */}
+        {/* The screen used to be a search box and nothing else until you had
+            viewed something, so a new account saw an empty page and had to
+            guess what the app was for. Showing the cheapest few listings
+            gives it something to be on first open. */}
+        {allListings.length > 0 ? (
+          <View style={{ marginTop: t.spacing.xl }}>
+            <View style={{ paddingHorizontal: GUTTER }}>
+              <SectionHeader
+                title="Most affordable"
+                icon="pricetag-outline"
+                actionLabel="See all"
+                onAction={() => navigation.navigate('Search')}
+              />
+            </View>
+            <FlatList
+              horizontal
+              data={[...allListings].sort((a, b) => a.price - b.price).slice(0, 6)}
+              keyExtractor={(item) => item.id}
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{
+                paddingHorizontal: GUTTER,
+                paddingTop: t.spacing.sm,
+                gap: t.spacing.sm,
+              }}
+              renderItem={({ item }) => (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={`Open ${item.title}`}
+                  onPress={() => navigation.navigate('Details', { propertyId: item.id })}
+                  style={{ width: 180 }}
+                >
+                  <Card level="low" padded={false} style={{ overflow: 'hidden' }}>
+                    <PropertyPhoto
+                      uri={coverOf(item)}
+                      title={item.title}
+                      roomType={item.roomType}
+                      height={110}
+                    />
+                    <View style={{ padding: t.spacing.sm, gap: 2 }}>
+                      <Text variant="captionStrong" numberOfLines={1}>{item.title}</Text>
+                      <Text variant="micro" tone="faint" numberOfLines={1}>{item.address}</Text>
+                      <Text variant="captionStrong" tone="brand">{formatPeso(item.price)}</Text>
+                    </View>
+                  </Card>
+                </Pressable>
+              )}
+            />
+          </View>
+        ) : null}
 
         {recentlyViewed.length > 0 ? (
           <View style={{ marginTop: t.spacing.xl }}>
