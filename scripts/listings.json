@@ -1,0 +1,15 @@
+[
+  {
+    "title": "La Garbosa Apt",
+    "address": "Cogon, Magugpo South, Tagum City",
+    "price": 3000,
+    "roomType": "Studio",
+    "amenities": ["WiFi", "CR", "Parking", "Aircon", "Kitchen"],
+    "latitude": 7.435055,
+    "longitude": 125.794656,
+    "description": "",
+    "images": [
+      "https://res.cloudinary.com/bo25vkvx/image/upload/v1790847163/FRONT_PAGE_BH.png"
+    ]
+  }
+]

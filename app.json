@@ -30,6 +30,13 @@
     "plugins": [
       "expo-secure-store",
       [
+        "expo-image-picker",
+        {
+          "photosPermission": "BoardEase lets administrators choose boarding house photos for listings.",
+          "microphonePermission": false
+        }
+      ],
+      [
         "expo-location",
         {
           "locationWhenInUsePermission": "BoardEase uses your location to show how far each boarding house is and to draw walking directions."

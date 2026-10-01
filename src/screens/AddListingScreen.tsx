@@ -1,8 +1,8 @@
 // The listing form: one screen that both creates a boarding house listing and
 // edits an existing one, straight from the phone. It collects the details,
 // lets the admin place the location (drop a pin on the map, take the phone's
-// GPS, or type the coordinates), lets them attach up to six public photograph
-// links, and writes the result to the Firestore
+// GPS, or type the coordinates), lets them select up to six photographs from
+// their phone (or add a public link), and writes the result to the Firestore
 // "properties" collection -- adding a document, or updating one.
 //
 // Create and edit are the same screen because they are the same fields. Two
@@ -25,6 +25,7 @@
 import React, { useEffect, useState } from 'react';
 import { Alert, Image, ScrollView, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import { requestLocation } from '../utils/locationAccess';
 import { addDoc, collection, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -34,6 +35,7 @@ import { useAuth } from '../context/AuthContext';
 import { Property } from '../types';
 import { RootStackParamList } from '../navigation/types';
 import { photosOf } from '../utils/photos';
+import { uploadListingPhoto } from '../utils/photoUpload';
 import { setCallback } from '../utils/navigationCallbacks';
 import { GUTTER } from '../theme';
 import { useTheme } from '../context/ThemeContext';
@@ -166,6 +168,7 @@ export default function AddListingScreen() {
 
   const [errors, setErrors] = useState<FieldErrors>({});
   const [isLocating, setIsLocating] = useState(false); // true while the GPS is working
+  const [isUploadingPhotos, setIsUploadingPhotos] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   function toggleAmenity(amenity: string) {
@@ -232,6 +235,50 @@ export default function AddListingScreen() {
     setPhotoUris((current) => [...current, candidate]);
     setPhotoUrl('');
     setErrors((current) => ({ ...current, photoUrl: undefined }));
+  }
+
+  async function handleChoosePhotos() {
+    const availableSlots = MAX_PHOTOS - photoUris.length;
+    if (availableSlots <= 0) {
+      Alert.alert('That is enough photos', `A listing can hold ${MAX_PHOTOS}.`);
+      return;
+    }
+
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      Alert.alert(
+        'Photo access needed',
+        'Allow photo access to add boarding house pictures from this phone.'
+      );
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsMultipleSelection: true,
+      selectionLimit: availableSlots,
+      quality: 0.8,
+    });
+
+    if (result.canceled || result.assets.length === 0) {
+      return;
+    }
+
+    setIsUploadingPhotos(true);
+    const uploaded: string[] = [];
+    try {
+      for (const asset of result.assets.slice(0, availableSlots)) {
+        uploaded.push(await uploadListingPhoto(asset.uri, asset.mimeType ?? undefined));
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Please try again.';
+      Alert.alert('Could not upload photo', message);
+    } finally {
+      if (uploaded.length > 0) {
+        setPhotoUris((current) => [...current, ...uploaded].slice(0, MAX_PHOTOS));
+      }
+      setIsUploadingPhotos(false);
+    }
   }
 
   function removePhoto(index: number) {
@@ -345,7 +392,7 @@ export default function AddListingScreen() {
   }
 
   async function handleSave() {
-    if (!user || isSaving) return;
+    if (!user || isSaving || isUploadingPhotos) return;
 
     const found = validateForm();
     setErrors(found);
@@ -562,7 +609,7 @@ export default function AddListingScreen() {
             <Text variant="caption" tone="faint">{photoUris.length} of {MAX_PHOTOS}</Text>
           </View>
           <Text variant="caption" tone="faint">
-            The first photo is shown on the listing card and map.
+            Choose from this phone, or add a public link. The first photo is shown on the listing card and map.
           </Text>
 
           {photoUris.length > 0 ? (
@@ -673,6 +720,16 @@ export default function AddListingScreen() {
             </Card>
           )}
 
+          <Button
+            label={isUploadingPhotos ? 'Uploading photos...' : 'Choose photos'}
+            icon="images-outline"
+            variant="secondary"
+            fullWidth
+            loading={isUploadingPhotos}
+            disabled={isUploadingPhotos || photoUris.length >= MAX_PHOTOS}
+            onPress={handleChoosePhotos}
+          />
+
           <View style={{ flexDirection: 'row', gap: t.spacing.sm, alignItems: 'flex-end' }}>
             <Input
               label="Public photo link"
@@ -692,7 +749,7 @@ export default function AddListingScreen() {
               label="Add link"
               icon="link-outline"
               variant="secondary"
-              disabled={photoUris.length >= MAX_PHOTOS}
+              disabled={isUploadingPhotos || photoUris.length >= MAX_PHOTOS}
               onPress={handleAddPhotoLink}
             />
           </View>
@@ -704,14 +761,15 @@ export default function AddListingScreen() {
             icon="checkmark-circle-outline"
             size="lg"
             fullWidth
-            loading={isSaving}
+            loading={isSaving || isUploadingPhotos}
+            disabled={isUploadingPhotos}
             onPress={handleSave}
           />
           <Button
             label="Cancel"
             variant="ghost"
             fullWidth
-            disabled={isSaving}
+            disabled={isSaving || isUploadingPhotos}
             onPress={() => navigation.goBack()}
           />
         </View>
