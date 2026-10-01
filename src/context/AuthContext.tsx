@@ -10,6 +10,7 @@ import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 import {
   FacebookAuthProvider,
+  GoogleAuthProvider,
   onAuthStateChanged,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
@@ -22,6 +23,7 @@ import {
 import { doc, getDoc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { auth, db } from '../firebaseConfig';
 import { clearOfflineCache } from '../utils/offlineCache';
+import { GOOGLE_WEB_CLIENT_ID } from '../googleConfig';
 import { LEGAL_VERSION } from '../legal';
 import { UserRole } from '../types';
 
@@ -35,6 +37,8 @@ interface AuthContextType {
   resendVerificationEmail: () => Promise<void>;
   refreshUser: () => Promise<void>;
   loginWithFacebook: () => Promise<void>;
+  loginWithGoogle: () => Promise<void>;
+  googleLoginAvailable: boolean;
   completeFacebookProfile: () => Promise<void>;
   facebookLoginAvailable: boolean;
   needsProfileSetup: boolean;
@@ -53,6 +57,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [loading, setLoading] = useState(true);
   const [needsProfileSetup, setNeedsProfileSetup] = useState(false);
   const [, setAuthRevision] = useState(0);
+  // Google needs the same native code Facebook does, so it is offered in
+  // exactly the same places: a development build, never Expo Go, never web.
+  const googleLoginAvailable =
+    Platform.OS !== 'web' && Constants.executionEnvironment !== 'storeClient';
   const facebookLoginAvailable =
     Platform.OS !== 'web' && Constants.executionEnvironment !== 'storeClient';
 
@@ -189,6 +197,59 @@ export function AuthProvider({ children }: AuthProviderProps) {
     await signInWithCredential(auth, credential);
   }
 
+  // Google sign-in, which needs the same development build Facebook does.
+  //
+  // The flow is: the native sheet returns an ID token proving who the person
+  // is to Google, and that token is exchanged for a Firebase credential. We
+  // never see a password and never handle the client secret -- the secret
+  // stays in the Firebase console, because anything shipped in the app can be
+  // read out of it.
+  //
+  // webClientId is the "Web client ID" from Firebase's Google provider, not
+  // the Android one. That trips people up: the Android client is matched by
+  // the app's signing fingerprint instead, and passing it here fails with
+  // DEVELOPER_ERROR.
+  async function loginWithGoogle() {
+    if (!googleLoginAvailable) {
+      const error = new Error('Google login is available in the BoardEase development build.');
+      Object.assign(error, { code: 'auth/operation-not-supported-in-this-environment' });
+      throw error;
+    }
+
+    // Required only in the development build, like the Facebook SDK above.
+    const { GoogleSignin, statusCodes } = require('@react-native-google-signin/google-signin') as typeof import('@react-native-google-signin/google-signin');
+
+    GoogleSignin.configure({ webClientId: GOOGLE_WEB_CLIENT_ID });
+
+    try {
+      await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+      const response = await GoogleSignin.signIn();
+
+      // Newer versions wrap the result: cancelling resolves rather than
+      // throwing, so a cancel has to be read off the response as well as
+      // caught below.
+      const idToken =
+        (response as { data?: { idToken?: string | null } }).data?.idToken
+        ?? (response as { idToken?: string | null }).idToken;
+
+      if (!idToken) {
+        const error = new Error('Google sign-in was cancelled.');
+        Object.assign(error, { code: 'auth/popup-closed-by-user' });
+        throw error;
+      }
+
+      const credential = GoogleAuthProvider.credential(idToken);
+      await signInWithCredential(auth, credential);
+    } catch (error: any) {
+      if (error?.code === statusCodes.SIGN_IN_CANCELLED) {
+        const cancelled = new Error('Google sign-in was cancelled.');
+        Object.assign(cancelled, { code: 'auth/popup-closed-by-user' });
+        throw cancelled;
+      }
+      throw error;
+    }
+  }
+
   async function completeFacebookProfile() {
     const currentUser = auth.currentUser;
     const isFacebookUser = currentUser?.providerData.some(
@@ -231,6 +292,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     resendVerificationEmail,
     refreshUser,
     loginWithFacebook,
+    loginWithGoogle,
+    googleLoginAvailable,
     completeFacebookProfile,
     facebookLoginAvailable,
     needsProfileSetup,

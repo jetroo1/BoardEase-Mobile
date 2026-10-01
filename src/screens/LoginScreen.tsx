@@ -30,7 +30,13 @@ import {
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 export default function LoginScreen() {
-  const { login, loginWithFacebook, facebookLoginAvailable } = useAuth();
+  const {
+    login,
+    loginWithFacebook,
+    facebookLoginAvailable,
+    loginWithGoogle,
+    googleLoginAvailable,
+  } = useAuth();
   const navigation = useNavigation<NavigationProp>();
   const t = useTheme();
 
@@ -39,6 +45,7 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isFacebookSubmitting, setIsFacebookSubmitting] = useState(false);
+  const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
 
   // Per-field errors appear on blur; the form-level one appears after a failed
   // submit. Keeping them separate is what stops an old server error from
@@ -70,6 +77,19 @@ export default function LoginScreen() {
     } finally {
       // In a finally so a thrown error cannot leave the button dead.
       setIsSubmitting(false);
+    }
+  }
+
+  async function handleGoogleLogin() {
+    if (isGoogleSubmitting) return;
+    setIsGoogleSubmitting(true);
+    setFormError(null);
+    try {
+      await loginWithGoogle();
+    } catch (error) {
+      setFormError(describeAuthError(error));
+    } finally {
+      setIsGoogleSubmitting(false);
     }
   }
 
@@ -175,6 +195,29 @@ export default function LoginScreen() {
             style={{ marginTop: t.spacing.xxs }}
           />
 
+          {/* Both hidden in Expo Go, where the native code they need does not
+              exist. A button that always fails is worse than no button. */}
+          {facebookLoginAvailable || googleLoginAvailable ? (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: t.spacing.sm }}>
+              <View style={{ flex: 1, height: 1, backgroundColor: t.colors.line }} />
+              <Text variant="micro" tone="faint" uppercase>or</Text>
+              <View style={{ flex: 1, height: 1, backgroundColor: t.colors.line }} />
+            </View>
+          ) : null}
+
+          {googleLoginAvailable ? (
+            <Button
+              label="Continue with Google"
+              icon="logo-google"
+              variant="secondary"
+              size="lg"
+              fullWidth
+              loading={isGoogleSubmitting}
+              disabled={isFacebookSubmitting}
+              onPress={handleGoogleLogin}
+            />
+          ) : null}
+
           {facebookLoginAvailable ? (
             <Button
               label="Continue with Facebook"
@@ -183,6 +226,7 @@ export default function LoginScreen() {
               size="lg"
               fullWidth
               loading={isFacebookSubmitting}
+              disabled={isGoogleSubmitting}
               onPress={handleFacebookLogin}
             />
           ) : null}
