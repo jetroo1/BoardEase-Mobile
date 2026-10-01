@@ -3,7 +3,7 @@
 <defs><marker id="ermany-e-55697A" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="8" markerHeight="8" orient="auto"><path d="M12,2 L2,6 M12,10 L2,6 M12,6 L2,6" fill="none" stroke="#55697A" stroke-width="1.4"/></marker><marker id="erone-s-55697A" viewBox="0 0 12 12" refX="1" refY="6" markerWidth="8" markerHeight="8" orient="auto"><g transform="rotate(180 6 6)"><path d="M9,1 L9,11" fill="none" stroke="#55697A" stroke-width="1.4"/></g></marker><marker id="erone-e-55697A" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="8" markerHeight="8" orient="auto"><path d="M9,1 L9,11" fill="none" stroke="#55697A" stroke-width="1.4"/></marker></defs>
 <polyline points="310,129 370,129 370,157 430,157" fill="none" stroke="#55697A" stroke-width="1.4" marker-end="url(#ermany-e-55697A)" marker-start="url(#erone-s-55697A)"/>
 <polyline points="680,129 745,129 745,157 810,157" fill="none" stroke="#55697A" stroke-width="1.4" marker-end="url(#ermany-e-55697A)" marker-start="url(#erone-s-55697A)"/>
-<polyline points="680,443 745,443 745,479 810,479" fill="none" stroke="#55697A" stroke-width="1.4" marker-end="url(#ermany-e-55697A)" marker-start="url(#erone-s-55697A)"/>
+<polyline points="680,469 745,469 745,479 810,479" fill="none" stroke="#55697A" stroke-width="1.4" marker-end="url(#ermany-e-55697A)" marker-start="url(#erone-s-55697A)"/>
 <polyline points="185,322 185,620 1120,620 1120,204 1049.5238095238096,204 1049.5238095238096,196" fill="none" stroke="#55697A" stroke-width="1.4" marker-end="url(#ermany-e-55697A)" marker-start="url(#erone-s-55697A)"/>
 <polyline points="185,322 185,560 260,560 750,560 750,453 810,453" fill="none" stroke="#55697A" stroke-width="1.4" marker-end="url(#ermany-e-55697A)" marker-start="url(#erone-s-55697A)"/>
 <polyline points="60,740 150,740" fill="none" stroke="#55697A" stroke-width="1.4" marker-end="url(#erone-e-55697A)"/>
@@ -39,7 +39,7 @@
 <rect x="60" y="274" width="52" height="26" rx="0" fill="none" stroke="#D5E3EA" stroke-width="1"/>
 <rect x="112" y="274" width="198" height="26" rx="0" fill="none" stroke="none" stroke-width="1"/>
 <text x="120" y="291.08" font-size="12" fill="#0D1B26" text-anchor="start">createdAt</text>
-<rect x="430" y="80" width="250" height="376" rx="0" fill="#0D1B26" stroke="#0D1B26" stroke-width="1"/>
+<rect x="430" y="80" width="250" height="402" rx="0" fill="#0D1B26" stroke="#0D1B26" stroke-width="1"/>
 <text x="555" y="101.76" font-size="14" fill="#FFFFFF" text-anchor="middle" font-weight="bold">properties</text>
 <rect x="430" y="114" width="250" height="30" rx="0" fill="#FFFFFF" stroke="#0D1B26" stroke-width="1"/>
 <rect x="430" y="114" width="52" height="30" rx="0" fill="none" stroke="#0D1B26" stroke-width="1"/>
@@ -90,11 +90,15 @@
 <rect x="430" y="404" width="250" height="26" rx="0" fill="#FFFFFF" stroke="#D5E3EA" stroke-width="1"/>
 <rect x="430" y="404" width="52" height="26" rx="0" fill="none" stroke="#D5E3EA" stroke-width="1"/>
 <rect x="482" y="404" width="198" height="26" rx="0" fill="none" stroke="none" stroke-width="1"/>
-<text x="490" y="421.08" font-size="12" fill="#0D1B26" text-anchor="start">isApproved</text>
+<text x="490" y="421.08" font-size="12" fill="#0D1B26" text-anchor="start">images</text>
 <rect x="430" y="430" width="250" height="26" rx="0" fill="#FFFFFF" stroke="#D5E3EA" stroke-width="1"/>
 <rect x="430" y="430" width="52" height="26" rx="0" fill="none" stroke="#D5E3EA" stroke-width="1"/>
 <rect x="482" y="430" width="198" height="26" rx="0" fill="none" stroke="none" stroke-width="1"/>
-<text x="490" y="447.08" font-size="12" fill="#0D1B26" text-anchor="start">createdAt</text>
+<text x="490" y="447.08" font-size="12" fill="#0D1B26" text-anchor="start">isApproved</text>
+<rect x="430" y="456" width="250" height="26" rx="0" fill="#FFFFFF" stroke="#D5E3EA" stroke-width="1"/>
+<rect x="430" y="456" width="52" height="26" rx="0" fill="none" stroke="#D5E3EA" stroke-width="1"/>
+<rect x="482" y="456" width="198" height="26" rx="0" fill="none" stroke="none" stroke-width="1"/>
+<text x="490" y="473.08" font-size="12" fill="#0D1B26" text-anchor="start">createdAt</text>
 <rect x="810" y="80" width="250" height="220" rx="0" fill="#0D1B26" stroke="#0D1B26" stroke-width="1"/>
 <text x="935" y="101.76" font-size="14" fill="#FFFFFF" text-anchor="middle" font-weight="bold">reviews</text>
 <rect x="810" y="114" width="250" height="30" rx="0" fill="#FFFFFF" stroke="#0D1B26" stroke-width="1"/>
@@ -160,8 +164,8 @@
 <text x="340" y="133.32" font-size="12" fill="#55697A" text-anchor="middle">creates</text>
 <rect x="700.96" y="123.11999999999999" width="23.080000000000002" height="15" fill="#FFFFFF" opacity="0.92"/>
 <text x="712.5" y="133.32" font-size="12" fill="#55697A" text-anchor="middle">has</text>
-<rect x="685.06" y="437.12" width="54.88" height="15" fill="#FFFFFF" opacity="0.92"/>
-<text x="712.5" y="447.32" font-size="12" fill="#55697A" text-anchor="middle">saved in</text>
+<rect x="685.06" y="463.12" width="54.88" height="15" fill="#FFFFFF" opacity="0.92"/>
+<text x="712.5" y="473.32" font-size="12" fill="#55697A" text-anchor="middle">saved in</text>
 <rect x="631.42" y="614.12" width="42.160000000000004" height="15" fill="#FFFFFF" opacity="0.92"/>
 <text x="652.5" y="624.32" font-size="12" fill="#55697A" text-anchor="middle">writes</text>
 <rect x="487.1" y="554.12" width="35.8" height="15" fill="#FFFFFF" opacity="0.92"/>

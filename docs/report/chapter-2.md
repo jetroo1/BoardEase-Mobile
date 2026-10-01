@@ -215,7 +215,8 @@ Authentication user id.
 | `roomType` | string | Single, Shared, or Studio |
 | `amenities` | array of string | e.g. `["WiFi", "Own CR"]` |
 | `latitude`, `longitude` | number | Used for distance and routing |
-| `imageUrl` | string | Storage download URL, or empty |
+| `imageUrl` | string | The cover photograph: a Storage download URL, or empty |
+| `images` | array of string | Every photograph, cover first, up to ten. Absent on listings created before galleries existed, which is why `imageUrl` is kept as well |
 | `ownerId` | string | Account that submitted it |
 | `isApproved` | boolean | Only `true` appears in search |
 | `createdAt` | number | Also drives match alerts |
@@ -343,8 +344,9 @@ while development began weeks earlier.
 
 ### Timeline
 
-Development of the mobile application ran from mid-August to late September
-2026. Dates are taken from file timestamps and commit history, not from memory.
+Development of the mobile application ran from mid-August 2026 to the start of
+October 2026. Dates are taken from file timestamps and commit history, not
+from memory.
 
 | Period | Phase | Evidence |
 |---|---|---|
@@ -356,19 +358,27 @@ Development of the mobile application ran from mid-August to late September
 | 22 Sep | Extracted to a standalone repository | first commit, `BoardEase_Mobile` |
 | 22–23 Sep | Design system; all 16 screens rebuilt; clickable Figma prototype | 12 commits |
 | 24–25 Sep | Diagrams updated; Chapters 1–3 written | this document |
+| 26–27 Sep | Public landing screen; location permission flow; Terms of Use and Privacy Notice with consent at sign-up; listing photo galleries | `LandingScreen.tsx`, `locationAccess.ts`, `legal.ts`, `LegalScreen.tsx`, `PhotoGallery.tsx` |
+| 28 Sep | Map location picker for placing a listing | `PickLocationScreen.tsx` |
+| 29–30 Sep | Admin listing management rebuilt; email verification | `AdminScreen.tsx`, `listings.ts`, `VerifyEmailScreen.tsx` |
+| 1 Oct | Facebook sign-in and profile completion; whole-system review; work committed and pushed | `CompleteFacebookProfileScreen.tsx`, commit `0984c9b` |
 
 **Gantt chart**
 
 ```
-                          Aug 19    Sep 10   Sep 15   Sep 18   Sep 22   Sep 25
-Setup and Firebase        ██████████████
-Core logic (GPS, routing,             ████████████
-  scoring)
-Screens and features                       ████████████
-Prototyping                                      ████████
-Repository restructure                                 ██████
-UI redesign                                              ████████
-Documentation and diagrams                                     ██████
+                        Aug 19   Sep 10  Sep 15  Sep 18  Sep 22  Sep 25  Sep 28  Oct 1
+Setup and Firebase      ████████████
+Core logic (GPS,                 ██████████
+  routing, scoring)
+Screens and features                 ██████████
+Prototyping                                ███████
+Repository restructure                         █████
+UI redesign                                      ██████
+Documentation, diagrams                             ██████
+Landing, privacy, photos                                 ███████
+Admin management,                                            ████████
+  verification, sign-in
+Review and release                                                 █████
 ```
 
 ### Version Control
@@ -389,7 +399,7 @@ Conventions that were followed:
 - The repository contains the application, its scripts and its documentation;
   the Laravel web application lives in a separate repository
 
-The mobile repository holds 13 commits. Its history begins on 22 September
+The mobile repository holds 14 commits. Its history begins on 22 September
 because that is when the project was extracted, not when development started.
 
 ### Code Review Process

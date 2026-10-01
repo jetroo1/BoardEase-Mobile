@@ -107,7 +107,7 @@ Expo Go for the purposes of this course rather than through an app store.
 
 ### Release Date
 
-**September 2026** — the date of academic submission and defence.
+**October 2026** — the date of academic submission and defence.
 
 This is the date on which the application is delivered and demonstrated for
 CCE106/L. It is not a public app store release; BoardEase is run through Expo
