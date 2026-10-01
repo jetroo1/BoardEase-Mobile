@@ -56,21 +56,7 @@
           "locationWhenInUsePermission": "BoardEase uses your location to show how far each boarding house is and to draw walking directions."
         }
       ],
-      "expo-font",
-      [
-        "react-native-fbsdk-next",
-        {
-          "appID": "1866735770860484",
-          "clientToken": "1b89513bcc5d4bea24a710a2666ec7fb",
-          "displayName": "BoardEase",
-          "scheme": "fb1866735770860484",
-          "advertiserIDCollectionEnabled": false,
-          "autoLogAppEventsEnabled": false,
-          "isAutoInitEnabled": true,
-          "iosUserTrackingPermission": false
-        }
-      ],
-      "@react-native-google-signin/google-signin"
+      "expo-font"
     ],
     "extra": {
       "eas": {

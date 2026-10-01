@@ -5,25 +5,30 @@
 // React Context. Screens read it with the useAuth() hook at the bottom
 // of this file.
 
+// Sign-in is email and password only.
+//
+// Facebook and Google were implemented here and have been removed. Both need
+// native code compiled into the application, and Expo's SDK 57 documentation
+// is explicit that such libraries "can't be used in Expo Go". This course
+// requires Expo Go, so the buttons could never have worked for the people
+// marking it -- they were hidden in Expo Go and live only in a development
+// build, which amounts to a feature nobody could reach. Carrying the code,
+// the two native dependencies and the config plugins for that was cost
+// without benefit.
+
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { Platform } from 'react-native';
-import Constants from 'expo-constants';
 import {
-  FacebookAuthProvider,
-  GoogleAuthProvider,
   onAuthStateChanged,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   deleteUser,
   sendEmailVerification,
-  signInWithCredential,
   signOut as firebaseSignOut,
   User,
 } from 'firebase/auth';
 import { doc, getDoc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { auth, db } from '../firebaseConfig';
 import { clearOfflineCache } from '../utils/offlineCache';
-import { GOOGLE_WEB_CLIENT_ID } from '../googleConfig';
 import { LEGAL_VERSION } from '../legal';
 import { UserRole } from '../types';
 
@@ -36,12 +41,6 @@ interface AuthContextType {
   register: (email: string, password: string) => Promise<void>;
   resendVerificationEmail: () => Promise<void>;
   refreshUser: () => Promise<void>;
-  loginWithFacebook: () => Promise<void>;
-  loginWithGoogle: () => Promise<void>;
-  googleLoginAvailable: boolean;
-  completeFacebookProfile: () => Promise<void>;
-  facebookLoginAvailable: boolean;
-  needsProfileSetup: boolean;
   logout: () => Promise<void>;
 }
 
@@ -55,14 +54,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [role, setRole] = useState<UserRole | null>(null);
   const [loading, setLoading] = useState(true);
-  const [needsProfileSetup, setNeedsProfileSetup] = useState(false);
   const [, setAuthRevision] = useState(0);
-  // Google needs the same native code Facebook does, so it is offered in
-  // exactly the same places: a development build, never Expo Go, never web.
-  const googleLoginAvailable =
-    Platform.OS !== 'web' && Constants.executionEnvironment !== 'storeClient';
-  const facebookLoginAvailable =
-    Platform.OS !== 'web' && Constants.executionEnvironment !== 'storeClient';
 
   useEffect(() => {
     // onAuthStateChanged is a Firebase "listener": it fires once right away
@@ -81,22 +73,24 @@ export function AuthProvider({ children }: AuthProviderProps) {
           if (userDocSnap.exists()) {
             const data = userDocSnap.data();
             setRole((data.role as UserRole) || 'tenant');
-            setNeedsProfileSetup(false);
           } else {
-            setRole(null);
-            setNeedsProfileSetup(true);
+            // Signed in and verified, but with no profile document. register()
+            // writes one, so this only happens to an account whose document
+            // was removed by hand. Treating them as a tenant keeps the app
+            // usable rather than leaving them on a screen with no role and no
+            // way forward -- a role is read from the document, never granted
+            // by it, so this cannot hand anybody admin.
+            setRole('tenant');
           }
         } catch {
           // A network or rules failure must not leave the whole app on a blank
           // startup screen. Data requests will still surface their own error.
           setRole(null);
-          setNeedsProfileSetup(false);
         }
       } else {
         // Nobody is logged in, or the email/password account has not confirmed
         // its email yet. Both states must not inherit an earlier user's role.
         setRole(null);
-        setNeedsProfileSetup(false);
       }
 
       setLoading(false);
@@ -171,108 +165,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setAuthRevision((revision) => revision + 1);
   }
 
-  async function loginWithFacebook() {
-    if (!facebookLoginAvailable) {
-      const error = new Error('Facebook login is available in the BoardEase development build.');
-      Object.assign(error, { code: 'auth/operation-not-supported-in-this-environment' });
-      throw error;
-    }
-
-    // Loaded only in the development build. Expo Go does not include this
-    // native module, which is why the login button is hidden there.
-    const { AccessToken, LoginManager } = require('react-native-fbsdk-next') as typeof import('react-native-fbsdk-next');
-    const result = await LoginManager.logInWithPermissions(['public_profile', 'email']);
-    if (result.isCancelled) {
-      const error = new Error('Facebook sign-in was cancelled.');
-      Object.assign(error, { code: 'auth/popup-closed-by-user' });
-      throw error;
-    }
-
-    const accessToken = await AccessToken.getCurrentAccessToken();
-    if (!accessToken) {
-      throw new Error('Facebook did not return an access token.');
-    }
-
-    const credential = FacebookAuthProvider.credential(accessToken.accessToken);
-    await signInWithCredential(auth, credential);
-  }
-
-  // Google sign-in, which needs the same development build Facebook does.
-  //
-  // The flow is: the native sheet returns an ID token proving who the person
-  // is to Google, and that token is exchanged for a Firebase credential. We
-  // never see a password and never handle the client secret -- the secret
-  // stays in the Firebase console, because anything shipped in the app can be
-  // read out of it.
-  //
-  // webClientId is the "Web client ID" from Firebase's Google provider, not
-  // the Android one. That trips people up: the Android client is matched by
-  // the app's signing fingerprint instead, and passing it here fails with
-  // DEVELOPER_ERROR.
-  async function loginWithGoogle() {
-    if (!googleLoginAvailable) {
-      const error = new Error('Google login is available in the BoardEase development build.');
-      Object.assign(error, { code: 'auth/operation-not-supported-in-this-environment' });
-      throw error;
-    }
-
-    // Required only in the development build, like the Facebook SDK above.
-    const { GoogleSignin, statusCodes } = require('@react-native-google-signin/google-signin') as typeof import('@react-native-google-signin/google-signin');
-
-    GoogleSignin.configure({ webClientId: GOOGLE_WEB_CLIENT_ID });
-
-    try {
-      await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
-      const response = await GoogleSignin.signIn();
-
-      // Newer versions wrap the result: cancelling resolves rather than
-      // throwing, so a cancel has to be read off the response as well as
-      // caught below.
-      const idToken =
-        (response as { data?: { idToken?: string | null } }).data?.idToken
-        ?? (response as { idToken?: string | null }).idToken;
-
-      if (!idToken) {
-        const error = new Error('Google sign-in was cancelled.');
-        Object.assign(error, { code: 'auth/popup-closed-by-user' });
-        throw error;
-      }
-
-      const credential = GoogleAuthProvider.credential(idToken);
-      await signInWithCredential(auth, credential);
-    } catch (error: any) {
-      if (error?.code === statusCodes.SIGN_IN_CANCELLED) {
-        const cancelled = new Error('Google sign-in was cancelled.');
-        Object.assign(cancelled, { code: 'auth/popup-closed-by-user' });
-        throw cancelled;
-      }
-      throw error;
-    }
-  }
-
-  async function completeFacebookProfile() {
-    const currentUser = auth.currentUser;
-    const isFacebookUser = currentUser?.providerData.some(
-      (provider) => provider.providerId === FacebookAuthProvider.PROVIDER_ID
-    );
-
-    if (!currentUser || !isFacebookUser || !currentUser.email) {
-      throw new Error('Facebook did not provide an email address for this account.');
-    }
-
-    await setDoc(doc(db, 'users', currentUser.uid), {
-      email: currentUser.email,
-      role: 'tenant',
-      consent: {
-        termsVersion: LEGAL_VERSION,
-        privacyVersion: LEGAL_VERSION,
-        acceptedAt: serverTimestamp(),
-      },
-    });
-    setRole('tenant');
-    setNeedsProfileSetup(false);
-  }
-
   async function logout() {
     // Drop this account's cached favorites and recently-viewed listings
     // first, so the next person to log in on this phone does not see them.
@@ -290,14 +182,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     login,
     register,
     resendVerificationEmail,
-    refreshUser,
-    loginWithFacebook,
-    loginWithGoogle,
-    googleLoginAvailable,
-    completeFacebookProfile,
-    facebookLoginAvailable,
-    needsProfileSetup,
-    logout,
+    refreshUser,    logout,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

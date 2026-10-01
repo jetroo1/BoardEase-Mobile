@@ -27,7 +27,6 @@ import LandingScreen from '../screens/LandingScreen';
 import LoginScreen from '../screens/LoginScreen';
 import RegisterScreen from '../screens/RegisterScreen';
 import VerifyEmailScreen from '../screens/VerifyEmailScreen';
-import CompleteFacebookProfileScreen from '../screens/CompleteFacebookProfileScreen';
 import DetailsScreen from '../screens/DetailsScreen';
 import FilterScreen from '../screens/FilterScreen';
 import CompareScreen from '../screens/CompareScreen';
@@ -45,7 +44,7 @@ import { Screen, ScreenHeader } from '../components/ui';
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function RootNavigator() {
-  const { user, loading, needsProfileSetup } = useAuth();
+  const { user, loading } = useAuth();
   const t = useTheme();
   const detailHeader = (title: string) => ({
     headerShown: true,
@@ -84,11 +83,6 @@ export default function RootNavigator() {
         </>
       ) : needsEmailVerification(user) ? (
         <Stack.Screen name="VerifyEmail" component={VerifyEmailScreen} />
-      ) : needsProfileSetup ? (
-        <>
-          <Stack.Screen name="CompleteFacebookProfile" component={CompleteFacebookProfileScreen} />
-          <Stack.Screen name="Legal" component={LegalScreen} />
-        </>
       ) : (
         // Logged in: the tab bar, plus every screen that can open on top of it.
         <>

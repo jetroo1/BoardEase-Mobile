@@ -30,7 +30,6 @@ export type RootStackParamList = {
   Login: undefined;
   Register: undefined;
   VerifyEmail: undefined;
-  CompleteFacebookProfile: undefined;
   MainTabs: undefined;
   Details: { propertyId: string };
   // The Filter screen hands the chosen filters back to whoever opened it. The
