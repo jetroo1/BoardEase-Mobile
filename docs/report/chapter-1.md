@@ -148,6 +148,10 @@ named so the requirement can be traced to the build.
 | FR-1.3 | A user can request a password reset link by email. | `ProfileScreen` |
 | FR-1.4 | A user can log out, which clears any cached data held on the device. | `ProfileScreen` |
 | FR-1.5 | Each account carries a role of either *tenant* or *administrator*, which determines what is shown. | `AuthContext` |
+| FR-1.6 | A new account must confirm its email address before it can reach the listings. Until it does, the application holds it on a waiting screen offering to resend the message. | `VerifyEmailScreen`, `AuthContext` |
+| FR-1.7 | A visitor must accept the Terms of Use and the Privacy Notice before an account is created, and the version accepted is recorded against that account. | `RegisterScreen`, `AuthContext` |
+| FR-1.8 | Both documents are readable before signing up and again afterwards from the profile. | `LegalScreen` |
+| FR-1.9 | A session persists between launches, so closing the application does not sign the user out. | `firebaseConfig.ts` |
 
 Validation is applied in the interface before submission and reported next to
 the field concerned. Authentication failures are translated into wording the
@@ -162,6 +166,9 @@ user can act on rather than shown as raw error codes.
 | FR-2.3 | The system computes the distance from the user to each listing using the Haversine formula. | `utils/distance.ts` |
 | FR-2.4 | Results are ordered nearest first. | `SearchScreen` |
 | FR-2.5 | If location is unavailable or refused, the full catalogue is still browsable, with distance-dependent features disabled and the reason stated. | `SearchScreen` |
+| FR-2.6 | A user can search by typing part of a listing's name or its barangay, and the list narrows as each character is entered. | `SearchScreen`, `utils/search.ts` |
+| FR-2.7 | The home screen offers the same search, showing matching listings as suggestions before anything is submitted. | `HomeScreen`, `ListingSearchBar` |
+| FR-2.8 | Matches are ranked by where the term was found: the start of the name first, then the start of any word in it, then the address, and a loose match last. | `utils/search.ts` |
 
 #### FR-3 — Filtering and ranking
 
@@ -232,12 +239,16 @@ almost identically, which would defeat the purpose of ranking by distance.
 
 | ID | Requirement | Where |
 |---|---|---|
-| FR-9.1 | An administrator sees a queue of listings awaiting approval. | `AdminScreen` |
-| FR-9.2 | An administrator can approve a listing, publishing it to search results. | `AdminScreen` |
-| FR-9.3 | An administrator can reject a listing, which deletes it after confirmation naming the listing. | `AdminScreen` |
-| FR-9.4 | An administrator can remove any review. | `AdminScreen` |
-| FR-9.5 | An administrator can create a listing, including attaching a photograph from the camera or gallery and pinning its coordinates by GPS or by hand. | `AddListingScreen` |
-| FR-9.6 | Administrative screens refuse access to non-administrator accounts. | `AdminScreen`, `AddListingScreen` |
+| FR-9.1 | An administrator sees every listing in the application, those awaiting approval first. | `AdminScreen` |
+| FR-9.2 | An administrator can publish a listing, making it appear in search results. | `AdminScreen` |
+| FR-9.3 | An administrator can hide a published listing, removing it from search without destroying it or its reviews. | `AdminScreen` |
+| FR-9.4 | An administrator can delete a listing after confirmation naming it. Its reviews and its photographs are deleted with it. | `AdminScreen`, `utils/listings.ts` |
+| FR-9.5 | An administrator can edit any listing, including its price, description, position and photographs. | `AddListingScreen` |
+| FR-9.6 | An administrator can remove any review. | `AdminScreen` |
+| FR-9.7 | An administrator can create a listing, attaching up to ten photographs from the camera or the gallery. | `AddListingScreen` |
+| FR-9.8 | A listing's position can be set by dropping a pin on the map, by the device GPS, or by typing the coordinates. | `PickLocationScreen`, `AddListingScreen` |
+| FR-9.9 | A listing may carry a contact number, shown to tenants as a tappable link that opens the dialler. | `AddListingScreen`, `DetailsScreen` |
+| FR-9.10 | Administrative screens refuse access to non-administrator accounts. | `AdminScreen`, `AddListingScreen` |
 
 #### Out of scope
 
@@ -251,6 +262,8 @@ version 1.0.0. They are recorded here so the boundary is explicit.
 | **Booking, reservation, payment** | Never in scope. The application is a guide, not a booking platform. |
 | **Messaging** | Never in scope. No chat between tenants and owners. |
 | **Verification of listing accuracy** | The system relies on administrator review. It does not independently confirm that a property exists or that its stated price is current. |
+| **Facebook and Google sign-in** | Built and then removed. Both require native code compiled into the application, and Expo's own SDK 57 documentation states such libraries cannot be used in Expo Go. This course is run on Expo Go, so the buttons were hidden on every device that would ever run the application — a feature nobody could reach. Email and password sign-in is unaffected. |
+| **Push notifications** | Match alerts are collected and listed inside the application, but no notification is delivered to the device while it is closed. `expo-notifications` is installed and unused; this is restated in Chapter 3. |
 
 ### Non-Functional Requirements
 
@@ -274,6 +287,11 @@ version 1.0.0. They are recorded here so the boundary is explicit.
 | NFR-2.4 | Failed sign-in does not reveal whether the email exists. | A single message covers wrong email and wrong password. |
 | NFR-2.5 | Listing text supplied by users is escaped before being placed in the map's HTML. | Prevents a crafted listing title from injecting script into the map view. |
 | NFR-2.6 | No payment or financial data is collected or stored. | Out of scope by design. |
+| NFR-2.7 | An account cannot reach the listings until its email address has been confirmed. | Checked on every render of the navigator, not only at sign-up. |
+| NFR-2.8 | Consent to the Terms of Use and the Privacy Notice is recorded with the version accepted and the time it was given. | The Data Privacy Act of 2012 requires consent to be evidenced; a tick with no record of what was shown is not evidence. |
+| NFR-2.9 | That consent record cannot be rewritten afterwards by the account it belongs to. | Enforced in `firestore.rules`, not in the interface. |
+| NFR-2.10 | A reviewer's email address is never published. Only the part before the @ is stored and shown. | The address was previously written to a collection every signed-in user can read. |
+| NFR-2.11 | Location is read only while a screen needs it and is never written to the account. | No history of a user's movements exists anywhere in the system. |
 
 #### NFR-3 — Usability
 
@@ -317,7 +335,7 @@ the consequence of its being unavailable.
 |---|---|---|
 | Firebase Authentication | Sign-in and registration | No new sessions; existing session continues until closed |
 | Cloud Firestore | Listings, reviews, favourites, user records | Cached saved and recently viewed listings remain readable |
-| Firebase Storage | Listing photographs | Listings display a placeholder rather than an image |
+| Cloudinary | Listing photographs | Existing photographs are already delivered from their stored links; a new upload fails and the listing can be saved without one |
 | OpenStreetMap tiles | Map background | The map shows no imagery; markers and route still compute |
 | OSRM routing service | Walking routes | Directions cannot be generated; the listing remains viewable |
 | Expo Go | Running the application | The application cannot be started on the device |

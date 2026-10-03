@@ -27,11 +27,19 @@ and route data into the page, and the page posts marker taps back out. This is
 the only part of the client that is not React Native, and it exists because
 Leaflet is a browser library with no native equivalent that is free of API keys.
 
-**4. Backend — Firebase, no custom server.** Three managed services in place of
+**4. Backend — Firebase, no custom server.** Two managed services in place of
 a server the team would otherwise have to write, deploy and maintain:
-Authentication for accounts, Cloud Firestore for data, and Storage for listing
-photographs. Access control is enforced by server-side security rules rather
-than by the client.
+Authentication for accounts and Cloud Firestore for data. Access control is
+enforced by server-side security rules rather than by the client.
+
+Firebase Storage was the intended home for listing photographs and is not used.
+Enabling it now requires the paid Blaze plan, which demands a credit card on
+file even though the first five gigabytes cost nothing — not a reasonable
+condition for a student project. Photographs are stored on **Cloudinary**
+instead, whose free tier needs no card. The application posts each photograph
+to an unsigned upload preset and stores the ordinary HTTPS link that comes
+back, which is exactly the shape the listing already held, so nothing else in
+the system changed.
 
 **5. External services — free, no API key.** Two of them: OpenStreetMap
 supplies map tiles, and OSRM computes walking routes along real roads.
@@ -78,8 +86,10 @@ yet delivered on the device. That gap is stated again in Chapter 3.
 | Animation | React Native Reanimated | 4.5.1 | Press feedback, transitions |
 | Authentication | Firebase Authentication | 12.19 | Email and password sign-in |
 | Database | Cloud Firestore | 12.19 | Listings, reviews, favourites, users |
-| File storage | Firebase Storage | 12.19 | Listing photographs |
-| Local storage | AsyncStorage | 2.2.0 | Offline cache, theme preference |
+| File storage | Cloudinary | — | Listing photographs, free tier, no card required |
+| Local storage | AsyncStorage | 2.2.0 | Offline cache, theme preference, signed-in session |
+| File reading | expo-file-system | 57 | Reads a photograph off the device for upload |
+| System chrome | expo-system-ui | 57 | Paints the native window behind React Native so transitions do not flash |
 | Location | expo-location | 57 | GPS position and live tracking |
 | Camera / gallery | expo-image-picker | 57 | Listing photographs |
 | Map rendering | Leaflet 1.9.4 in react-native-webview | 13.16 | Map, markers, route line |
@@ -203,6 +213,7 @@ Authentication user id.
 | `savedFilters` | map | Filters saved for match alerts |
 | `alertsEnabled` | boolean | Whether alerts are active |
 | `lastAlertCheck` | number | Timestamp; stops one listing alerting twice |
+| `consent` | map | The version of the Terms of Use and Privacy Notice accepted at sign-up, and when. Written once and not editable by the account afterwards |
 | `createdAt` | number | Milliseconds since epoch |
 
 **`properties/{id}`** — one document per boarding house.
@@ -215,8 +226,9 @@ Authentication user id.
 | `roomType` | string | Single, Shared, or Studio |
 | `amenities` | array of string | e.g. `["WiFi", "Own CR"]` |
 | `latitude`, `longitude` | number | Used for distance and routing |
-| `imageUrl` | string | The cover photograph: a Storage download URL, or empty |
+| `imageUrl` | string | The cover photograph: a Cloudinary link, or empty |
 | `images` | array of string | Every photograph, cover first, up to ten. Absent on listings created before galleries existed, which is why `imageUrl` is kept as well |
+| `contactNumber` | string | The owner's telephone number, shown on the listing as a tappable link. Optional |
 | `ownerId` | string | Account that submitted it |
 | `isApproved` | boolean | Only `true` appears in search |
 | `createdAt` | number | Also drives match alerts |
@@ -267,6 +279,30 @@ The rules enforce, on the server:
 | `properties` | Any signed-in user | Administrators only |
 | `reviews` | Any signed-in user | Author may create and edit own; author or admin may delete |
 | `favorites` | Own rows only | Own rows only |
+
+**Cloudinary upload** — a plain HTTP API, used when a photograph is attached to
+a listing.
+
+```
+POST https://api.cloudinary.com/v1_1/{cloud}/image/upload
+      file=data:image/jpeg;base64,{...}
+      upload_preset={preset}
+```
+
+The preset is *unsigned*, which is what lets the phone post directly without an
+API secret. Signing each upload instead would mean shipping that secret inside
+the application, where anyone can read it out; an unsigned preset exposes
+nothing worse than an unwanted upload to one account, and can be revoked from
+the Cloudinary console without touching the application. The response carries
+the public link that is written onto the listing.
+
+The photograph is sent as base64 rather than as a file in a `FormData`. Two
+other approaches fail on a phone: `fetch(uri).blob()` yields React Native's own
+Blob, which holds a reference to native data rather than the data itself, so
+the request body arrives empty; and the long-standing `{ uri, name, type }`
+descriptor is rejected outright by React Native 0.86 with *"Unsupported
+FormDataPart implementation"*. Base64 is a plain string, so nothing in the
+chain has to understand a file handle.
 
 **OSRM routing** — the one plain HTTP API.
 
@@ -344,7 +380,7 @@ while development began weeks earlier.
 
 ### Timeline
 
-Development of the mobile application ran from mid-August 2026 to the start of
+Development of the mobile application ran from mid-August 2026 to early
 October 2026. Dates are taken from file timestamps and commit history, not
 from memory.
 
@@ -361,12 +397,13 @@ from memory.
 | 26–27 Sep | Public landing screen; location permission flow; Terms of Use and Privacy Notice with consent at sign-up; listing photo galleries | `LandingScreen.tsx`, `locationAccess.ts`, `legal.ts`, `LegalScreen.tsx`, `PhotoGallery.tsx` |
 | 28 Sep | Map location picker for placing a listing | `PickLocationScreen.tsx` |
 | 29–30 Sep | Admin listing management rebuilt; email verification | `AdminScreen.tsx`, `listings.ts`, `VerifyEmailScreen.tsx` |
-| 1 Oct | Facebook sign-in and profile completion; whole-system review; work committed and pushed | `CompleteFacebookProfileScreen.tsx`, commit `0984c9b` |
+| 1 Oct | Photographs moved to Cloudinary; whole-system review; work committed and pushed | `utils/photoUpload.ts`, commit `0984c9b` |
+| 2 Oct | Saving a listing fixed; typed search on Home and Search; contact number on a listing; Facebook and Google sign-in removed | `utils/search.ts`, `ListingSearchBar.tsx`, commit `c2334be` |
 
 **Gantt chart**
 
 ```
-                        Aug 19   Sep 10  Sep 15  Sep 18  Sep 22  Sep 25  Sep 28  Oct 1
+                      Aug 19  Sep 10 Sep 15 Sep 18 Sep 22 Sep 25 Sep 28  Oct 1  Oct 2
 Setup and Firebase      ████████████
 Core logic (GPS,                 ██████████
   routing, scoring)
@@ -377,8 +414,9 @@ UI redesign                                      ██████
 Documentation, diagrams                             ██████
 Landing, privacy, photos                                 ███████
 Admin management,                                            ████████
-  verification, sign-in
-Review and release                                                 █████
+  verification, photos
+Search, contact, cleanup                                              ██████
+Review and release                                                     ████
 ```
 
 ### Version Control
@@ -399,7 +437,7 @@ Conventions that were followed:
 - The repository contains the application, its scripts and its documentation;
   the Laravel web application lives in a separate repository
 
-The mobile repository holds 14 commits. Its history begins on 22 September
+The mobile repository holds 19 commits. Its history begins on 22 September
 because that is when the project was extracted, not when development started.
 
 ### Code Review Process

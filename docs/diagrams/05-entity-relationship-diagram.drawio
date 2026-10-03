@@ -82,7 +82,7 @@
 
         <!-- ==================== properties ==================== -->
         <mxCell id="props" value="properties" style="shape=table;startSize=34;container=1;collapsible=0;childLayout=tableLayout;fixedRows=1;rowLines=1;columnLines=1;fontStyle=1;fontSize=14;align=center;resizeLast=1;html=1;fillColor=#0D1B26;fontColor=#FFFFFF;strokeColor=#0D1B26;" vertex="1" parent="1">
-          <mxGeometry x="430" y="80" width="250" height="402" as="geometry" />
+          <mxGeometry x="430" y="80" width="250" height="428" as="geometry" />
         </mxCell>
 
         <mxCell id="props-r1" value="" style="shape=tableRow;horizontal=0;startSize=0;swimlaneHead=0;swimlaneBody=0;fillColor=#FFFFFF;strokeColor=#0D1B26;collapsible=0;dropTarget=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;top=0;left=0;right=0;bottom=1;" vertex="1" parent="props">
@@ -205,8 +205,18 @@
           <mxGeometry x="52" width="198" height="26" as="geometry" />
         </mxCell>
 
-        <mxCell id="props-r12" value="" style="shape=tableRow;horizontal=0;startSize=0;swimlaneHead=0;swimlaneBody=0;fillColor=#FFFFFF;strokeColor=#D5E3EA;collapsible=0;dropTarget=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;top=0;left=0;right=0;bottom=0;" vertex="1" parent="props">
+        <mxCell id="props-r11c" value="" style="shape=tableRow;horizontal=0;startSize=0;swimlaneHead=0;swimlaneBody=0;fillColor=#FFFFFF;strokeColor=#D5E3EA;collapsible=0;dropTarget=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;top=0;left=0;right=0;bottom=0;" vertex="1" parent="props">
           <mxGeometry y="350" width="250" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="props-r11c-k" value="" style="shape=partialRectangle;connectable=0;fillColor=none;top=0;left=0;bottom=0;right=1;fontSize=12;strokeColor=#D5E3EA;overflow=hidden;whiteSpace=wrap;html=1;" vertex="1" parent="props-r11c">
+          <mxGeometry width="52" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="props-r11c-f" value="contactNumber" style="shape=partialRectangle;connectable=0;fillColor=none;top=0;left=0;bottom=0;right=0;align=left;spacingLeft=8;fontSize=12;fontColor=#0D1B26;overflow=hidden;whiteSpace=wrap;html=1;" vertex="1" parent="props-r11c">
+          <mxGeometry x="52" width="198" height="26" as="geometry" />
+        </mxCell>
+
+        <mxCell id="props-r12" value="" style="shape=tableRow;horizontal=0;startSize=0;swimlaneHead=0;swimlaneBody=0;fillColor=#FFFFFF;strokeColor=#D5E3EA;collapsible=0;dropTarget=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;top=0;left=0;right=0;bottom=0;" vertex="1" parent="props">
+          <mxGeometry y="376" width="250" height="26" as="geometry" />
         </mxCell>
         <mxCell id="props-r12-k" value="" style="shape=partialRectangle;connectable=0;fillColor=none;top=0;left=0;bottom=0;right=1;fontSize=12;strokeColor=#D5E3EA;overflow=hidden;whiteSpace=wrap;html=1;" vertex="1" parent="props-r12">
           <mxGeometry width="52" height="26" as="geometry" />
@@ -216,7 +226,7 @@
         </mxCell>
 
         <mxCell id="props-r13" value="" style="shape=tableRow;horizontal=0;startSize=0;swimlaneHead=0;swimlaneBody=0;fillColor=#FFFFFF;strokeColor=#D5E3EA;collapsible=0;dropTarget=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;top=0;left=0;right=0;bottom=0;" vertex="1" parent="props">
-          <mxGeometry y="376" width="250" height="26" as="geometry" />
+          <mxGeometry y="402" width="250" height="26" as="geometry" />
         </mxCell>
         <mxCell id="props-r13-k" value="" style="shape=partialRectangle;connectable=0;fillColor=none;top=0;left=0;bottom=0;right=1;fontSize=12;strokeColor=#D5E3EA;overflow=hidden;whiteSpace=wrap;html=1;" vertex="1" parent="props-r13">
           <mxGeometry width="52" height="26" as="geometry" />
