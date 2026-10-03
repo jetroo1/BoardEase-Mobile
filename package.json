@@ -24,6 +24,7 @@
     "expo-notifications": "~57.0.21",
     "expo-secure-store": "~57.0.4",
     "expo-status-bar": "~57.0.1",
+    "expo-system-ui": "~57.0.4",
     "firebase": "^12.19.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
@@ -43,13 +44,14 @@
     "typescript": "~6.0.3"
   },
   "scripts": {
-    "start": "expo start",
+    "start": "node scripts/start.mjs",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
     "doctor": "expo-doctor",
-    "audit:prod": "npm audit --omit=dev"
+    "audit:prod": "npm audit --omit=dev",
+    "tunnel": "node scripts/start.mjs --tunnel"
   },
   "private": true
 }
