@@ -4,7 +4,13 @@
     "address": "Cogon, Magugpo South, Tagum City",
     "price": 3000,
     "roomType": "Studio",
-    "amenities": ["WiFi", "CR", "Parking", "Aircon", "Kitchen"],
+    "amenities": [
+      "WiFi",
+      "CR",
+      "Kitchen",
+      "Aircon",
+      "Parking"
+    ],
     "latitude": 7.435055,
     "longitude": 125.794656,
     "description": "",
@@ -13,69 +19,227 @@
     ]
   },
   {
-    "title": "Daneco Student Residence",
-    "address": "Daneco, Magugpo North, Tagum City",
-    "price": 0,
-    "roomType": "Shared",
-    "amenities": ["WiFi", "CR", "Laundry"],
-    "latitude": 7.4532436,
-    "longitude": 125.8188482,
-    "description": "Shared rooms along the Daneco area in Magugpo North.",
-    "images": []
+    "title": "Trebajo Boarding House",
+    "address": "Trebajo Street, Trebajo Village, Tagum City",
+    "contactNumber": "",
+    "price": 3500,
+    "roomType": "Single",
+    "amenities": [
+      "WiFi",
+      "CR",
+      "Kitchen"
+    ],
+    "latitude": 7.4484423,
+    "longitude": 125.8007366,
+    "description": "",
+    "images": [
+      "https://res.cloudinary.com/bo25vkvx/image/upload/v1790901920/vcbi8hiu4e3enann1peh.png",
+      "https://res.cloudinary.com/bo25vkvx/image/upload/v1790901924/hajyjgqj1gfhnmj6gqs8.png",
+      "https://res.cloudinary.com/bo25vkvx/image/upload/v1790901928/xshgpugt0jqc3ghub9wa.png"
+    ]
   },
   {
-    "title": "Dao Street Boarding House",
-    "address": "Dao Street, Visayan Village, Tagum City",
-    "price": 0,
+    "title": "Almar Boarding House",
+    "address": "Narra, Visayan Village, Tagum City",
+    "contactNumber": "",
+    "price": 5500,
     "roomType": "Single",
-    "amenities": ["WiFi", "CR", "Parking"],
+    "amenities": [
+      "WiFi",
+      "CR",
+      "Kitchen",
+      "Aircon",
+      "Parking"
+    ],
+    "latitude": 7.4304688,
+    "longitude": 125.8004149,
+    "description": "",
+    "images": [
+      "https://res.cloudinary.com/bo25vkvx/image/upload/v1790901675/khle6btbpx1uvaltyvik.png",
+      "https://res.cloudinary.com/bo25vkvx/image/upload/v1790901678/crbvmdcej0qjaw2hg8m1.png"
+    ]
+  },
+  {
+    "title": "Eugene's Apartment",
+    "address": "Dao Street, Rabe Subdivision, Visayan Village, Tagum City",
+    "contactNumber": "09231939588",
+    "price": 7000,
+    "roomType": "Studio",
+    "amenities": [
+      "WiFi",
+      "CR",
+      "Kitchen",
+      "Parking"
+    ],
     "latitude": 7.4369392,
     "longitude": 125.8043911,
-    "description": "Single rooms on Dao Street, inside Visayan Village.",
-    "images": []
+    "description": "Apartment units on Dao Street, inside Visayan Village.",
+    "images": [
+      "https://res.cloudinary.com/bo25vkvx/image/upload/v1790881640/ym6m7qhu2cetwe7xr1ta.png"
+    ]
   },
   {
-    "title": "Trebajo Village Rooms",
-    "address": "Trebajo Village, Magugpo South, Tagum City",
-    "price": 0,
+    "title": "Lola Doths Boarding House",
+    "address": "Osmena Street Extension, Magugpo West, Tagum City",
+    "contactNumber": "09757880215",
+    "price": 4500,
     "roomType": "Single",
-    "amenities": ["WiFi", "CR", "Kitchen"],
-    "latitude": 7.4485468,
-    "longitude": 125.8007131,
-    "description": "Rooms inside Trebajo Village, Magugpo South.",
-    "images": []
+    "amenities": [
+      "WiFi",
+      "CR",
+      "Kitchen",
+      "Parking"
+    ],
+    "latitude": 7.4524517,
+    "longitude": 125.8049131,
+    "description": "Three-storey boarding house along Osmena Street Extension, near the Jollibee drive-thru at Purok Busilak. Single rooms with a built-in bed platform, study desk and ceiling fan, plus a shared kitchen on each floor.",
+    "images": [
+      "https://res.cloudinary.com/bo25vkvx/image/upload/v1790913679/dvr2bswzfu9mazxqorxo.png",
+      "https://res.cloudinary.com/bo25vkvx/image/upload/v1790913684/una4kcadjvkdzn0e1pe4.png",
+      "https://res.cloudinary.com/bo25vkvx/image/upload/v1790913688/taq8okftjanooyia91qf.png",
+      "https://res.cloudinary.com/bo25vkvx/image/upload/v1790913691/mw6nuwsnovynt5hgckdl.png",
+      "https://res.cloudinary.com/bo25vkvx/image/upload/v1790913695/j7mshktr2xb6rrmgayex.png",
+      "https://res.cloudinary.com/bo25vkvx/image/upload/v1790913698/elipfisp0daxowlmtrgn.png"
+    ]
   },
   {
-    "title": "Everlasting Street Lodging",
-    "address": "Everlasting, Briz District, Magugpo North, Tagum City",
-    "price": 0,
-    "roomType": "Shared",
-    "amenities": ["WiFi", "CR"],
-    "latitude": 7.4531168,
-    "longitude": 125.8137466,
-    "description": "Shared accommodation along Everlasting in the Briz District.",
-    "images": []
+    "title": "MJ's Boarding House",
+    "address": "Kawayanan, Pioneer, Visayan Village, Tagum City",
+    "contactNumber": "",
+    "price": 3000,
+    "roomType": "Single",
+    "amenities": [
+      "CR",
+      "Kitchen",
+      "Parking"
+    ],
+    "latitude": 7.4177495,
+    "longitude": 125.7998437,
+    "description": "Single-storey row of rooms at Kawayanan, Pioneer. Bare concrete rooms with a wooden bed frame. Rent runs from P3,000 to P4,000 depending on the room.",
+    "images": [
+      "https://res.cloudinary.com/bo25vkvx/image/upload/v1790913804/edbze4tv4sahtdxiwfee.png",
+      "https://res.cloudinary.com/bo25vkvx/image/upload/v1790913808/y91b75drv4zeent3oasf.png"
+    ]
   },
   {
-    "title": "Saging Road Boarding House",
-    "address": "Saging, Visayan Village, Tagum City",
-    "price": 0,
-    "roomType": "Shared",
-    "amenities": ["WiFi", "CR", "Laundry"],
-    "latitude": 7.4355202,
-    "longitude": 125.799952,
-    "description": "Shared rooms off Saging in Visayan Village.",
-    "images": []
-  },
-  {
-    "title": "Ostrea Drive Student Rooms",
-    "address": "Ostrea Drive, Waling-Waling, Magugpo Poblacion, Tagum City",
-    "price": 0,
+    "title": "JPE Apartment",
+    "address": "Kawayanan, Visayan Village, Tagum City",
+    "contactNumber": "09486684131",
+    "price": 4500,
     "roomType": "Studio",
-    "amenities": ["WiFi", "CR", "Aircon", "Parking"],
-    "latitude": 7.4511234,
-    "longitude": 125.8069692,
-    "description": "Studio rooms on Ostrea Drive, close to Magugpo Poblacion.",
-    "images": []
+    "amenities": [
+      "WiFi",
+      "CR",
+      "Kitchen",
+      "Aircon",
+      "Parking"
+    ],
+    "latitude": 7.4134709,
+    "longitude": 125.8033618,
+    "description": "Row of numbered apartment units at Kawayanan, Visayan Village, each with its own door and window under a covered walkway. Split-type aircon fitted. Rent runs from P4,500 to P5,000 depending on the unit.",
+    "images": [
+      "https://res.cloudinary.com/bo25vkvx/image/upload/v1790914672/fp9fxlvi0q5ao54udx8b.png"
+    ]
+  },
+  {
+    "title": "JRL's Apartment",
+    "address": "Purok Narra, Pioneer, Visayan Village, Tagum City",
+    "contactNumber": "09202964212",
+    "price": 4000,
+    "roomType": "Studio",
+    "amenities": [
+      "WiFi",
+      "CR",
+      "Kitchen",
+      "Parking"
+    ],
+    "latitude": 7.4292539,
+    "longitude": 125.800667,
+    "description": "Newly built row of numbered units at Purok Narra, Visayan Village. Each unit has its own private CR, a tiled floor, a ceiling fan, a wooden bed platform, a study table and a hanging rail, opening onto a covered walkway.",
+    "images": [
+      "https://res.cloudinary.com/bo25vkvx/image/upload/v1790915030/wozopvbwptvvz3yo3abx.png",
+      "https://res.cloudinary.com/bo25vkvx/image/upload/v1790915036/ct9anmwikvzidkrgdjcg.png",
+      "https://res.cloudinary.com/bo25vkvx/image/upload/v1790915040/s5nfomv9qgcs7bawjxlh.png",
+      "https://res.cloudinary.com/bo25vkvx/image/upload/v1790915044/mm1enjieq9lurpuu2hgi.png",
+      "https://res.cloudinary.com/bo25vkvx/image/upload/v1790915048/ehgmj1fnwqqidkpplkaq.png",
+      "https://res.cloudinary.com/bo25vkvx/image/upload/v1790915052/oqasgaw48gbyhwv5k2hx.png",
+      "https://res.cloudinary.com/bo25vkvx/image/upload/v1790915055/fgiizuffklfmevztxbj5.png",
+      "https://res.cloudinary.com/bo25vkvx/image/upload/v1790915061/czvyf4rvbkbb14bukeud.png",
+      "https://res.cloudinary.com/bo25vkvx/image/upload/v1790915066/eved3npvqsxafzml7dje.png"
+    ]
+  },
+  {
+    "title": "KZ Boarding House",
+    "address": "Melendres, Briz District, Magugpo East, Tagum City (near NCCC Mall)",
+    "contactNumber": "09199579951",
+    "price": 3500,
+    "roomType": "Studio",
+    "amenities": [
+      "WiFi",
+      "CR",
+      "Kitchen",
+      "Parking"
+    ],
+    "latitude": 7.4509806,
+    "longitude": 125.8146401,
+    "description": "Two-storey block of numbered units just off the highway behind NCCC Mall. Each unit is fully tiled with its own private CR and a kitchen sink counter, a wooden bed platform and its own window, reached by an outside stair and walkway.",
+    "images": [
+      "https://res.cloudinary.com/bo25vkvx/image/upload/v1790915303/k7dykl5evvdfwwn4m7wx.png",
+      "https://res.cloudinary.com/bo25vkvx/image/upload/v1790915310/pbjiaux0z47tsxmqkg6a.png",
+      "https://res.cloudinary.com/bo25vkvx/image/upload/v1790915314/zu719vcjxg2ciyc7fxhj.png",
+      "https://res.cloudinary.com/bo25vkvx/image/upload/v1790915317/zxgxjkvlzyngra3i07ij.png",
+      "https://res.cloudinary.com/bo25vkvx/image/upload/v1790915321/v3aorshcbollxkmqcsfg.png",
+      "https://res.cloudinary.com/bo25vkvx/image/upload/v1790915326/ra5njctsz8r61ft9prtf.png",
+      "https://res.cloudinary.com/bo25vkvx/image/upload/v1790915329/dkgbrfhwf8jzloqy61gz.png"
+    ]
+  },
+  {
+    "title": "M. Dormitory",
+    "address": "Purok Dela Cruz, Pioneer Avenue, Garciaville, Magugpo South, Tagum City",
+    "contactNumber": "09054650127",
+    "price": 6000,
+    "roomType": "Studio",
+    "amenities": [
+      "WiFi",
+      "CR",
+      "Kitchen",
+      "Aircon",
+      "Parking"
+    ],
+    "latitude": 7.4539147,
+    "longitude": 125.7931855,
+    "description": "Two-storey dormitory on Pioneer Avenue, finished and furnished throughout. Rooms come with a bed, blinds and tiled floors, a private tiled CR with sink, and a fitted kitchen with gas range, fridge and window aircon. Car parking in front and a nipa hut in the garden. Rent runs from P6,000 to P7,500 depending on the room.",
+    "images": [
+      "https://res.cloudinary.com/bo25vkvx/image/upload/v1790915534/igwgjhbqperjnxophaaq.png",
+      "https://res.cloudinary.com/bo25vkvx/image/upload/v1790915537/ff1pnc3ghyjkzr8mrt6i.png",
+      "https://res.cloudinary.com/bo25vkvx/image/upload/v1790915541/xp2qnmawnem9t8hqnjxa.png",
+      "https://res.cloudinary.com/bo25vkvx/image/upload/v1790915545/xfmq2auotqfxkkkkczfw.png",
+      "https://res.cloudinary.com/bo25vkvx/image/upload/v1790915549/ilzchbvai8lve5v64i7x.png",
+      "https://res.cloudinary.com/bo25vkvx/image/upload/v1790915552/yldl7jkjgwmuwb55pzfl.png",
+      "https://res.cloudinary.com/bo25vkvx/image/upload/v1790915557/ji1qv0tsicsyaqosljfs.png",
+      "https://res.cloudinary.com/bo25vkvx/image/upload/v1790915561/ib0q5kzr2bwwrtbvygqt.png"
+    ]
+  },
+  {
+    "title": "Inday's Boarding House",
+    "address": "Purok Rafael, Melecio Narisma Road, Magugpo South, Tagum City",
+    "contactNumber": "09074133203",
+    "price": 3500,
+    "roomType": "Shared",
+    "amenities": [
+      "WiFi",
+      "CR",
+      "Kitchen"
+    ],
+    "latitude": 7.4409937,
+    "longitude": 125.7951341,
+    "description": "Two-storey house off Melecio Narisma Road, Magugpo South. Shared rooms fitted with bunk beds, a wash sink and overhead cupboards, with an open balcony on the upper floor.",
+    "images": [
+      "https://res.cloudinary.com/bo25vkvx/image/upload/v1790915757/dswu0ztl3w67xot4urge.png",
+      "https://res.cloudinary.com/bo25vkvx/image/upload/v1790915761/nrxf6xhgpcpn7va6j5mz.png",
+      "https://res.cloudinary.com/bo25vkvx/image/upload/v1790915766/abzytituvdonq3wyigiw.png",
+      "https://res.cloudinary.com/bo25vkvx/image/upload/v1790915772/xjzl6bjhatljsckppghs.png",
+      "https://res.cloudinary.com/bo25vkvx/image/upload/v1790915776/twea6wuekrr2c6ycj7ss.png"
+    ]
   }
 ]

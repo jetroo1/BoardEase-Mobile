@@ -131,6 +131,7 @@ for (const item of listings) {
     title: String(item.title).trim(),
     description: String(item.description ?? '').trim(),
     address: String(item.address).trim(),
+    contactNumber: String(item.contactNumber ?? '').trim(),
     price: Number(item.price),
     roomType: item.roomType || 'Single',
     amenities: Array.isArray(item.amenities) ? item.amenities : [],
