@@ -159,8 +159,11 @@ export const lightPalette: Palette = {
   canvasAlt: '#EDF2F4',
   surface: '#FFFFFF',
   surfaceAlt: '#F4F8F9',
-  line: '#E6EDEF',
-  lineStrong: '#D3DEE1',
+  // Darkened from #E6EDEF. That value was only four percent off the white it
+  // had to draw an edge on, so every card border in light mode was there in
+  // the stylesheet and absent on the display.
+  line: '#D8E3E7',
+  lineStrong: '#C2D1D6',
 
   ink: '#101A1D',
   inkSoft: '#4B5C61',

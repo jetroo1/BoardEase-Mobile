@@ -24,9 +24,10 @@ import {
   deleteUser,
   sendEmailVerification,
   signOut as firebaseSignOut,
+  updateProfile,
   User,
 } from 'firebase/auth';
-import { doc, getDoc, serverTimestamp, setDoc } from 'firebase/firestore';
+import { deleteField, doc, getDoc, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore';
 import { auth, db } from '../firebaseConfig';
 import { clearOfflineCache } from '../utils/offlineCache';
 import { LEGAL_VERSION } from '../legal';
@@ -36,11 +37,19 @@ import { UserRole } from '../types';
 interface AuthContextType {
   user: User | null; // the raw Firebase Auth user object (or null if logged out)
   role: UserRole | null; // 'tenant' or 'admin', loaded from Firestore
+  // The signed-in person's profile picture, or null for the default avatar.
+  // Kept here rather than read from Firebase Auth's own photoURL because the
+  // Auth object only changes identity on sign-in: a picture saved while the
+  // app is running would not reach any screen until the next launch.
+  photoURL: string | null;
   loading: boolean; // true while we are still checking login state on startup
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string) => Promise<void>;
   resendVerificationEmail: () => Promise<void>;
   refreshUser: () => Promise<void>;
+  // Saves a new picture, or clears it with null. Writes Firestore and the
+  // Auth profile, then updates the screen.
+  setProfilePhoto: (url: string | null) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -53,6 +62,7 @@ interface AuthProviderProps {
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [role, setRole] = useState<UserRole | null>(null);
+  const [photoURL, setPhotoURL] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [, setAuthRevision] = useState(0);
 
@@ -73,6 +83,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
           if (userDocSnap.exists()) {
             const data = userDocSnap.data();
             setRole((data.role as UserRole) || 'tenant');
+            setPhotoURL(typeof data.photoURL === 'string' && data.photoURL ? data.photoURL : null);
           } else {
             // Signed in and verified, but with no profile document. register()
             // writes one, so this only happens to an account whose document
@@ -81,16 +92,20 @@ export function AuthProvider({ children }: AuthProviderProps) {
             // way forward -- a role is read from the document, never granted
             // by it, so this cannot hand anybody admin.
             setRole('tenant');
+            setPhotoURL(null);
           }
         } catch {
           // A network or rules failure must not leave the whole app on a blank
           // startup screen. Data requests will still surface their own error.
           setRole(null);
+          setPhotoURL(null);
         }
       } else {
         // Nobody is logged in, or the email/password account has not confirmed
-        // its email yet. Both states must not inherit an earlier user's role.
+        // its email yet. Both states must not inherit an earlier user's role
+        // or picture.
         setRole(null);
+        setPhotoURL(null);
       }
 
       setLoading(false);
@@ -165,6 +180,32 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setAuthRevision((revision) => revision + 1);
   }
 
+  // Save a profile picture, or clear it by passing null.
+  //
+  // Written in two places on purpose. Firestore is the record the app reads on
+  // every sign-in and the only one the security rules can see. The Auth
+  // profile is written as well so that anything which only ever has a
+  // firebase User to hand -- a future owner-contact view, an exported account
+  // record -- still finds the picture. The Auth write is best-effort: it is a
+  // convenience copy, and failing it must not lose a picture that Firestore
+  // already accepted.
+  async function setProfilePhoto(url: string | null) {
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+      throw new Error('You are not signed in.');
+    }
+
+    // deleteField() rather than null, so clearing a picture removes the key
+    // instead of leaving a null the read path would have to keep allowing for.
+    await updateDoc(doc(db, 'users', currentUser.uid), {
+      photoURL: url ?? deleteField(),
+    });
+
+    await updateProfile(currentUser, { photoURL: url }).catch(() => undefined);
+
+    setPhotoURL(url);
+  }
+
   async function logout() {
     // Drop this account's cached favorites and recently-viewed listings
     // first, so the next person to log in on this phone does not see them.
@@ -178,11 +219,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const value: AuthContextType = {
     user,
     role,
+    photoURL,
     loading,
     login,
     register,
     resendVerificationEmail,
-    refreshUser,    logout,
+    refreshUser,
+    setProfilePhoto,
+    logout,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

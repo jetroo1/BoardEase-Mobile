@@ -13,6 +13,7 @@
 import React, { useCallback, useState } from 'react';
 import { Alert, Linking, ScrollView, Switch, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import Constants from 'expo-constants';
 import { sendPasswordResetEmail } from 'firebase/auth';
@@ -26,7 +27,9 @@ import { GUTTER, HIT_SLOP_MIN } from '../theme';
 import { clearOfflineCache } from '../utils/offlineCache';
 import { loadAlertSettings, turnOffFilterAlerts } from '../utils/matchAlerts';
 import { useCompare } from '../context/CompareContext';
+import { uploadProfilePhoto } from '../utils/photoUpload';
 import {
+  Avatar,
   Button,
   Card,
   Pill,
@@ -39,12 +42,13 @@ import {
 type NavigationProp = NativeStackNavigationProp<AppParamList>;
 
 export default function ProfileScreen() {
-  const { user, role, logout } = useAuth();
+  const { user, role, photoURL, setProfilePhoto, logout } = useAuth();
   const { theme: t, mode, setMode } = useThemeContext();
   const { compareList, clearCompare } = useCompare();
   const navigation = useNavigation<NavigationProp>();
 
   const [busy, setBusy] = useState(false);
+  const [photoBusy, setPhotoBusy] = useState(false);
   const [alertsOn, setAlertsOn] = useState(false);
   const [locationGranted, setLocationGranted] = useState<boolean | null>(null);
 
@@ -102,6 +106,106 @@ export default function ProfileScreen() {
       setAlertsOn(true);
       Alert.alert('Could not save', 'Check your internet connection and try again.');
     }
+  }
+
+  // --- Profile picture -----------------------------------------------------
+  //
+  // Uploaded to Cloudinary and stored as a URL, the same route a listing's
+  // photographs take. The picture is squared at pick time (`allowsEditing`
+  // with a 1:1 aspect) rather than cropped at display time, so what the person
+  // framed is what every screen shows.
+  async function applyPhoto(assets: { uri: string; mimeType?: string | null }[]) {
+    const asset = assets[0];
+    if (!asset) {
+      return;
+    }
+
+    setPhotoBusy(true);
+    try {
+      const url = await uploadProfilePhoto(asset.uri, asset.mimeType ?? undefined);
+      await setProfilePhoto(url);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Please try again.';
+      Alert.alert('Could not save your picture', message);
+    } finally {
+      setPhotoBusy(false);
+    }
+  }
+
+  async function handleTakeProfilePhoto() {
+    const permission = await ImagePicker.requestCameraPermissionsAsync();
+    if (!permission.granted) {
+      Alert.alert('Camera access needed', 'Allow camera access to take a profile picture.');
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      aspect: [1, 1],
+      // An avatar is never shown larger than about 120 points, so there is
+      // nothing to gain from a bigger file and a slow upload on a phone
+      // connection.
+      quality: 0.6,
+    });
+
+    if (result.canceled || result.assets.length === 0) {
+      return;
+    }
+    await applyPhoto(result.assets);
+  }
+
+  async function handleChooseProfilePhoto() {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      Alert.alert('Photo access needed', 'Allow photo access to choose a profile picture.');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.6,
+    });
+
+    if (result.canceled || result.assets.length === 0) {
+      return;
+    }
+    await applyPhoto(result.assets);
+  }
+
+  async function handleRemoveProfilePhoto() {
+    setPhotoBusy(true);
+    try {
+      await setProfilePhoto(null);
+    } catch {
+      Alert.alert('Could not remove it', 'Check your internet connection and try again.');
+    } finally {
+      setPhotoBusy(false);
+    }
+  }
+
+  // "Remove" only appears when there is something to remove, so the sheet never
+  // offers an action that would do nothing.
+  function handleChangePhoto() {
+    if (photoBusy || !user) {
+      return;
+    }
+
+    const options: Parameters<typeof Alert.alert>[2] = [
+      { text: 'Take a photo', onPress: handleTakeProfilePhoto },
+      { text: 'Choose from gallery', onPress: handleChooseProfilePhoto },
+    ];
+    if (photoURL) {
+      options.push({
+        text: 'Remove picture',
+        style: 'destructive',
+        onPress: handleRemoveProfilePhoto,
+      });
+    }
+    options.push({ text: 'Cancel', style: 'cancel' });
+
+    Alert.alert('Profile picture', 'This is shown on your account.', options);
   }
 
   async function handlePasswordReset() {
@@ -189,18 +293,24 @@ export default function ProfileScreen() {
         {/* --- Account ---------------------------------------------------- */}
         <Card level="low" style={{ borderRadius: t.radius.lg, gap: t.spacing.sm }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: t.spacing.sm }}>
-            <View
-              style={{
-                width: 52,
-                height: 52,
-                borderRadius: t.radius.pill,
-                backgroundColor: t.colors.brandSoft,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={
+                photoURL ? 'Change or remove your profile picture' : 'Add a profile picture'
+              }
+              accessibilityState={{ disabled: photoBusy || !user }}
+              disabled={photoBusy || !user}
+              onPress={handleChangePhoto}
+              hitSlop={8}
             >
-              <Ionicons name="person" size={24} color={t.colors.brand} />
-            </View>
+              <Avatar
+                uri={photoURL}
+                name={user?.email}
+                size={52}
+                busy={photoBusy}
+                editable={Boolean(user)}
+              />
+            </Pressable>
             <View style={{ flex: 1, gap: t.spacing.xxs }}>
               <Text variant="bodyStrong" numberOfLines={1} selectable>
                 {user?.email ?? 'Not signed in'}
@@ -212,6 +322,21 @@ export default function ProfileScreen() {
               />
             </View>
           </View>
+
+          <Divider />
+
+          {/* Spelled out as a row as well as the badge on the avatar. The badge
+              says the picture can be changed; this says where to tap when you
+              came looking for the setting rather than for the picture. */}
+          <Row
+            icon="camera-outline"
+            title={photoURL ? 'Change profile picture' : 'Add a profile picture'}
+            subtitle="Take a photo or choose one from this phone"
+            onPress={handleChangePhoto}
+            disabled={photoBusy || !user}
+          />
+
+          <Divider />
 
           <Row
             icon="key-outline"

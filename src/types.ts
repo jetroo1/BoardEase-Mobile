@@ -21,6 +21,14 @@ export interface Property {
   // empty gallery. Read it through photosOf() in src/utils/photos.ts, which
   // falls back to imageUrl, instead of touching this field directly.
   images?: string[];
+  // How to reach whoever runs the place. Optional, because a listing is still
+  // worth showing without it and older ones do not have it.
+  //
+  // This is the one piece of the application that connects somebody to a real
+  // person. BoardEase arranges nothing itself -- no booking, no payment, no
+  // messaging -- so without a number the only thing a tenant can do with a
+  // listing they like is walk to it and knock.
+  contactNumber?: string;
   ownerId: string;
   isApproved: boolean;
   createdAt: number; // stored as a timestamp (milliseconds)

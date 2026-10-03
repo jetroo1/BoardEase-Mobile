@@ -11,8 +11,9 @@
 // otherwise every screen visibly reflows from the system font to Inter a beat
 // after it appears.
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View } from 'react-native';
+import * as SystemUI from 'expo-system-ui';
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider } from './context/AuthContext';
@@ -40,6 +41,26 @@ export default function BoardEaseApp() {
 function ThemedNavigationContainer() {
   const { isReady } = useThemeContext();
   const t = useTheme();
+
+  // Paint the native window behind React Native, not just the views on top of
+  // it.
+  //
+  // Android's window defaults to white. Every screen here is opaque and the
+  // navigation theme is set, so that window is invisible while a screen is
+  // sitting still -- but the native stack shows it for a few frames during a
+  // push and a pop, which in dark mode is a white flash on every transition
+  // and especially on back.
+  //
+  // It is set here rather than as `backgroundColor` in app.json because that
+  // value is fixed at build time and this application has two themes: a dark
+  // window would then flash behind light mode instead. This follows whichever
+  // theme is actually on.
+  useEffect(() => {
+    SystemUI.setBackgroundColorAsync(t.colors.canvas).catch(() => {
+      // Unsupported on this platform. The flash is cosmetic, so there is
+      // nothing worth telling anybody about.
+    });
+  }, [t.colors.canvas]);
 
   const navTheme = {
     ...(t.isDark ? DarkTheme : DefaultTheme),

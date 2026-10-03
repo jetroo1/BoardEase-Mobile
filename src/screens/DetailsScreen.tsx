@@ -9,7 +9,7 @@
 // object instead of two stacked rectangles.
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { Alert, ScrollView, View } from 'react-native';
+import { Alert, Linking, ScrollView, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import {
   addDoc,
@@ -38,13 +38,14 @@ import * as Location from 'expo-location';
 import { getDistanceInKm, formatDistance } from '../utils/distance';
 import { photosOf } from '../utils/photos';
 import { displayName } from '../utils/displayName';
-import { GUTTER } from '../theme';
+import { GUTTER, spacing } from '../theme';
 import {
   Button,
   Card,
   EmptyState,
   ErrorState,
   IconButton,
+  PageWash,
   Pill,
   Pressable,
   PhotoGallery,
@@ -58,6 +59,13 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type DetailsRouteProp = RouteProp<RootStackParamList, 'Details'>;
 
 const HERO_HEIGHT = 300;
+
+// How far the content sheet is pulled up over the bottom of the photo. Named
+// because two things depend on it and they have to agree: the sheet's own
+// negative margin, and how far the gallery lifts its counter and dots so they
+// are not hidden underneath it. It was spelled out twice before, and the two
+// numbers did not match.
+const SHEET_OVERLAP = spacing.lg;
 
 // Amenity names are free text in Firestore, so this maps the ones we know to
 // an icon and quietly falls back for anything an owner invents.
@@ -297,6 +305,9 @@ export default function DetailsScreen() {
           title={property.title}
           roomType={property.roomType}
           height={HERO_HEIGHT}
+          // The sheet below is pulled up over the photo by this much, so the
+          // gallery's counter and dots have to clear it.
+          bottomInset={SHEET_OVERLAP}
         />
 
         {/* Controls float on the photo. They use the onPhoto tone because the
@@ -329,15 +340,21 @@ export default function DetailsScreen() {
         {/* The sheet overlaps the photo, which is what ties them together. */}
         <View
           style={{
-            marginTop: -t.spacing.lg,
+            marginTop: -SHEET_OVERLAP,
             backgroundColor: t.colors.canvas,
             borderTopLeftRadius: t.radius.xl,
             borderTopRightRadius: t.radius.xl,
             paddingHorizontal: GUTTER,
             paddingTop: t.spacing.md,
             gap: t.spacing.md,
+            // Clips the wash below to the rounded top corners. Without it the
+            // tint squares off the sheet again at the exact point the radius
+            // was there to soften.
+            overflow: 'hidden',
           }}
         >
+          <PageWash variant="sheet" />
+
           <View style={{ gap: t.spacing.xs }}>
             <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: t.spacing.sm }}>
               <View style={{ flex: 1, gap: t.spacing.xxs }}>
@@ -439,6 +456,46 @@ export default function DetailsScreen() {
               }
             />
           </View>
+
+          {/* The contact, directly above the description, because once
+              somebody has decided they like a place this is the only thing
+              the application can still do for them -- it arranges nothing
+              itself. Tapping it opens the dialler with the number in it. */}
+          {property.contactNumber ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={`Call ${property.contactNumber}`}
+              onPress={() => Linking.openURL(`tel:${property.contactNumber}`)}
+            >
+              <Card
+                level="low"
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: t.spacing.sm,
+                  borderRadius: t.radius.lg,
+                }}
+              >
+                <View
+                  style={{
+                    width: 38,
+                    height: 38,
+                    borderRadius: t.radius.pill,
+                    backgroundColor: t.colors.brandSoft,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Ionicons name="call" size={18} color={t.colors.brand} />
+                </View>
+                <View style={{ flex: 1, gap: 1 }}>
+                  <Text variant="bodyStrong">{property.contactNumber}</Text>
+                  <Text variant="micro" tone="faint">Tap to call the owner</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={18} color={t.colors.inkFaint} />
+              </Card>
+            </Pressable>
+          ) : null}
 
           <Card level="low" style={{ gap: t.spacing.xs, borderRadius: t.radius.lg }}>
             <Text variant="captionStrong" tone="soft" uppercase>

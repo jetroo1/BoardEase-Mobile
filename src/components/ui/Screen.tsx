@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme, useThemeContext } from '../../context/ThemeContext';
 import { GUTTER } from '../../theme';
 import { IconButton } from './Button';
+import PageWash from './PageWash';
 import Text from './Text';
 
 // ---------------------------------------------------------------------------
@@ -115,10 +116,21 @@ export interface ScreenProps {
   // Off when the screen draws its own full-bleed content to the top, such as
   // the photo hero on Details.
   edges?: boolean;
+  // The tint behind the content. On by default, because a flat canvas is what
+  // made every screen look unfinished in light mode -- see PageWash. Turn it
+  // off for a screen that is already mostly one photograph or one map, where
+  // there is no canvas left to light.
+  wash?: boolean;
   style?: StyleProp<ViewStyle>;
 }
 
-export function Screen({ children, background = 'canvas', edges = true, style }: ScreenProps) {
+export function Screen({
+  children,
+  background = 'canvas',
+  edges = true,
+  wash = true,
+  style,
+}: ScreenProps) {
   const t = useTheme();
   const insets = useSafeAreaInsets();
   const focused = useIsFocused();
@@ -134,6 +146,11 @@ export function Screen({ children, background = 'canvas', edges = true, style }:
         style,
       ]}
     >
+      {/* Behind everything, and absolutely positioned, so it costs the layout
+          nothing -- a wrapper here would put a view between Screen and its
+          children and quietly break every `flex: 1` passed into it. */}
+      {wash ? <PageWash /> : null}
+
       {/* Status bar icons have to flip with the theme or they disappear into
           the background in one mode or the other. */}
       {focused && <StatusBar style={t.isDark ? 'light' : 'dark'} />}

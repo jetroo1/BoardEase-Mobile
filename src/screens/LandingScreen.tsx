@@ -29,7 +29,7 @@
 // spacings, so it follows the theme into dark mode with no second code path.
 // The exceptions are the scrim and the glass, which need alpha by definition.
 
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Image, Platform, StyleSheet, View } from 'react-native';
 import Animated, {
   Extrapolation,
@@ -40,6 +40,7 @@ import Animated, {
   useAnimatedStyle,
   runOnJS,
   useSharedValue,
+  withTiming,
 } from 'react-native-reanimated';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -49,6 +50,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../context/ThemeContext';
 import { RootStackParamList } from '../navigation/types';
+import { HERO_FADE_MS, HERO_INTERVAL_MS, HERO_PHOTOS } from '../heroPhotos';
 import { GUTTER } from '../theme';
 import { Button, Pressable, Screen, Text, ThemeToggle } from '../components/ui';
 
@@ -210,6 +212,62 @@ function Glass({
       ) : null}
       {children}
     </View>
+  );
+}
+
+// The photographs behind the title, one dissolving into the next.
+//
+// Every photo is mounted at once and stacked; only their opacity changes. The
+// obvious alternative -- swapping the source on a single Image -- cannot
+// cross-fade, because the old picture is gone the instant the new one is set,
+// and on a phone the new one then pops in a frame later once it has decoded.
+// Stacking costs a few image views and buys a dissolve that cannot flicker.
+//
+// It also means each photograph is fetched once, on mount, rather than every
+// time it comes round again.
+function HeroSlideshow() {
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    // Nothing to cycle through, so nothing to schedule.
+    if (HERO_PHOTOS.length <= 1) {
+      return;
+    }
+    const timer = setInterval(() => {
+      setIndex((current) => (current + 1) % HERO_PHOTOS.length);
+    }, HERO_INTERVAL_MS);
+    return () => clearInterval(timer);
+  }, []);
+
+  return (
+    <View style={{ width: '100%', height: '100%', backgroundColor: '#1A2326' }}>
+      {HERO_PHOTOS.map((uri, i) => (
+        <HeroPhoto key={uri} uri={uri} visible={i === index} first={i === 0} />
+      ))}
+    </View>
+  );
+}
+
+function HeroPhoto({ uri, visible, first }: { uri: string; visible: boolean; first: boolean }) {
+  // The first photograph starts fully opaque so the screen is never briefly
+  // empty on open; the rest start hidden and fade in when their turn comes.
+  const opacity = useSharedValue(first ? 1 : 0);
+
+  useEffect(() => {
+    opacity.value = withTiming(visible ? 1 : 0, { duration: HERO_FADE_MS });
+  }, [visible, opacity]);
+
+  const style = useAnimatedStyle(() => ({ opacity: opacity.value }));
+
+  return (
+    <Animated.View style={[StyleSheet.absoluteFill, style]}>
+      <Image
+        source={{ uri }}
+        resizeMode="cover"
+        accessibilityLabel="A boarding house listed on BoardEase"
+        style={{ width: '100%', height: '100%' }}
+      />
+    </Animated.View>
   );
 }
 
@@ -480,12 +538,7 @@ export default function LandingScreen() {
         {/* --- Hero ----------------------------------------------------- */}
         <View style={{ height: HERO_HEIGHT, justifyContent: 'flex-end', overflow: 'hidden' }}>
           <Animated.View style={[{ position: 'absolute', top: 0, left: 0, right: 0, height: HERO_HEIGHT }, heroStyle]}>
-            <Image
-              source={require('../../assets/welcome-room.jpg')}
-              resizeMode="cover"
-              accessibilityLabel="A furnished boarding house room"
-              style={{ width: '100%', height: '100%' }}
-            />
+            <HeroSlideshow />
           </Animated.View>
 
           {/* Gradient rather than a flat scrim: the type needs contrast at the

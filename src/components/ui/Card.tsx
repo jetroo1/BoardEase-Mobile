@@ -4,6 +4,13 @@
 // a back. Pick by meaning, not by looks: "low" for a resting row, "medium" for
 // the cards that are the point of the screen, "high" for anything that floats
 // over content.
+//
+// Every card is outlined, in both themes. Light mode used to rely on its
+// shadow alone, which sounds right and is not: Android renders `elevation: 1`
+// as a few pixels of barely-there grey, and against a white card on a canvas
+// three percent off white there was nothing left to see. A screen of resting
+// rows ran together into one undifferentiated field. The hairline is what
+// actually draws the edge; the shadow only says how far forward it is.
 
 import React from 'react';
 import { StyleProp, StyleSheet, View, ViewProps, ViewStyle } from 'react-native';
@@ -32,9 +39,11 @@ export function Card({
     backgroundColor: t.colors.surface,
     borderRadius: t.radius.md,
     ...(padded ? { padding: t.spacing.md } : null),
-    ...(outlined || t.isDark
-      ? { borderWidth: StyleSheet.hairlineWidth, borderColor: t.colors.line }
-      : null),
+    // A hairline disappears on a high-density Android display, where it
+    // rounds to well under a physical pixel. 1 is the thinnest line that
+    // actually survives to the screen.
+    borderWidth: outlined || !t.isDark ? 1 : StyleSheet.hairlineWidth,
+    borderColor: t.colors.line,
     ...(level === 'flat' ? null : t.elevation[level]),
   };
 

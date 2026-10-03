@@ -34,6 +34,10 @@ export {
 
 export { default as Rating, RatingInput } from './Rating';
 
+export { default as Avatar } from './Avatar';
+
+export { default as PageWash } from './PageWash';
+
 export { default as PropertyPhoto } from './PropertyPhoto';
 
 export { default as PhotoGallery } from './PhotoGallery';

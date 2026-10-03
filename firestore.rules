@@ -126,10 +126,20 @@ service cloud.firestore {
                     && request.resource.data.get('consent', null)
                        == resource.data.get('consent', null)
                     && request.resource.data.diff(resource.data).affectedKeys().hasOnly(
-                      ['savedFilters', 'alertsEnabled', 'lastAlertCheck']
+                      ['savedFilters', 'alertsEnabled', 'lastAlertCheck', 'photoURL']
                     )
                     && request.resource.data.get('alertsEnabled', false) is bool
                     && request.resource.data.get('lastAlertCheck', 0) is number
+                    // A profile picture is a link to an uploaded image, never
+                    // the image itself: a document is capped at 1 MB and an
+                    // inlined photograph would both blow that and be re-read
+                    // on every sign-in. Required to be https so a stored value
+                    // cannot be a javascript: or data: URI that some later
+                    // view renders.
+                    && (request.resource.data.get('photoURL', null) == null
+                      || (request.resource.data.photoURL is string
+                          && request.resource.data.photoURL.matches('https://.*')
+                          && request.resource.data.photoURL.size() <= 1000))
                     && (request.resource.data.get('savedFilters', null) == null
                       || isValidFilters(request.resource.data.savedFilters));
 

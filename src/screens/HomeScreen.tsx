@@ -347,7 +347,11 @@ function QuickLink({
 function AdminHome({ navigation }: { navigation: NavigationProp }) {
   const t = useTheme();
   const [pendingProperties, setPendingProperties] = useState<Property[]>([]);
-  const [totalCount, setTotalCount] = useState(0);
+  // Every listing, approved or not. The dashboard already reads them to count
+  // them, so searching them costs nothing extra -- and an admin looking for
+  // one particular house needs to find the unapproved ones too, which is
+  // exactly what the tenant-side search must never show.
+  const [allProperties, setAllProperties] = useState<Property[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -367,7 +371,12 @@ function AdminHome({ navigation }: { navigation: NavigationProp }) {
           ...(docSnap.data() as Omit<Property, 'id'>),
         }))
       );
-      setTotalCount(allSnapshot.size);
+      setAllProperties(
+        allSnapshot.docs.map((docSnap) => ({
+          id: docSnap.id,
+          ...(docSnap.data() as Omit<Property, 'id'>),
+        }))
+      );
     } catch {
       // The old version had no error branch here at all, so a failed read
       // left the spinner up forever and looked like a hang.
@@ -398,6 +407,20 @@ function AdminHome({ navigation }: { navigation: NavigationProp }) {
           <ErrorState message={errorMessage} onRetry={load} />
         ) : (
           <>
+            {/* The same live search the tenants get. An admin checking whether
+                a house is already listed was otherwise left scrolling the
+                admin panel, which is the long way round to a yes or no. */}
+            <View style={{ marginBottom: t.spacing.md }}>
+              <ListingSearchBar
+                listings={allProperties}
+                placeholder="Search every listing"
+                onSelect={(property) =>
+                  navigation.navigate('Details', { propertyId: property.id })
+                }
+                onSubmit={() => navigation.navigate('Admin')}
+              />
+            </View>
+
             <Card
               level="medium"
               style={{
@@ -415,7 +438,7 @@ function AdminHome({ navigation }: { navigation: NavigationProp }) {
                   {pendingProperties.length}
                 </Text>
                 <Text variant="caption" tone="soft">
-                  of {totalCount} listing{totalCount === 1 ? '' : 's'} in total
+                  of {allProperties.length} listing{allProperties.length === 1 ? '' : 's'} in total
                 </Text>
               </View>
               <Ionicons

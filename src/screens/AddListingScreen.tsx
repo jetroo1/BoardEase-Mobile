@@ -96,6 +96,7 @@ export default function AddListingScreen() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [address, setAddress] = useState('');
+  const [contactNumber, setContactNumber] = useState('');
   const [priceText, setPriceText] = useState('');
   const [roomType, setRoomType] = useState('Single'); // starts on the most common choice
   const [amenities, setAmenities] = useState<string[]>([]);
@@ -145,6 +146,7 @@ export default function AddListingScreen() {
         setTitle(existing.title ?? '');
         setDescription(existing.description ?? '');
         setAddress(existing.address ?? '');
+        setContactNumber(existing.contactNumber ?? '');
         setPriceText(existing.price != null ? String(existing.price) : '');
         setRoomType(existing.roomType || 'Single');
         setAmenities(existing.amenities ?? []);
@@ -398,6 +400,7 @@ export default function AddListingScreen() {
         title: title.trim(),
         description: description.trim(),
         address: address.trim(),
+        contactNumber: contactNumber.trim(),
         price: Number(priceText),
         roomType,
         amenities,
@@ -535,6 +538,18 @@ export default function AddListingScreen() {
               }))
             }
             error={errors.address}
+          />
+
+          {/* Optional, but the only way a tenant can act on a listing they
+              like: BoardEase does no booking, no payment and no messaging. */}
+          <Input
+            label="Contact number"
+            icon="call-outline"
+            placeholder="e.g. 09231939588"
+            keyboardType="phone-pad"
+            value={contactNumber}
+            onChangeText={setContactNumber}
+            hint="Shown on the listing so tenants can ring the owner."
           />
 
           <Input

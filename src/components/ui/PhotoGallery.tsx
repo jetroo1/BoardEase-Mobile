@@ -22,9 +22,25 @@ export interface PhotoGalleryProps {
   title: string;
   roomType?: string;
   height: number;
+  // How much of the bottom of the gallery something else is drawn over --
+  // Details slides its content sheet up over the photo to tie the two
+  // together. The counter and the dots are pushed above it.
+  //
+  // Passed in rather than assumed, because the gallery cannot see what is
+  // stacked on top of it. Leaving it to a guess is what put the counter
+  // underneath the sheet: it sat 16px from the bottom of a photo whose last
+  // 24px were covered, so it was sliced in half and the dots disappeared
+  // entirely.
+  bottomInset?: number;
 }
 
-export default function PhotoGallery({ photos, title, roomType, height }: PhotoGalleryProps) {
+export default function PhotoGallery({
+  photos,
+  title,
+  roomType,
+  height,
+  bottomInset = 0,
+}: PhotoGalleryProps) {
   const t = useTheme();
   const { width } = useWindowDimensions();
   const [index, setIndex] = useState(0);
@@ -70,7 +86,7 @@ export default function PhotoGallery({ photos, title, roomType, height }: PhotoG
       <View
         style={{
           position: 'absolute',
-          bottom: t.spacing.md,
+          bottom: bottomInset + t.spacing.sm,
           right: t.spacing.md,
           backgroundColor: 'rgba(0,0,0,0.55)',
           borderRadius: t.radius.pill,
@@ -83,11 +99,14 @@ export default function PhotoGallery({ photos, title, roomType, height }: PhotoG
         </Text>
       </View>
 
+      {/* Sat level with the counter rather than a few pixels above it. Two
+          overlays on the same baseline read as one strip; staggered, they read
+          as a mistake. */}
       <View
         pointerEvents="none"
         style={{
           position: 'absolute',
-          bottom: t.spacing.md + 6,
+          bottom: bottomInset + t.spacing.sm + 6,
           left: 0,
           right: 0,
           flexDirection: 'row',

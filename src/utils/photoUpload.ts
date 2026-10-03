@@ -28,7 +28,7 @@ const UPLOAD_PRESET = 'BoardEase';
 
 const ENDPOINT = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`;
 
-export async function uploadListingPhoto(localUri: string, mimeType = 'image/jpeg'): Promise<string> {
+export async function uploadPhoto(localUri: string, mimeType = 'image/jpeg'): Promise<string> {
   // Checked before the upload rather than after it, so an empty or missing
   // file is reported as itself instead of as a Cloudinary error.
   const file = new File(localUri);
@@ -81,3 +81,10 @@ export async function uploadListingPhoto(localUri: string, mimeType = 'image/jpe
 
   return result.secure_url as string;
 }
+
+// Listing photographs and profile pictures go to the same place by the same
+// route. They are named apart only so a call site reads as what it is, and so
+// that if one of them ever needs its own preset or folder, the change has a
+// seam to happen at.
+export const uploadListingPhoto = uploadPhoto;
+export const uploadProfilePhoto = uploadPhoto;
