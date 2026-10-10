@@ -30,6 +30,7 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import LeafletMap, { MapMarker } from '../components/LeafletMap';
+import { coverOf } from '../utils/photos';
 import { db } from '../firebaseConfig';
 import { AppParamList } from '../navigation/types';
 import { useTheme } from '../context/ThemeContext';
@@ -405,7 +406,7 @@ export default function MapScreen() {
                     }}
                   >
                     <PropertyPhoto
-                      uri={item.imageUrl}
+                      uri={coverOf(item)}
                       title={item.title}
                       roomType={item.roomType}
                       height={CARD_HEIGHT - t.spacing.md}

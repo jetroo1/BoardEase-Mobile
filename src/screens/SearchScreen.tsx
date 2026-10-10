@@ -37,6 +37,8 @@ import {
   removeFavorite,
 } from '../utils/favorites';
 import { setCallback } from '../utils/navigationCallbacks';
+import { useScreenTour } from '../context/TourContext';
+import { SEARCH_TOUR, TOUR } from '../tourSteps';
 import { describeFirestoreError } from '../utils/firestoreErrors';
 import { searchListings } from '../utils/search';
 import { GUTTER } from '../theme';
@@ -51,6 +53,7 @@ import {
   Screen,
   ScreenHeader,
   SearchField,
+  TourTarget,
   Text,
 } from '../components/ui';
 
@@ -86,6 +89,10 @@ export default function SearchScreen() {
   // "nearest" = plain distance sort. Recommended is the default, matching
   // the proposal's "Smart Filter & Recommendation" feature.
   const [sortMode, setSortMode] = useState<SortMode>('recommended');
+
+  // The filter and the sort are the two controls on this screen that change
+  // what the list means rather than just what is in it, and neither says so.
+  useScreenTour(TOUR.search, SEARCH_TOUR);
   // What was typed in the search field. Narrows the list live.
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -384,7 +391,9 @@ export default function SearchScreen() {
           and no way to type a name at all, so finding one known boarding
           house meant scrolling. */}
       <View style={{ paddingHorizontal: GUTTER, paddingBottom: t.spacing.sm }}>
-        <SearchField value={searchTerm} onChange={setSearchTerm} />
+        <TourTarget id="search.field">
+          <SearchField value={searchTerm} onChange={setSearchTerm} />
+        </TourTarget>
       </View>
 
       {/* Controls row: sort on the left as a segmented control, filter on the
@@ -400,13 +409,19 @@ export default function SearchScreen() {
           paddingBottom: t.spacing.xs,
         }}
       >
+        <TourTarget id="search.sort" style={{ flex: 1 }}>
+        {/* No flex of its own any more. It used to sit directly in the row,
+            where flex: 1 meant "take the spare width"; wrapped, its parent is
+            a column, where the same declaration means "take the spare height"
+            -- so the segmented control stretched to whatever the row happened
+            to be and the two labels came out squashed. The wrapper carries the
+            row's flex now, and this sizes to its contents as it always did. */}
         <View
           style={{
             flexDirection: 'row',
             backgroundColor: t.colors.canvasAlt,
             borderRadius: t.radius.pill,
             padding: 3,
-            flex: 1,
           }}
         >
           {(['recommended', 'nearest'] as SortMode[]).map((mode) => {
@@ -443,7 +458,9 @@ export default function SearchScreen() {
             );
           })}
         </View>
+        </TourTarget>
 
+        <TourTarget id="search.filter">
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={
@@ -474,6 +491,7 @@ export default function SearchScreen() {
             {activeFilterCount > 0 ? activeFilterCount : 'Filter'}
           </Text>
         </Pressable>
+        </TourTarget>
       </View>
 
       {/* Applied filters as removable chips. Without this the user can filter

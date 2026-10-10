@@ -57,6 +57,10 @@ import { Button, Pressable, Screen, Text, ThemeToggle } from '../components/ui';
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 
 const HERO_HEIGHT = 380;
+// How much of the bottom of the hero is given over to fading the photograph
+// into the page. Also the hero text's bottom padding, so the two cannot drift
+// apart and leave the type sitting in the ramp.
+const HERO_FADE_HEIGHT = 84;
 const TAB_BAR_HEIGHT = 52;
 
 // ---------------------------------------------------------------------------
@@ -558,7 +562,34 @@ export default function LandingScreen() {
             style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
           />
 
-          <Animated.View style={[{ padding: GUTTER, paddingBottom: t.spacing.lg, gap: t.spacing.xs }, heroTextStyle]}>
+          {/* The photograph fading out into the page, rather than stopping at
+              a ruled line.
+              The hero used to end on a hard horizontal edge: dark photograph
+              above, pale canvas below, with nothing in between. The stats card
+              hides the middle of that line, which is what it is pulled up to
+              do, but the line continued past it on both sides and was the
+              first thing you saw in light mode -- where near-black meeting
+              near-white makes it unmissable.
+              Fading to the canvas colour, rather than to transparent, is the
+              point: the band has to end on exactly the colour the page
+              continues in, or it just moves the edge rather than removing it.
+              The hero text is given the same height as padding so it always
+              sits above the band, where the ramp has not started -- white type
+              drifting into a near-white fade is the one way this could have
+              made the screen worse. */}
+          <LinearGradient
+            pointerEvents="none"
+            colors={['transparent', t.colors.canvas]}
+            style={{
+              position: 'absolute',
+              left: 0,
+              right: 0,
+              bottom: 0,
+              height: HERO_FADE_HEIGHT,
+            }}
+          />
+
+          <Animated.View style={[{ padding: GUTTER, paddingBottom: HERO_FADE_HEIGHT, gap: t.spacing.xs }, heroTextStyle]}>
             <View style={{ alignSelf: 'flex-start' }}>
               <Glass variant="onPhoto" radius={999} style={{ marginBottom: t.spacing.xs }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: t.spacing.sm, paddingVertical: 6 }}>

@@ -28,6 +28,8 @@ import { clearOfflineCache } from '../utils/offlineCache';
 import { loadAlertSettings, turnOffFilterAlerts } from '../utils/matchAlerts';
 import { useCompare } from '../context/CompareContext';
 import { uploadProfilePhoto } from '../utils/photoUpload';
+import { useScreenTour, useTour } from '../context/TourContext';
+import { PROFILE_TOUR, TOUR } from '../tourSteps';
 import {
   Avatar,
   Button,
@@ -37,6 +39,7 @@ import {
   Screen,
   ScreenHeader,
   Text,
+  TourTarget,
 } from '../components/ui';
 
 type NavigationProp = NativeStackNavigationProp<AppParamList>;
@@ -45,12 +48,15 @@ export default function ProfileScreen() {
   const { user, role, photoURL, setProfilePhoto, logout } = useAuth();
   const { theme: t, mode, setMode } = useThemeContext();
   const { compareList, clearCompare } = useCompare();
+  const { replayAll } = useTour();
   const navigation = useNavigation<NavigationProp>();
 
   const [busy, setBusy] = useState(false);
   const [photoBusy, setPhotoBusy] = useState(false);
   const [alertsOn, setAlertsOn] = useState(false);
   const [locationGranted, setLocationGranted] = useState<boolean | null>(null);
+
+  useScreenTour(TOUR.profile, PROFILE_TOUR);
 
   // Re-read on every focus, because both of these can be changed outside the
   // app -- location in the phone's settings, alerts on the Filter screen.
@@ -208,6 +214,17 @@ export default function ProfileScreen() {
     Alert.alert('Profile picture', 'This is shown on your account.', options);
   }
 
+  function handleReplayTour() {
+    replayAll()
+      .then(() =>
+        Alert.alert(
+          'The tour is back',
+          'Home, Search, a listing and this screen will each introduce themselves again the next time you open them.'
+        )
+      )
+      .catch(() => Alert.alert('Could not reset it', 'Please try again.'));
+  }
+
   async function handlePasswordReset() {
     if (!user?.email || busy) {
       return;
@@ -293,24 +310,26 @@ export default function ProfileScreen() {
         {/* --- Account ---------------------------------------------------- */}
         <Card level="low" style={{ borderRadius: t.radius.lg, gap: t.spacing.sm }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: t.spacing.sm }}>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={
-                photoURL ? 'Change or remove your profile picture' : 'Add a profile picture'
-              }
-              accessibilityState={{ disabled: photoBusy || !user }}
-              disabled={photoBusy || !user}
-              onPress={handleChangePhoto}
-              hitSlop={8}
-            >
-              <Avatar
-                uri={photoURL}
-                name={user?.email}
-                size={52}
-                busy={photoBusy}
-                editable={Boolean(user)}
-              />
-            </Pressable>
+            <TourTarget id="profile.avatar">
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={
+                  photoURL ? 'Change or remove your profile picture' : 'Add a profile picture'
+                }
+                accessibilityState={{ disabled: photoBusy || !user }}
+                disabled={photoBusy || !user}
+                onPress={handleChangePhoto}
+                hitSlop={8}
+              >
+                <Avatar
+                  uri={photoURL}
+                  name={user?.email}
+                  size={52}
+                  busy={photoBusy}
+                  editable={Boolean(user)}
+                />
+              </Pressable>
+            </TourTarget>
             <View style={{ flex: 1, gap: t.spacing.xxs }}>
               <Text variant="bodyStrong" numberOfLines={1} selectable>
                 {user?.email ?? 'Not signed in'}
@@ -350,6 +369,7 @@ export default function ProfileScreen() {
         {/* --- Appearance ------------------------------------------------- */}
         <View style={{ gap: t.spacing.sm }}>
           <Text variant="heading">Appearance</Text>
+          <TourTarget id="profile.appearance">
           <View
             accessibilityRole="tablist"
             style={{
@@ -399,6 +419,7 @@ export default function ProfileScreen() {
               );
             })}
           </View>
+          </TourTarget>
         </View>
 
         {/* --- Alerts & permissions --------------------------------------- */}
@@ -464,6 +485,18 @@ export default function ProfileScreen() {
               onPress={clearCompare}
               disabled={compareList.length === 0}
             />
+            <Divider />
+            {/* The tour introduces each screen once and then never again,
+                which is right for somebody using the app and wrong for
+                somebody being shown it. This is how you get it back. */}
+            <TourTarget id="profile.replayTour">
+              <Row
+                icon="help-circle-outline"
+                title="Show the tour again"
+                subtitle="Each screen explains itself once more, next time you open it"
+                onPress={handleReplayTour}
+              />
+            </TourTarget>
             <Divider />
             <Row
               icon="trash-outline"

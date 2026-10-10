@@ -21,6 +21,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../context/ThemeContext';
 import { Property } from '../../types';
 import Card from './Card';
+import { coverOf } from '../../utils/photos';
 import Pressable from './Pressable';
 import PropertyPhoto from './PropertyPhoto';
 import Text from './Text';
@@ -68,7 +69,7 @@ export function PropertyCard({
         style={{ padding: t.spacing.xs, borderRadius: t.radius.lg }}
       >
         <PropertyPhoto
-          uri={property.imageUrl}
+          uri={coverOf(property)}
           title={property.title}
           roomType={property.roomType}
           height={168}

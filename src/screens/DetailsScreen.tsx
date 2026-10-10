@@ -39,6 +39,8 @@ import { getDistanceInKm, formatDistance } from '../utils/distance';
 import { photosOf } from '../utils/photos';
 import { displayName } from '../utils/displayName';
 import { GUTTER, spacing } from '../theme';
+import { useScreenTour } from '../context/TourContext';
+import { DETAILS_TOUR, TOUR } from '../tourSteps';
 import {
   Button,
   Card,
@@ -49,6 +51,7 @@ import {
   Pill,
   Pressable,
   PhotoGallery,
+  TourTarget,
   Rating,
   Skeleton,
   Text,
@@ -96,6 +99,17 @@ export default function DetailsScreen() {
   const [errorMessage, setErrorMessage] = useState('');
   const [favoriteDocId, setFavoriteDocId] = useState<string | null>(null);
   const [isSavingFavorite, setIsSavingFavorite] = useState(false);
+
+  // Runs the first time this account opens any listing. The steps point at
+  // the save, directions and compare controls, which are the three things on
+  // this screen that do something non-obvious.
+  //
+  // Held until the listing has actually loaded. Those three controls are only
+  // rendered once there is something to render them for, so starting on mount
+  // meant the first step hunted for a button that did not exist yet and gave
+  // up -- on a slow connection, which is the only time it is noticeable, the
+  // tour opened with its arrow pointing at nothing.
+  useScreenTour(property ? TOUR.details : '', property ? DETAILS_TOUR : []);
   // How far this place is from the person reading about it -- the one fact
   // the whole application is built around, and the one this screen never
   // showed. Null until we know, and null for ever if we are not allowed to.
@@ -329,12 +343,14 @@ export default function DetailsScreen() {
             tone="onPhoto"
             onPress={() => navigation.goBack()}
           />
-          <IconButton
-            icon={isFavorite ? 'heart' : 'heart-outline'}
-            label={isFavorite ? 'Remove from saved' : 'Save this listing'}
-            tone="onPhoto"
-            onPress={toggleFavorite}
-          />
+          <TourTarget id="details.favourite">
+            <IconButton
+              icon={isFavorite ? 'heart' : 'heart-outline'}
+              label={isFavorite ? 'Remove from saved' : 'Save this listing'}
+              tone="onPhoto"
+              onPress={toggleFavorite}
+            />
+          </TourTarget>
         </View>
 
         {/* The sheet overlaps the photo, which is what ties them together. */}
@@ -435,26 +451,48 @@ export default function DetailsScreen() {
           {/* Primary action. One per screen: getting there is what this app
               is for, so Navigate is it, and everything else is quieter. */}
           <View style={{ flexDirection: 'row', gap: t.spacing.xs }}>
-            <Button
-              label="Get directions"
-              icon="navigate"
-              size="lg"
-              onPress={() => navigation.navigate('Navigation', { property })}
-              style={{ flex: 1 }}
-            />
-            {/* Reflects state instead of firing silently. Tapping "Compare"
-                used to add the listing with no visible change at all, and
-                this screen has no compare bar, so nothing told you it had
-                worked or where the comparison lives. */}
-            <Button
-              label={inCompare ? 'Added' : 'Compare'}
-              icon={inCompare ? 'checkmark-circle' : 'git-compare-outline'}
-              variant="secondary"
-              size="lg"
-              onPress={() =>
-                inCompare ? removeFromCompare(property.id) : addToCompare(property)
-              }
-            />
+            <TourTarget id="details.directions" style={{ flex: 1 }}>
+              <Button
+                label="Get directions"
+                icon="navigate"
+                size="lg"
+                fullWidth
+                onPress={() => navigation.navigate('Navigation', { property })}
+              />
+            </TourTarget>
+            {/* Compare takes you to the next step instead of leaving you on
+                this one.
+                A comparison needs two places, and this screen is one of them.
+                Adding from here used to be the whole interaction: the label
+                changed to "Added" and that was all, so the way to reach the
+                second place was to go back, find another listing, open it and
+                wait for it to load. Three navigations and two waits to use a
+                feature that had already started.
+                Now the first pick hands you straight to the list, where the
+                second can be added from a card without opening it at all.
+                Only on the first pick -- once a comparison is under way, the
+                bar at the bottom is already offering the way forward, and
+                being moved somewhere you did not ask to go is worse than
+                being left where you are. */}
+            <TourTarget id="details.compare">
+              <Button
+                label={inCompare ? 'Added' : 'Compare'}
+                icon={inCompare ? 'checkmark-circle' : 'git-compare-outline'}
+                variant="secondary"
+                size="lg"
+                onPress={() => {
+                  if (inCompare) {
+                    removeFromCompare(property.id);
+                    return;
+                  }
+                  const wasEmpty = compareList.length === 0;
+                  addToCompare(property);
+                  if (wasEmpty) {
+                    navigation.navigate('MainTabs', { screen: 'Search' });
+                  }
+                }}
+              />
+            </TourTarget>
           </View>
 
           {/* The contact, directly above the description, because once
