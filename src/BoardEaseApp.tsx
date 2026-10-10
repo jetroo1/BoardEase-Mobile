@@ -16,9 +16,11 @@ import { View } from 'react-native';
 import * as SystemUI from 'expo-system-ui';
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { CompareProvider } from './context/CompareContext';
 import { ThemeProvider, useTheme, useThemeContext } from './context/ThemeContext';
+import { TourProvider } from './context/TourContext';
+import { TourOverlay } from './components/ui';
 import RootNavigator from './navigation/RootNavigator';
 
 export default function BoardEaseApp() {
@@ -27,11 +29,23 @@ export default function BoardEaseApp() {
       <ThemeProvider>
         <AuthProvider>
           <CompareProvider>
-            <ThemedNavigationContainer />
+            <TourHost />
           </CompareProvider>
         </AuthProvider>
       </ThemeProvider>
     </SafeAreaProvider>
+  );
+}
+
+// The guided tour needs to know whose tour it is -- what has been seen is
+// remembered per account -- so it sits inside AuthProvider and is handed the
+// uid rather than reaching for it itself.
+function TourHost() {
+  const { user } = useAuth();
+  return (
+    <TourProvider userId={user?.uid ?? null}>
+      <ThemedNavigationContainer />
+    </TourProvider>
   );
 }
 
@@ -83,7 +97,19 @@ function ThemedNavigationContainer() {
 
   return (
     <NavigationContainer theme={navTheme}>
-      <RootNavigator />
+      {/* An explicit flex: 1 box rather than letting these two be bare
+          children of the container. TourOverlay positions itself absolutely
+          against its parent, and it has to be a parent that definitely fills
+          the window -- otherwise the highlight is measured against one box and
+          drawn into another. */}
+      <View style={{ flex: 1 }}>
+        <RootNavigator />
+        {/* A sibling of the navigator, so a step can point at the tab bar as
+            well as at what is above it, and in the same coordinate space as
+            the controls it highlights. Draws nothing unless a tour is
+            running. */}
+        <TourOverlay />
+      </View>
     </NavigationContainer>
   );
 }

@@ -38,6 +38,9 @@ export { default as Avatar } from './Avatar';
 
 export { default as PageWash } from './PageWash';
 
+export { default as TourTarget } from './TourTarget';
+export { default as TourOverlay } from './TourOverlay';
+
 export { default as PropertyPhoto } from './PropertyPhoto';
 
 export { default as PhotoGallery } from './PhotoGallery';
