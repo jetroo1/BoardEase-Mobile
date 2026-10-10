@@ -20,6 +20,7 @@ import { useAuth } from '../context/AuthContext';
 import { Property } from '../types';
 import { AppParamList } from '../navigation/types';
 import CompareBar from '../components/CompareBar';
+import { useCompare } from '../context/CompareContext';
 import { cacheFavorites, loadCachedFavorites } from '../utils/offlineCache';
 import { GUTTER } from '../theme';
 import { useTheme } from '../context/ThemeContext';
@@ -37,6 +38,7 @@ export default function FavoritesScreen() {
   const t = useTheme();
   const navigation = useNavigation<NavigationProp>();
   const { user } = useAuth();
+  const { compareList, addToCompare, removeFromCompare } = useCompare();
 
   const [favorites, setFavorites] = useState<FavoriteProperty[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -121,10 +123,26 @@ export default function FavoritesScreen() {
               onAction={isShowingCached ? loadFavorites : () => navigation.navigate('Search')} />
           }
           renderItem={({ item }) => (
-            <PropertyCard property={item} isFavorite onPress={() => navigation.navigate('Details', { propertyId: item.id })}
+            <PropertyCard
+              property={item}
+              isFavorite
+              onPress={() => navigation.navigate('Details', { propertyId: item.id })}
               onToggleFavorite={isShowingCached ? undefined : () => {
                 handleUnfavorite(item.favoriteDocId).catch(() => Alert.alert('Could not remove listing', 'Check your connection and try again.'));
-              }} />
+              }}
+              // Your shortlist is the most likely place to want two listings
+              // side by side, and it was the one list whose cards had no way
+              // to do it -- the bar was here, but nothing could fill it.
+              onCompare={() => {
+                const alreadyListed = compareList.some((listed) => listed.id === item.id);
+                if (alreadyListed) {
+                  removeFromCompare(item.id);
+                } else {
+                  addToCompare(item);
+                }
+              }}
+              inCompare={compareList.some((listed) => listed.id === item.id)}
+            />
           )}
         />
       )}

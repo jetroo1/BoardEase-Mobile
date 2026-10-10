@@ -1,7 +1,15 @@
-// A small reusable bar that appears at the bottom of a screen whenever the
-// user has picked at least 2 properties to compare. Tapping it opens the
-// Comparison screen. Used on both the Search and Favorites screens so the
-// user can jump to comparing no matter where they added properties from.
+// The bar at the bottom of the screen that tracks a comparison being built.
+//
+// It used to appear only once two places had been picked, which meant the
+// first pick did nothing visible at all. Somebody tapped Compare on a listing,
+// saw the button say "Added", and had no idea what to do next -- so they went
+// back, hunted for another boarding house, opened it and waited for it to
+// load, all to reach a feature that was already half-started and never said
+// so. The slow part was never the comparison; it was finding out it had begun.
+//
+// So it now appears on the first pick and says what is missing. One place
+// selected asks for a second and offers nowhere to go; two or more turn into
+// the button that opens the comparison.
 //
 // It floats above the list rather than sitting in the layout, and slides in
 // instead of appearing: something that pops into existence under your thumb
@@ -30,7 +38,9 @@ export default function CompareBar() {
   const navigation = useNavigation<NavigationProp>();
   const t = useTheme();
 
-  const visible = compareList.length >= 2;
+  const count = compareList.length;
+  const ready = count >= 2;
+  const visible = count >= 1;
   const offset = useSharedValue(visible ? 0 : 120);
 
   useEffect(() => {
@@ -71,8 +81,11 @@ export default function CompareBar() {
         }}
       >
         <Ionicons name="git-compare" size={18} color={t.colors.onBrand} />
+        {/* Says what is still needed, not just how many have been picked. "1
+            selected" is a fact; "Pick one more to compare" is an instruction,
+            and at this point in the flow an instruction is what is wanted. */}
         <Text variant="captionStrong" style={{ color: t.colors.onBrand, flex: 1 }}>
-          {compareList.length} selected
+          {ready ? `${count} selected` : 'Pick one more to compare'}
         </Text>
 
         <Pressable
@@ -86,25 +99,30 @@ export default function CompareBar() {
           </Text>
         </Pressable>
 
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={`Compare ${compareList.length} properties`}
-          onPress={() => navigation.navigate('Compare')}
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: t.spacing.xxs,
-            backgroundColor: t.colors.onBrand,
-            paddingHorizontal: t.spacing.sm,
-            paddingVertical: t.spacing.xs,
-            borderRadius: t.radius.pill,
-          }}
-        >
-          <Text variant="captionStrong" style={{ color: t.colors.brand }}>
-            Compare
-          </Text>
-          <Ionicons name="arrow-forward" size={14} color={t.colors.brand} />
-        </Pressable>
+        {/* Hidden rather than disabled while only one place is picked. A
+            greyed-out button invites a tap that cannot do anything; with
+            nothing there, the sentence beside it is the whole message. */}
+        {ready ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`Compare ${count} properties`}
+            onPress={() => navigation.navigate('Compare')}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: t.spacing.xxs,
+              backgroundColor: t.colors.onBrand,
+              paddingHorizontal: t.spacing.sm,
+              paddingVertical: t.spacing.xs,
+              borderRadius: t.radius.pill,
+            }}
+          >
+            <Text variant="captionStrong" style={{ color: t.colors.brand }}>
+              Compare
+            </Text>
+            <Ionicons name="arrow-forward" size={14} color={t.colors.brand} />
+          </Pressable>
+        ) : null}
       </View>
     </Animated.View>
   );

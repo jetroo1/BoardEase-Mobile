@@ -9,7 +9,12 @@ import React, { createContext, useContext, useState } from 'react';
 import { Alert } from 'react-native';
 import { Property } from '../types';
 
-const MAX_COMPARE_ITEMS = 3;
+// Four, which is as many columns as a phone can show without the text in each
+// becoming unreadable. Two is what a comparison starts as -- the bar at the
+// bottom asks for a second listing and stops there -- and the Compare screen
+// then offers to add more, so nobody is asked to pick four things up front to
+// answer a question about two.
+export const MAX_COMPARE_ITEMS = 4;
 
 interface CompareContextType {
   compareList: Property[];

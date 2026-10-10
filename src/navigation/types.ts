@@ -4,6 +4,7 @@
 // calls are type-checked (e.g. TypeScript will warn us if we forget to pass
 // a required id).
 
+import { NavigatorScreenParams } from '@react-navigation/native';
 import { Filters, Property, PropertyWithDistance } from '../types';
 
 // The 5 screens available from the bottom tab bar, once logged in.
@@ -30,7 +31,12 @@ export type RootStackParamList = {
   Login: undefined;
   Register: undefined;
   VerifyEmail: undefined;
-  MainTabs: undefined;
+  // Typed with the tabs it contains, rather than as "no params", so a screen
+  // in the outer stack can send somebody to a particular tab -- Details hands
+  // over to Search when a comparison is started, for instance. Navigating to
+  // MainTabs with nothing still works and still means "whichever tab was last
+  // open".
+  MainTabs: NavigatorScreenParams<MainTabParamList> | undefined;
   Details: { propertyId: string };
   // The Filter screen hands the chosen filters back to whoever opened it. The
   // function itself is left in src/utils/navigationCallbacks.ts rather than
