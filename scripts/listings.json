@@ -241,5 +241,114 @@
       "https://res.cloudinary.com/bo25vkvx/image/upload/v1790915772/xjzl6bjhatljsckppghs.png",
       "https://res.cloudinary.com/bo25vkvx/image/upload/v1790915776/twea6wuekrr2c6ycj7ss.png"
     ]
+  },
+  {
+    "title": "ACG Apartment",
+    "address": "Purok Cacao, Pioneer, Visayan Village, Tagum City",
+    "contactNumber": "09771440722",
+    "price": 5000,
+    "roomType": "Shared",
+    "amenities": [
+      "WiFi",
+      "CR",
+      "Kitchen",
+      "Parking"
+    ],
+    "latitude": 7.428561,
+    "longitude": 125.7962112,
+    "description": "Two-storey apartment block at Purok Cacao, Visayan Village. Units come with a fitted kitchen counter and sink, a private tiled CR, a built-in wardrobe and bunk beds, off an inside corridor. Rent runs from P5,000 to P8,500 depending on the unit.",
+    "images": [
+      "https://res.cloudinary.com/bo25vkvx/image/upload/v1791268746/txifzcsgc7s1vvf1acfp.png",
+      "https://res.cloudinary.com/bo25vkvx/image/upload/v1791268748/cyvmgnlbg1jcvjeutfin.png",
+      "https://res.cloudinary.com/bo25vkvx/image/upload/v1791268751/lymcomydbup6gzuzo56o.png",
+      "https://res.cloudinary.com/bo25vkvx/image/upload/v1791268756/bpczhncfvvbxutoblqes.png",
+      "https://res.cloudinary.com/bo25vkvx/image/upload/v1791268758/dt0qv0by6hnk34lhoxlk.png",
+      "https://res.cloudinary.com/bo25vkvx/image/upload/v1791268760/toc5nah2efqp10vjffj4.png",
+      "https://res.cloudinary.com/bo25vkvx/image/upload/v1791268763/a6vklnzvbchrnuwvcas1.png"
+    ]
+  },
+  {
+    "title": "Jed's Apartment",
+    "address": "Purok Macopa Extension, Durian, Pioneer, Visayan Village, Tagum City",
+    "contactNumber": "09688930790",
+    "price": 8500,
+    "roomType": "Studio",
+    "amenities": [
+      "WiFi",
+      "CR",
+      "Kitchen",
+      "Parking"
+    ],
+    "latitude": 7.4250238,
+    "longitude": 125.8085278,
+    "description": "Newly built two-storey studio block at Purok Macopa Extension, Visayan Village. Units are fully tiled with a fitted kitchen counter and sink, overhead and full-height cupboards, a private CR and large sliding windows; the upper floor opens onto a shared balcony. Rent runs from P8,500 to P10,000 depending on the unit.",
+    "images": [
+      "https://res.cloudinary.com/bo25vkvx/image/upload/v1791269352/sdb92zaeiwarqecfxxew.png",
+      "https://res.cloudinary.com/bo25vkvx/image/upload/v1791269356/lzms4qfowzn1ak3fbcd3.png",
+      "https://res.cloudinary.com/bo25vkvx/image/upload/v1791269359/mhbpdy2bo9nrfgysugmj.png",
+      "https://res.cloudinary.com/bo25vkvx/image/upload/v1791269362/wklivlpg7r5k6bzc9dbc.png"
+    ]
+  },
+  {
+    "title": "Nikka Boarding House",
+    "address": "Purok Buli, Talisay 2, Pioneer, Visayan Village, Tagum City (near Mae Store)",
+    "contactNumber": "",
+    "price": 2500,
+    "roomType": "Single",
+    "amenities": [
+      "WiFi",
+      "CR",
+      "Kitchen"
+    ],
+    "latitude": 7.4324872,
+    "longitude": 125.8040795,
+    "description": "Rooms off a green-painted courtyard at Purok Buli, Visayan Village, near Mae Store. Rent runs from P2,500 to P3,000 depending on the room.",
+    "images": [
+      "https://res.cloudinary.com/bo25vkvx/image/upload/v1791269734/i41br06yz0wunltma0b2.png",
+      "https://res.cloudinary.com/bo25vkvx/image/upload/v1791269736/ktinlvpg2eoq1d1hw3y6.png"
+    ]
+  },
+  {
+    "title": "Mikeen's Room Rental",
+    "address": "Purok Cafe, Pioneer, Visayan Village, Tagum City",
+    "contactNumber": "",
+    "price": 4000,
+    "roomType": "Single",
+    "amenities": [
+      "WiFi",
+      "CR",
+      "Kitchen",
+      "Aircon"
+    ],
+    "latitude": 7.4280754,
+    "longitude": 125.7975891,
+    "description": "Rooms off an inside corridor at Purok Cafe, Visayan Village, behind a gated street frontage. Each room is furnished with a bed and a wardrobe and has its own tiled CR with a bidet. Rent runs from P4,000 to P5,500 depending on the room.",
+    "images": [
+      "https://res.cloudinary.com/bo25vkvx/image/upload/v1791269899/vubg1dwjcgsw7pzfzzsb.png",
+      "https://res.cloudinary.com/bo25vkvx/image/upload/v1791269901/cyko7r8iz1f6iuwnhgyf.png",
+      "https://res.cloudinary.com/bo25vkvx/image/upload/v1791269903/ktrgom69xsxra2ouao6e.png",
+      "https://res.cloudinary.com/bo25vkvx/image/upload/v1791269905/dmc1lcqqw1makwginrt6.png",
+      "https://res.cloudinary.com/bo25vkvx/image/upload/v1791269940/pc7vkxar9hfkvuxcit6p.png"
+    ]
+  },
+  {
+    "title": "Cinco Boarding House",
+    "address": "Purok Durian, Pioneer, Visayan Village, Tagum City",
+    "contactNumber": "09635707763",
+    "price": 3000,
+    "roomType": "Studio",
+    "amenities": [
+      "WiFi",
+      "CR",
+      "Kitchen",
+      "Aircon"
+    ],
+    "latitude": 7.4251703,
+    "longitude": 125.8070914,
+    "description": "Studio units at Purok Durian, Visayan Village. The boarding house sits behind the owner's house -- the sari-sari store on the street is the way in. Rent runs from P3,000 to P4,500 depending on the unit.",
+    "images": [
+      "https://res.cloudinary.com/bo25vkvx/image/upload/v1791269928/oihbisjqh5djzcg7xsx0.png",
+      "https://res.cloudinary.com/bo25vkvx/image/upload/v1791269931/ueet8hsoqpbeumdogz6i.png"
+    ]
   }
 ]
