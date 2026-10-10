@@ -79,20 +79,20 @@ yet delivered on the device. That gap is stated again in Chapter 3.
 | Layer | Technology | Version | Purpose |
 |---|---|---|---|
 | Framework | React Native | 0.86.3 | Cross-platform UI |
-| Runtime | Expo SDK | 57 | Build tooling, native modules, distribution |
-| Language | TypeScript | 6.0 | Static typing, strict mode |
+| Runtime | Expo SDK | 57.0.26 | Build tooling, native modules, distribution |
+| Language | TypeScript | 6.0.3 | Static typing, strict mode |
 | UI runtime | React | 19.2.3 | Component model |
-| Navigation | React Navigation | 7 | Native stack and bottom tabs |
+| Navigation | React Navigation | 7.3.18 | Native stack and bottom tabs |
 | Animation | React Native Reanimated | 4.5.1 | Press feedback, transitions |
-| Authentication | Firebase Authentication | 12.19 | Email and password sign-in |
-| Database | Cloud Firestore | 12.19 | Listings, reviews, favourites, users |
+| Authentication | Firebase Authentication | 12.19.0 | Email and password sign-in |
+| Database | Cloud Firestore | 12.19.0 | Listings, reviews, favourites, users |
 | File storage | Cloudinary | — | Listing photographs, free tier, no card required |
 | Local storage | AsyncStorage | 2.2.0 | Offline cache, theme preference, signed-in session |
-| File reading | expo-file-system | 57 | Reads a photograph off the device for upload |
-| System chrome | expo-system-ui | 57 | Paints the native window behind React Native so transitions do not flash |
-| Location | expo-location | 57 | GPS position and live tracking |
-| Camera / gallery | expo-image-picker | 57 | Listing photographs |
-| Map rendering | Leaflet 1.9.4 in react-native-webview | 13.16 | Map, markers, route line |
+| File reading | expo-file-system | 57.0.7 | Reads a photograph off the device for upload |
+| System chrome | expo-system-ui | 57.0.4 | Paints the native window behind React Native so transitions do not flash |
+| Location | expo-location | 57.0.20 | GPS position and live tracking |
+| Camera / gallery | expo-image-picker | 57.0.20 | Listing photographs |
+| Map rendering | Leaflet 1.9.4 in react-native-webview | 13.16.1 | Map, markers, route line |
 | Map tiles | OpenStreetMap | — | Map imagery, no key required |
 | Routing | OSRM | — | Walking routes, no key required |
 | Typography | Plus Jakarta Sans, Inter | — | Loaded through expo-font |
@@ -289,6 +289,8 @@ POST https://api.cloudinary.com/v1_1/{cloud}/image/upload
       upload_preset={preset}
 ```
 
+The endpoint and its unsigned-upload form are documented by Cloudinary [10].
+
 The preset is *unsigned*, which is what lets the phone post directly without an
 API secret. Signing each upload instead would mean shipping that secret inside
 the application, where anyone can read it out; an unsigned preset exposes
@@ -312,6 +314,8 @@ GET https://router.project-osrm.org/route/v1/foot/
       ?overview=full&geometries=geojson&steps=true
 ```
 
+The routing service and its response format are documented by the OSRM project [9].
+
 No authentication. Note the coordinate order: OSRM expects **longitude first**,
 the reverse of how coordinates are usually written — a detail that cost time
 before it was found. The response supplies a GeoJSON line, a total distance and
@@ -324,6 +328,8 @@ screen reports that directions are unavailable rather than failing silently.
 https://tile.openstreetmap.org/{z}/{x}/{y}.png
 ```
 
+Tiles are served under the OpenStreetMap Tile Usage Policy [8], which the application observes: tiles are requested only as the map is panned, are cached by the web view, and carry the required attribution.
+
 CARTO's tiles were trialled for their dark variant and abandoned: they now
 require an API key, and the way they refuse is deceptive — the request returns
 HTTP 200 with a valid PNG that has "API KEY REQUIRED" printed across it. A
@@ -333,14 +339,14 @@ is instead produced by inverting the tile layer in CSS, which needs no key.
 ### Process Flow
 
 The architecture, the data flows and the data model each describe one facet of
-the system. Figure 6 puts them together as a single path: what happens from the
+the system. Figures 6 to 8 put them together as a single path: what happens from the
 moment the application is opened to the moment the tenant-seeker is walking to a
 boarding house with directions on screen.
 
-It is drawn across three pages so the labels stay readable at the size a page
-allows. The first covers opening the application, signing in, and reaching the
-point where location is available. The second covers fetching the listings,
-filtering and scoring them, and displaying the result. The third covers opening
+It is drawn across three figures so the labels stay readable at the size a page
+allows. Figure 6 covers opening the application, signing in, and reaching the
+point where location is available. Figure 7 covers fetching the listings,
+filtering and scoring them, and displaying the result. Figure 8 covers opening
 a listing and walking to it.
 
 Two branches are worth noting. If the device refuses location access the flow
@@ -348,11 +354,11 @@ does not stop; it explains why the distance is needed and continues without it.
 And if no listing is opened, the flow returns to the filters rather than to the
 start, so a search can be narrowed without being retyped.
 
-![Figure 6a. System Flowchart (part 1 of 3)](../diagrams/06-system-flowchart-a.svg)
+![Figure 6. System Flowchart (part 1 of 3)](../diagrams/06-system-flowchart-a.svg)
 
-![Figure 6b. System Flowchart (part 2 of 3)](../diagrams/06-system-flowchart-b.svg)
+![Figure 7. System Flowchart (part 2 of 3)](../diagrams/06-system-flowchart-b.svg)
 
-![Figure 6c. System Flowchart (part 3 of 3)](../diagrams/06-system-flowchart-c.svg)
+![Figure 8. System Flowchart (part 3 of 3)](../diagrams/06-system-flowchart-c.svg)
 
 ---
 

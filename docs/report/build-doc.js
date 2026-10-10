@@ -392,7 +392,9 @@ const title = [
   centre('LULU, JOHN REX P.'),
   centre('GALAGAR, AILYN MAY V.'),
   centre('LISBO, VINCE JOSUA C.', { after: 200 }),
-  centre('SEPTEMBER 2026', { bold: true }),
+  // October, matching the Release Date in Chapter 1. The cover said September
+  // while Chapter 1 said October, which is the first thing a reader checks.
+  centre('OCTOBER 2026', { bold: true }),
 ];
 
 // --- build -------------------------------------------------------------------
